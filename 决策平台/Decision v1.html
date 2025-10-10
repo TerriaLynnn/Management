@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策平台 - 流程进度可视化看板 (最终优化版)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- 核心UI优化：全新的色彩体系和更细腻的视觉元素 --- */
+        :root {
+            --primary: #007aff;
+            --success: #34c759;
+            --warning: #ff9500;
+            --danger: #ff3b30;
+            /* 为不同项目类型定义主题色 */
+            --sales-color: #007aff;
+            --rd-color: #ff3b30;
+            --manage-color: #5856d6;
+            --temporary-color: #34c759;
+            --business-color: #ff9500;
+
+            --light-bg: #f8f9fa;
+            --dark-text: #1d1d1f;
+            --gray-text: #6e6e73;
+            --border: #dcdfe6;
+            --card-bg: #ffffff;
+            --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏样式 */
+        .sidebar {
+            width: 240px;
+            background: var(--card-bg);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 20px 0;
+            z-index: 10;
+        }
+        
+        .logo {
+            padding: 0 25px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 20px;
+        }
+        
+        .logo h1 {
+            font-size: 20px;
+            color: var(--primary);
+            font-weight: 600;
+        }
+        
+        .nav-item {
+            padding: 14px 25px;
+            display: flex;
+            align-items: center;
+            color: var(--dark-text);
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(0, 122, 255, 0.08);
+            color: var(--primary);
+        }
+        
+        .nav-item.active {
+             border-right: 3px solid var(--primary);
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        /* 主内容区样式 */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-bar input {
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 300px;
+            transition: all 0.2s;
+        }
+        .search-bar input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+            outline: none;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        /* 卡片和指标样式 */
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .metric-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+        
+        .metric-title {
+            color: var(--gray-text);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .metric-change {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .up { color: var(--success); }
+        .down { color: var(--danger); }
+        
+        /* 图表和流程样式 */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+        }
+        .card:last-child {
+            margin-bottom: 0;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .filters { display: flex; gap: 10px; }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .filter-btn.active {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* 流程列表样式 */
+        .process-list { display: flex; flex-direction: column; gap: 20px; }
+        
+        .process-item {
+            padding: 25px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid #f0f0f0;
+        }
+        
+        .process-item:hover {
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07);
+            transform: translateY(-2px);
+            border-color: var(--border);
+        }
+        
+        .process-details { flex-grow: 1; }
+        .process-info { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;}
+        
+        .process-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .process-name { font-weight: 600; font-size: 18px; }
+
+        /* 标签样式 */
+        .process-tag {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .tag-business { background-color: rgba(255, 149, 0, 0.1); color: var(--business-color); }
+        .tag-sales { background-color: rgba(0, 122, 255, 0.1); color: var(--sales-color); }
+        .tag-rd { background-color: rgba(255, 59, 48, 0.1); color: var(--rd-color); }
+        .tag-management { background-color: rgba(88, 86, 214, 0.1); color: var(--manage-color); }
+        .tag-temporary { background-color: rgba(52, 199, 89, 0.1); color: var(--temporary-color); }
+
+        .process-meta { display: flex; justify-content: space-between; font-size: 15px; color: var(--gray-text); margin-bottom: 20px;}
+        .process-status { display: flex; align-items: center; font-weight: 500; font-size: 15px; text-align: right; white-space: nowrap;}
+        
+        .status-dot { width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; }
+        .status-completed { background-color: var(--success); }
+        .status-processing { background-color: var(--primary); }
+        .status-warning { background-color: var(--warning); }
+        .status-danger { background-color: var(--danger); }
+
+        /* 文字进度追踪器样式 */
+        .progress-tracker {
+            margin-top: 15px;
+            padding-top: 10px;
+        }
+        .steps-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+        }
+        .steps-container::before { 
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: var(--border);
+            z-index: 1;
+        }
+        .progress-line {
+            position: absolute;
+            top: 6px;
+            left: 0;
+            height: 2px;
+            z-index: 2;
+            transition: width 0.3s ease;
+        }
+        .progress-step {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            flex: 1;
+        }
+        .step-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            border: 2px solid var(--border);
+            margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+        .step-label {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--gray-text);
+        }
+        .progress-step.completed .step-label {
+            color: var(--dark-text);
+            font-weight: 500;
+        }
+        .progress-step.active .step-dot {
+            transform: scale(1.2);
+        }
+        .progress-step.active .step-label {
+            font-weight: 600;
+        }
+        .decision-tooltip { position: relative; cursor: help; }
+        .decision-tooltip .tooltip-text {
+            visibility: hidden; width: 160px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 6px; padding: 5px 10px; position: absolute; z-index: 10; bottom: 150%;
+            left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; font-size: 11px;
+        }
+        .decision-tooltip:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        /* 为不同项目类型进度条应用不同颜色 */
+        .process-item.sales .progress-line { background-color: var(--sales-color); }
+        .process-item.sales .progress-step.completed .step-dot { background-color: var(--sales-color); border-color: var(--sales-color); }
+        .process-item.sales .progress-step.active .step-dot { border-color: var(--sales-color); animation: breathing-sales 1.5s infinite; }
+        .process-item.sales .progress-step.active .step-label { color: var(--sales-color); }
+
+        .process-item.rd .progress-line { background-color: var(--rd-color); }
+        .process-item.rd .progress-step.completed .step-dot { background-color: var(--rd-color); border-color: var(--rd-color); }
+        .process-item.rd .progress-step.active .step-dot { border-color: var(--rd-color); animation: breathing-rd 1.5s infinite; }
+        .process-item.rd .progress-step.active .step-label { color: var(--rd-color); }
+
+        .process-item.management .progress-line { background-color: var(--manage-color); }
+        .process-item.management .progress-step.completed .step-dot { background-color: var(--manage-color); border-color: var(--manage-color); }
+        .process-item.management .progress-step.active .step-dot { border-color: var(--manage-color); animation: breathing-management 1.5s infinite; }
+        .process-item.management .progress-step.active .step-label { color: var(--manage-color); }
+        
+        .process-item.temporary .progress-line { background-color: var(--temporary-color); }
+        .process-item.temporary .progress-step.completed .step-dot { background-color: var(--temporary-color); border-color: var(--temporary-color); }
+        .process-item.temporary .progress-step.active .step-dot { border-color: var(--temporary-color); animation: breathing-temporary 1.5s infinite; }
+        .process-item.temporary .progress-step.active .step-label { color: var(--temporary-color); }
+
+        .process-item.business .progress-line { background-color: var(--business-color); }
+        .process-item.business .progress-step.completed .step-dot { background-color: var(--business-color); border-color: var(--business-color); }
+        .process-item.business .progress-step.active .step-dot { border-color: var(--business-color); animation: breathing-business 1.5s infinite; }
+        .process-item.business .progress-step.active .step-label { color: var(--business-color); }
+
+        /* 呼吸灯动画效果 */
+        @keyframes breathing-sales { 0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(0, 122, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); } }
+        @keyframes breathing-rd { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
+        @keyframes breathing-management { 0% { box-shadow: 0 0 0 0 rgba(88, 86, 214, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(88, 86, 214, 0); } 100% { box-shadow: 0 0 0 0 rgba(88, 86, 214, 0); } }
+        @keyframes breathing-temporary { 0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(52, 199, 89, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); } }
+        @keyframes breathing-business { 0% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0.4); } 70% { box-shadow: 0 0 0 8px rgba(255, 149, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 149, 0, 0); } }
+
+        /* 图表容器 */
+        .chart-container { height: 300px; position: relative; }
+        
+        /* 预警列表样式 */
+        .alert-list { display: flex; flex-direction: column; gap: 15px; }
+        .alert-item { display: flex; align-items: flex-start; padding: 15px; border-left: 4px solid; border-radius: 6px; background-color: var(--card-bg); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .alert-warning { border-left-color: var(--warning); }
+        .alert-danger { border-left-color: var(--danger); }
+        .alert-icon { margin-right: 15px; font-size: 20px; padding-top: 2px;}
+        .alert-warning .alert-icon { color: var(--warning); }
+        .alert-danger .alert-icon { color: var(--danger); }
+        .alert-content { flex: 1; }
+        .alert-title { font-weight: 600; margin-bottom: 4px; }
+        .alert-desc { font-size: 13px; color: var(--gray-text); }
+        
+        /* 响应式设计 */
+        @media (max-width: 1200px) { .metrics { grid-template-columns: repeat(2, 1fr); } .dashboard { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) { .container { flex-direction: column; } .sidebar { width: 100%; padding: 10px; } .metrics { grid-template-columns: 1fr; } .search-bar input { width: 150px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo"><h1>决策平台</h1></div>
+            <a href="#" class="nav-item active"><i class="fas fa-home"></i> 主页</a>
+            <a href="#" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+            <a href="#" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+            <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+            <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            <a href="#" class="nav-item"><i class="fas fa-cog"></i> 系统设置</a>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <div class="search-bar"><input type="text" placeholder="搜索决策流程或项目..."></div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <div class="user-avatar">Y</div>
+                        <span>袁立 (开发经理)</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metrics">
+                <div class="metric-card"><div class="metric-title">进行中决策</div><div class="metric-value">24</div><div class="metric-change up"><i class="fas fa-arrow-up"></i> 较上月增加 4</div></div>
+                <div class="metric-card"><div class="metric-title">本月完成决策</div><div class="metric-value">18</div><div class="metric-change up"><i class="fas fa-arrow-up"></i> 较上月增加 3</div></div>
+                <div class="metric-card"><div class="metric-title">平均决策时长</div><div class="metric-value">6.5天</div><div class="metric-change down"><i class="fas fa-arrow-down"></i> 较上月减少 1.2天</div></div>
+                <div class="metric-card"><div class="metric-title">决策通过率</div><div class="metric-value">87.5%</div><div class="metric-change up"><i class="fas fa-arrow-up"></i> 较上月提升 2.3%</div></div>
+            </div>
+            
+            <div class="dashboard">
+                <div>
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">决策进展一览</div><div class="filters"><button class="filter-btn active">全部</button><button class="filter-btn">经营决策</button><button class="filter-btn">项目决策</button></div></div>
+                        <div class="process-list">
+                           
+                           <a href="progress-v1.html?id=budget-2025" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><div class="process-item business">
+                                <div class="process-details">
+                                    <div class="process-info">
+                                        <div class="process-title-group">
+                                            <span class="process-name">2025年度全面预算评审</span>
+                                            <span class="process-tag tag-business">经营管理决策</span>
+                                        </div>
+                                        <div class="process-status"><span class="status-dot" style="background-color: var(--business-color);"></span><span>进行中</span></div>
+                                    </div>
+                                    <div class="process-meta"><span>模块负责人: 张三</span><span>创建于: 2025-09-02 09:30</span></div>
+                                    <div class="progress-tracker">
+                                        <div class="steps-container">
+                                            <div class="progress-line" style="width: 62.5%;"></div>
+                                            <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">SP评审</div></div>
+                                            <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">BP评审</div></div>
+                                            <div class="progress-step active"><div class="step-dot"></div><div class="step-label">评审</div></div>
+                                            <div class="progress-step"><div class="step-dot"></div><div class="step-label">组织绩效目标评审</div></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div></a>
+
+                           <a href="progress-v1.html?id=oled-purchase" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><div class="process-item sales">
+                               <div class="process-details">
+                                   <div class="process-info">
+                                       <div class="process-title-group">
+                                           <span class="process-name">OLED生产线采购项目</span>
+                                           <span class="process-tag tag-sales">销售订单类</span>
+                                        </div>
+                                       <div class="process-status"><span class="status-dot status-processing"></span><span>进行中</span></div>
+                                   </div>
+                                   <div class="process-meta"><span>项目经理: 张明</span><span>创建于: 2025-09-08 10:15</span></div>
+                                   <div class="progress-tracker">
+                                       <div class="steps-container">
+                                           <div class="progress-line" style="width: 37.5%;"></div>
+                                           <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">订单评审</div></div>
+                                           <div class="progress-step active"><div class="step-dot"></div><div class="step-label">计划评审</div></div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">出货决策</div></div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项决策</div></div>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div></a>
+
+                           <a href="progress-v1.html?id=new-display-tech" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><div class="process-item rd">
+                               <div class="process-details">
+                                   <div class="process-info">
+                                       <div class="process-title-group">
+                                           <span class="process-name">新一代显示技术研发</span>
+                                           <span class="process-tag tag-rd">研发立项类</span>
+                                        </div>
+                                       <div class="process-status"><span class="status-dot status-warning"></span><span>资料审核中</span></div>
+                                   </div>
+                                   <div class="process-meta"><span>项目经理: 李华</span><span>创建于: 2025-09-05 16:45</span></div>
+                                   <div class="progress-tracker">
+                                       <div class="steps-container">
+                                           <div class="progress-line" style="width: 30%;"></div>
+                                           <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">立项决策</div></div>
+                                           <div class="progress-step active decision-tooltip">
+                                                <div class="step-dot"></div>
+                                                <div class="step-label">计划决策 <i class="fas fa-info-circle fa-xs"></i></div>
+                                                <span class="tooltip-text">PAC决策点: 继续或终止/转向</span>
+                                            </div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">早期销售</div></div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">产品发布</div></div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项决策</div></div>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div></a>
+                           
+                           <a href="progress-v1.html?id=itr-online" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><div class="process-item management">
+                               <div class="process-details">
+                                   <div class="process-info">
+                                       <div class="process-title-group">
+                                           <span class="process-name">ITR全流程线上化项目</span>
+                                           <span class="process-tag tag-management">管理类项目</span>
+                                        </div>
+                                       <div class="process-status"><span class="status-dot status-processing"></span><span>进行中</span></div>
+                                   </div>
+                                   <div class="process-meta"><span>项目经理: 李四</span><span>创建于: 2025-09-09 11:00</span></div>
+                                   <div class="progress-tracker">
+                                       <div class="steps-container">
+                                           <div class="progress-line" style="width: 25%;"></div>
+                                           <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div></a>
+
+                           <a href="progress-v1.html?id=supply-chain-emergency" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><div class="process-item temporary">
+                               <div class="process-details">
+                                   <div class="process-info">
+                                        <div class="process-title-group">
+                                           <span class="process-name">供应链紧急调整方案</span>
+                                           <span class="process-tag tag-temporary">临时决策评审</span>
+                                        </div>
+                                       <div class="process-status"><span class="status-dot status-danger"></span><span>已超期</span></div>
+                                   </div>
+                                   <div class="process-meta"><span>项目经理: 王五</span><span>创建于: 2025-09-07 15:20</span></div>
+                                   <div class="progress-tracker">
+                                       <div class="steps-container">
+                                           <div class="progress-line" style="width: 100%;"></div>
+                                           <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                           <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
+                                       </div>
+                                   </div>
+                               </div>
+                           </div></a>
+
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">决策类型分布</div></div>
+                        <div class="chart-container" style="height:250px"><canvas id="decisionTypeChart"></canvas></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">风险预警</div></div>
+                        <div class="alert-list">
+                            <div class="alert-item alert-danger"><div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div><div class="alert-content"><div class="alert-title">供应链紧急调整方案已超期</div><div class="alert-desc">该决策流程已超过预定完成时间2天，请尽快处理</div></div></div>
+                            <div class="alert-item alert-warning"><div class="alert-icon"><i class="fas fa-clock"></i></div><div class="alert-content"><div class="alert-title">OLED生产线采购项目即将到期</div><div class="alert-desc">该决策流程剩余时间不足3天，请关注</div></div></div>
+                            <div class="alert-item alert-warning"><div class="alert-icon"><i class="fas fa-file-signature"></i></div><div class="alert-content"><div class="alert-title">新一代显示技术研发资料不全</div><div class="alert-desc">缺少技术可行性分析报告，请补充</div></div></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header"><div class="card-title">决策效率趋势</div></div>
+                        <div class="chart-container"><canvas id="efficiencyChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新了图表颜色以匹配新的UI主题
+        const typeCtx = document.getElementById('decisionTypeChart').getContext('2d');
+        const typeChart = new Chart(typeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['经营管理', '销售订单', '研发立项', '管理类', '临时决策'],
+                datasets: [{
+                    data: [20, 25, 25, 15, 15],
+                    backgroundColor: ['#ff9500', '#007aff', '#ff3b30', '#5856d6', '#34c759'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+        
+        const effCtx = document.getElementById('efficiencyChart').getContext('2d');
+        const effChart = new Chart(effCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                datasets: [{
+                    label: '平均决策时长(天)',
+                    data: [8.2, 7.8, 7.5, 7.3, 7.1, 6.8, 6.5],
+                    borderColor: 'var(--primary)',
+                    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: false, min: 5, title: { display: true, text: '天数' } } }
+            }
+        });
+    </script>
+</body>
+</html>
