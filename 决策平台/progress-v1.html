@@ -237,14 +237,13 @@
         .timeline {
             position: relative;
             padding: 1rem 0;
-            margin-top: 2rem;
         }
 
         .timeline::before {
             content: '';
             position: absolute;
             left: 12px;
-            top: 0;
+            top: 10px;
             bottom: 0;
             width: 2px;
             background-color: var(--border);
@@ -253,7 +252,7 @@
         .timeline-item {
             position: relative;
             padding-left: 3rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .timeline-dot {
@@ -285,7 +284,7 @@
 
         .timeline-content {
             background-color: var(--light-bg);
-            padding: 1rem;
+            padding: 0.75rem 1rem;
             border-radius: 8px;
             border: 1px solid var(--border);
         }
@@ -293,19 +292,157 @@
         .timeline-title {
             font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .timeline-meta {
             font-size: 0.85rem;
             color: var(--gray-text);
-            margin-bottom: 1rem;
-        }
-
-        .timeline-body p {
             margin-bottom: 0.5rem;
         }
 
+        /* 移除之前删除的 timeline-body 样式 */
+        .timeline-body p {
+            font-size: 0.9rem;
+            color: var(--dark-text);
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- 新增：用于左右布局的容器 --- */
+        .info-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 两列等宽 */
+            gap: 24px;
+            align-items: start;
+        }
+
+        /* --- 新增：表单专用样式 --- */
+        .decision-form {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .form-row {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        .form-row:last-child {
+            border-bottom: none;
+        }
+
+        .form-label {
+            width: 120px;
+            background-color: #f7f7f7;
+            padding: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0; /* 防止标签被压缩 */
+        }
+
+        .form-content {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap; /* 允许内容换行 */
+            align-items: center;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            flex: 1 1 200px; /* 响应式布局基础 */
+        }
+        
+        .form-group label {
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            resize: vertical; /* 允许垂直调整大小 */
+        }
+        
+        /* 自定义 Radio Button 样式 */
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+        .radio-group input[type="radio"] {
+            display: none;
+        }
+        .radio-group input[type="radio"] + span {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            margin-right: 8px;
+            position: relative;
+        }
+        .radio-group input[type="radio"]:checked + span::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            border-radius: 50%;
+        }
+
+        /* 自定义文件上传按钮 */
+        .upload-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .upload-btn {
+            padding: 8px 16px;
+            background-color: #f0f0f0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .upload-btn:hover {
+            background-color: #e9e9e9;
+        }
+        .upload-btn i {
+            margin-right: 8px;
+        }
+        .upload-file-name {
+            color: var(--gray-text);
+            font-size: 14px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+
+        .signature-area {
+            margin-left: auto; /* 推动到右侧 */
+            flex-grow: 0 !important; /* 防止它占据过多空间 */
+            width: 300px;
+        }
     </style>
 </head>
 <body>
@@ -336,82 +473,200 @@
                 <span class="process-tag tag-business">经营管理决策</span>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">基本信息</h3>
+            <div class="info-dashboard">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">基本信息</h3>
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="label">模块负责人</div>
+                            <div class="value">张三</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">创建时间</div>
+                            <div class="value">2025-09-02 09:30</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">当前状态</div>
+                            <div class="value" style="color: var(--primary);">进行中</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="label">当前节点</div>
+                            <div class="value">评审</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="label">模块负责人</div>
-                        <div class="value">张三</div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">流程详情</h3>
                     </div>
-                    <div class="info-item">
-                        <div class="label">创建时间</div>
-                        <div class="value">2025-09-02 09:30</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="label">当前状态</div>
-                        <div class="value" style="color: var(--primary);">进行中</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="label">当前节点</div>
-                        <div class="value">评审</div>
+                    <div class="timeline">
+                        <div class="timeline-item completed">
+                            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                            <div class="timeline-content">
+                                <h4 class="timeline-title">SP评审</h4>
+                                <div class="timeline-meta">完成于: 2025-09-10 14:00</div>
+                                <div class="timeline-body">
+                                    <p><strong>意见:</strong> 同意，目标明确。</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item completed">
+                            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                            <div class="timeline-content">
+                                <h4 class="timeline-title">BP评审</h4>
+                                <div class="timeline-meta">完成于: 2025-09-15 11:30</div>
+                                <div class="timeline-body">
+                                    <p><strong>意见:</strong> 预算合理，计划可行。</p>
+                                    <p><strong>参与人:</strong> 赵六, 孙七</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item active">
+                            <div class="timeline-dot">3</div>
+                            <div class="timeline-content">
+                                <h4 class="timeline-title">最终评审</h4>
+                                <div class="timeline-meta">进行中...</div>
+                                <div class="timeline-body">
+                                    <p><strong>待办人:</strong> 周八 (管理层)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot">4</div>
+                            <div class="timeline-content">
+                                <h4 class="timeline-title">组织绩效目标评审</h4>
+                                <div class="timeline-meta">待开始</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-
+            
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">流程详情</h3>
+                <div class="card-header" style="justify-content: center;">
+                    <h3 class="card-title">PAC决策申请</h3>
                 </div>
-                <div class="timeline">
-                    <div class="timeline-item completed">
-                        <div class="timeline-dot"><i class="fas fa-check"></i></div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">SP评审</h4>
-                            <div class="timeline-meta">完成于: 2025-09-10 14:00</div>
-                            <div class="timeline-body">
-                                <p><strong>评审意见:</strong> 同意，SP目标明确，符合公司战略方向。</p>
-                                <p><strong>参与人员:</strong> 李四, 王五</p>
+
+                <form class="decision-form">
+                    <div class="form-row">
+                        <div class="form-label">申请人</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="applicant" value="张三" readonly>
+                            </div>
+                        </div>
+                         <div class="form-label">申请部门</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="department" value="研发部" readonly>
                             </div>
                         </div>
                     </div>
-                    <div class="timeline-item completed">
-                        <div class="timeline-dot"><i class="fas fa-check"></i></div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">BP评审</h4>
-                            <div class="timeline-meta">完成于: 2025-09-15 11:30</div>
-                            <div class="timeline-body">
-                                <p><strong>评审意见:</strong> 同意，商业计划可行，预算合理。</p>
-                                <p><strong>参与人员:</strong> 赵六, 孙七</p>
+
+                    <div class="form-row">
+                        <div class="form-label">项目编号</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="project-no" value="RD-2025-001" readonly>
+                            </div>
+                        </div>
+                         <div class="form-label">申请日期</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="apply-date" value="2025-09-02" readonly>
                             </div>
                         </div>
                     </div>
-                    <div class="timeline-item active">
-                        <div class="timeline-dot">3</div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">评审</h4>
-                            <div class="timeline-meta">进行中...</div>
-                            <div class="timeline-body">
-                                <p>正在等待管理层最终评审。</p>
-                                <p><strong>待办人员:</strong> 周八</p>
+                    
+                    <div class="form-row">
+                        <div class="form-label">决策类别</div>
+                        <div class="form-content radio-group">
+                            <label><input type="radio" name="decision-type" value="business" checked disabled><span></span>经营决策</label>
+                            <label><input type="radio" name="decision-type" value="project" disabled><span></span>项目决策</label>
+                            <label><input type="radio" name="decision-type" value="temporary" disabled><span></span>临时性决策</label>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-label">需求描述</div>
+                        <div class="form-content">
+                            <textarea id="description" readonly>对2025年度的公司战略、业务计划及财务预算进行全面评审，确保资源有效分配，支撑战略目标达成。</textarea>
+                            <div class="upload-area">
+                                <label for="file-upload-desc" class="upload-btn"><i class="fas fa-paperclip"></i>查看附件</label>
+                                <input type="file" id="file-upload-desc" disabled>
+                                <span class="upload-file-name" id="file-name-desc">2025年度预算报告.pdf</span>
                             </div>
                         </div>
                     </div>
-                    <div class="timeline-item">
-                        <div class="timeline-dot">4</div>
-                        <div class="timeline-content">
-                            <h4 class="timeline-title">组织绩效目标评审</h4>
-                            <div class="timeline-meta">未开始</div>
+
+                    <div class="form-row">
+                        <div class="form-label">资料初审</div>
+                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
+                            <div class="radio-group" style="margin-bottom: 15px;">
+                                <label><input type="radio" name="initial-review" value="pass" checked disabled><span></span>符合，建议评审</label>
+                                <label><input type="radio" name="initial-review" value="fail" disabled><span></span>不符合</label>
+                            </div>
+                            <textarea id="initial-review-comment" placeholder="意见..." readonly>资料齐全，符合公司年度预算评审要求。</textarea>
+                             <div class="form-group" style="width:100%; margin-top: 15px;">
+                                <label>预计评审/研讨日期:</label>
+                                <input type="text" value="2025-09-10" readonly style="max-width: 200px;">
+                                <div class="form-group signature-area">
+                                    <label>签名/日期:</label>
+                                    <input type="text" value="李四 / 2025-09-05" readonly>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    
+                    <div class="form-row">
+                        <div class="form-label">评审结果</div>
+                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
+                             <div class="upload-area" style="margin-bottom: 15px;">
+                                <label for="file-upload-result" class="upload-btn"><i class="fas fa-paperclip"></i>附件上传</label>
+                                <input type="file" id="file-upload-result">
+                                <span class="upload-file-name" id="file-name-result"></span>
+                            </div>
+                            <textarea id="result-comment" placeholder="请填写评审意见..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-label">申请人确认</div>
+                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
+                            <textarea id="applicant-confirm-comment" placeholder="请填写确认意见..."></textarea>
+                            <div class="form-group signature-area" style="width:100%; margin-top: 15px;">
+                                <label>签名/日期:</label>
+                                <input type="text" value="">
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
 
         </div>
     </div>
 
     <script>
+        // JS 逻辑用于显示上传的文件名
+        function handleFileUpload(inputId, nameId) {
+            const fileInput = document.getElementById(inputId);
+            const fileNameSpan = document.getElementById(nameId);
+            if (fileInput) {
+                fileInput.addEventListener('change', function() {
+                    if (this.files.length > 0) {
+                        fileNameSpan.textContent = this.files[0].name;
+                    } else {
+                        fileNameSpan.textContent = '';
+                    }
+                });
+            }
+        }
+        
+        // 绑定事件到可用的文件上传按钮
+        handleFileUpload('file-upload-result', 'file-name-result');
+
         // 可以在这里添加JS逻辑来动态获取URL参数并加载对应的数据
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
