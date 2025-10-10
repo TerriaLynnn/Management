@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单&收入&回款方案</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a192f;
+            color: #e6f1ff;
+        }
+        .dashboard-header {
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 194, 255, 0.2);
+        }
+        .details-card {
+            background: rgba(17, 34, 64, 0.75);
+            border: 1px solid rgba(0, 194, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 194, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+        .data-table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .data-table thead { background-color: rgba(10, 25, 47, 0.8); }
+        .data-table th, .data-table td {
+            padding: 12px 10px;
+            text-align: center;
+            word-wrap: break-word;
+            vertical-align: middle; /* 保持垂直居中 */
+        }
+        /* 斑马条纹 */
+        .data-table tbody tr:nth-child(odd) {
+            background-color: rgba(30, 41, 59, 0.3);
+        }
+        .data-table tbody tr {
+             border-bottom: 1px solid rgb(55 65 81); /* slate-700 */
+        }
+        .data-table tbody tr:hover {
+            background-color: rgb(51 65 85); /* slate-700, a bit lighter */
+        }
+        .type-card {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 6px;
+            color: #fff;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        /* 风险/状态标签 */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            line-height: 1;
+            border: 1px solid transparent;
+        }
+        .status-badge.green { background-color: rgba(45, 212, 191, 0.2); border-color: rgba(45, 212, 191, 0.5); color: #2dd4bf; } /* Teal */
+        .status-badge.blue { background-color: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.5); color: #a78bfa; } /* Violet */
+        .status-badge.orange { background-color: rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.5); color: #facc15; } /* Amber/Yellow */
+        .status-badge.red { background-color: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.5); color: #f87171; }
+        
+        /* 优化长文本列的对齐方式 */
+        .data-table .text-left-col { text-align: left; }
+        /* 名片样式 */
+        .name-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1; /* slate-300 */
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .rate-progress-bg {
+            background-color: #374151; /* slate-700 */
+            border-radius: 9999px;
+            height: 18px;
+            overflow: hidden;
+        }
+        .rate-progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 0.75rem; /* 12px */
+            color: white;
+            font-size: 0.75rem; /* 12px */
+            font-weight: 600;
+            transition: width 0.5s ease-in-out;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #94a3b8;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-btn:hover {
+            color: #e2e8f0;
+        }
+        .tab-btn.active-tab {
+            color: #00c2ff;
+            border-bottom-color: #00c2ff;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="dashboard-header sticky top-0 z-50" style="display: none;">
+        <div class="w-full px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <span class="font-bold text-xl tracking-wider text-slate-200">订单&收入&回款方案</span>
+            </div>
+            <div id="current-time" class="text-sm text-slate-400"></div>
+        </div>
+    </header>
+
+    <main class="w-full px-6 sm:px-8 lg:px-12 py-8">
+        <section class="details-card">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex flex-col items-center">
+                    <div id="order-chart" style="width: 100%; height: 180px;"></div>
+                    <h3 class="text-lg font-semibold text-slate-300">订单</h3>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div id="income-chart" style="width: 100%; height: 180px;"></div>
+                    <h3 class="text-lg font-semibold text-slate-300">收入</h3>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div id="payment-chart" style="width: 100%; height: 180px;"></div>
+                    <h3 class="text-lg font-semibold text-slate-300">回款</h3>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-700">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-8">
+                    <div>
+                        
+                        <div class="space-y-4">
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">月度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                    <div class="rate-progress-fill" style="width: 62.0%; background-image: linear-gradient(to right, #38bdf8, #0ea5e9);">62.0%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">年度目标:</span> <span class="font-semibold">19.02</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">13.02</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">季度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                     <div class="rate-progress-fill" style="width: 55.3%; background-image: linear-gradient(to right, #4ade80, #22c55e);">55.3%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">年度目标:</span> <span class="font-semibold">18.00</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">11.70</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">年度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                    <div class="rate-progress-fill" style="width: 40.0%; background-image: linear-gradient(to right, #fbbf24, #f97316);">40.0%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">年度目标:</span> <span class="font-semibold">18.00</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">9.00</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        
+                        <div class="space-y-4">
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">月度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                    <div class="rate-progress-fill" style="width: 36.8%; background-image: linear-gradient(to right, #38bdf8, #0ea5e9);">36.8%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">季度预测:</span> <span class="font-semibold">4.75</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">1.75</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">季度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                     <div class="rate-progress-fill" style="width: 35.1%; background-image: linear-gradient(to right, #4ade80, #22c55e);">35.1%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">季度预测:</span> <span class="font-semibold">4.50</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">1.58</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">年度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                    <div class="rate-progress-fill" style="width: 25.1%; background-image: linear-gradient(to right, #fbbf24, #f97316);">25.1%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">季度预测:</span> <span class="font-semibold">4.50</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">1.13</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        
+                        <div class="space-y-4">
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">月度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                    <div class="rate-progress-fill" style="width: 62.0%; background-image: linear-gradient(to right, #38bdf8, #0ea5e9);">62.0%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">月度目标:</span> <span class="font-semibold">1.58</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">0.98</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">季度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                     <div class="rate-progress-fill" style="width: 55.3%; background-image: linear-gradient(to right, #4ade80, #22c55e);">55.3%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">月度目标:</span> <span class="font-semibold">1.50</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">0.83</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                            <div class="relative group flex items-center gap-x-3">
+                                <span class="text-sm text-slate-400 w-20 text-right flex-shrink-0">年度达成</span>
+                                <div class="rate-progress-bg flex-grow">
+                                    <div class="rate-progress-fill" style="width: 40.0%; background-image: linear-gradient(to right, #fbbf24, #f97316);">40.0%</div>
+                                </div>
+                                <div class="absolute left-16 -top-12 w-40 px-3 py-2 text-sm text-white bg-slate-900/80 backdrop-blur-sm border border-slate-700 rounded-md shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                    <div class="flex justify-between"><span class="text-slate-400">月度目标:</span> <span class="font-semibold">1.50</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-400">实际达成:</span> <span class="font-semibold text-green-400">0.60</span></div>
+                                    <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-8 border-x-transparent border-t-8 border-t-slate-700"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto" style="display: none;">
+                    <table class="data-table text-sm">
+                        <thead class="text-sm text-slate-300 uppercase">
+                            <tr>
+                                <th class="px-4 py-3">类型</th>
+                                <th class="px-4 py-3">年度目标</th>
+                                <th class="px-4 py-3">实际达成</th>
+                                <th class="px-4 py-3">季度预测目标</th>
+                                <th class="px-4 py-3">实际达成</th>
+                                <th class="px-4 py-3">月度目标</th>
+                                <th class="px-4 py-3">实际达成</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-slate-300">
+                            <tr>
+                                <td class="px-4 py-3 font-semibold">
+                                    <span class="type-card" style="background-color: #0ea5e9;">订单</span>
+                                </td>
+                                <td class="px-4 py-3">19.02</td>
+                                <td class="px-4 py-3 text-green-400">13.02</td>
+                                <td class="px-4 py-3">4.75</td>
+                                <td class="px-4 py-3 text-green-400">1.75</td>
+                                <td class="px-4 py-3">1.58</td>
+                                <td class="px-4 py-3 text-green-400">0.98</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-semibold">
+                                    <span class="type-card" style="background-color: #22c55e;">收入</span>
+                                </td>
+                                <td class="px-4 py-3">18.00</td>
+                                <td class="px-4 py-3 text-green-400">11.70</td>
+                                <td class="px-4 py-3">4.50</td>
+                                <td class="px-4 py-3 text-green-400">1.58</td>
+                                <td class="px-4 py-3">1.50</td>
+                                <td class="px-4 py-3 text-green-400">0.83</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 font-semibold">
+                                    <span class="type-card" style="background-color: #f97316;">回款</span>
+                                </td>
+                                <td class="px-4 py-3">18.00</td>
+                                <td class="px-4 py-3 text-green-400">9.00</td>
+                                <td class="px-4 py-3">4.50</td>
+                                <td class="px-4 py-3 text-green-400">1.13</td>
+                                <td class="px-4 py-3">1.50</td>
+                                <td class="px-4 py-3 text-green-400">0.60</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            
+            <div class="mt-8 pt-6 border-t border-slate-700">
+                    <div class="flex border-b border-slate-700 mb-6">
+                        <button class="tab-btn active-tab" data-tab="order">订单</button>
+                        <button class="tab-btn" data-tab="income">收入</button>
+                        <button class="tab-btn" data-tab="payment">回款</button>
+                    </div>
+
+                    <div id="order-content" class="tab-content">
+                        <h4 class="text-base font-bold text-slate-200 mb-4">重点商机</h4>
+                        <div class="overflow-x-auto">
+                        <table class="data-table opportunity-table w-full text-sm table-fixed">
+                            <thead class="text-sm text-slate-300 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 whitespace-nowrap">项目号</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">项目名称</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">需求数量</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">拿单把握</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">预计下单时间</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">预计交期</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">跟单人</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">铁三角区域负责人</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-300">
+                                <tr>
+                                    <td class="px-4 py-3">2406ACAHB2470</td>
+                                    <td class="px-4 py-3 text-left-col">云谷V2-固安-屏体部-ACA设备新PG Demo-1</td>
+                                    <td class="px-4 py-3">1</td>
+                                    <td class="px-4 py-3">50%</td>
+                                    <td class="px-4 py-3">2025/12/30</td>
+                                    <td class="px-4 py-3">2026/4/28</td>
+                                    <td class="px-4 py-3"><span class="name-card">程兵</span></td>
+                                    <td class="px-4 py-3">一部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2503ACAHD1471</td>
+                                    <td class="px-4 py-3 text-left-col">国显V5-合肥-屏体检测中心-中板AGING-1</td>
+                                    <td class="px-4 py-3">1</td>
+                                    <td class="px-4 py-3">50%</td>
+                                    <td class="px-4 py-3">2025/12/30</td>
+                                    <td class="px-4 py-3">2026/11/30</td>
+                                    <td class="px-4 py-3"><span class="name-card">王旭</span></td>
+                                    <td class="px-4 py-3">一部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2503ACAHD1469</td>
+                                    <td class="px-4 py-3 text-left-col">国显V5-合肥-屏体检测中心-ACA-13</td>
+                                    <td class="px-4 py-3">13</td>
+                                    <td class="px-4 py-3">50%</td>
+                                    <td class="px-4 py-3">2025/12/30</td>
+                                    <td class="px-4 py-3">2026/11/30</td>
+                                    <td class="px-4 py-3"><span class="name-card">王旭</span></td>
+                                    <td class="px-4 py-3">一部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2508ACAXN4196</td>
+                                    <td class="px-4 py-3 text-left-col">辰显成都-工程-cell aging-1</td>
+                                    <td class="px-4 py-3">1</td>
+                                    <td class="px-4 py-3"><span class="status-badge green">80%</span></td>
+                                    <td class="px-4 py-3">2025/11/25</td>
+                                    <td class="px-4 py-3">2026/3/25</td>
+                                    <td class="px-4 py-3"><span class="name-card">朱昌琦</span></td>
+                                    <td class="px-4 py-3">三部战区</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                    <div id="income-content" class="tab-content" style="display: none;">
+                        <h4 class="text-base font-bold text-slate-200 mb-4">结项风险项目预警</h4>
+                        <div class="overflow-x-auto">
+                        <table class="data-table opportunity-table w-full text-sm table-fixed">
+                            <thead class="text-sm text-slate-300 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 whitespace-nowrap">项目号</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">项目名称</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">风险类型</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">风险描述</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">责任人</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">跟单人</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">铁三角区域负责人</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-300">
+                                <tr>
+                                    <td class="px-4 py-3">2502APIXN0477</td>
+                                    <td class="px-4 py-3 text-left-col">京东方B12-重庆-EAC-四期中大尺寸AVI-3</td>
+                                    <td class="px-4 py-3"><span class="status-badge blue">商务原因</span></td>
+                                    <td class="px-4 py-3 text-left-col">9/3最后一台吊装完成，setup中</td>
+                                    <td class="px-4 py-3">孟伟</td>
+                                    <td class="px-4 py-3"><span class="name-card">吴迪</span></td>
+                                    <td class="px-4 py-3">一部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2502DDEHD0659</td>
+                                    <td class="px-4 py-3 text-left-col">京东方B5-合肥-QA-信号机-90</td>
+                                    <td class="px-4 py-3"><span class="status-badge orange">合同问题</span></td>
+                                    <td class="px-4 py-3 text-left-col">缺合同</td>
+                                    <td class="px-4 py-3">孟伟</td>
+                                    <td class="px-4 py-3"><span class="name-card">张举</span></td>
+                                    <td class="px-4 py-3">一部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2503APIHD1474</td>
+                                    <td class="px-4 py-3 text-left-col">京东方B5合肥-后工程-FI AOI大相机升级-13</td>
+                                    <td class="px-4 py-3"><span class="status-badge orange">合同问题</span></td>
+                                    <td class="px-4 py-3 text-left-col">待双签合同和PO，开票备注PO（预计签核一周）</td>
+                                    <td class="px-4 py-3">孟伟</td>
+                                    <td class="px-4 py-3"><span class="name-card">张举</span></td>
+                                    <td class="px-4 py-3">一部战区</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                    <div id="payment-content" class="tab-content" style="display: none;">
+                        <h4 class="text-base font-bold text-slate-200 mb-4">回款风险项目预警</h4>
+                        <div class="overflow-x-auto">
+                        <table class="data-table opportunity-table w-full text-sm table-fixed">
+                            <thead class="text-sm text-slate-300 uppercase">
+                                <tr>
+                                    <th class="px-4 py-3 whitespace-nowrap">项目号</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">项目名称</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">款项说明</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">风险类型</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">风险描述</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">跟单人</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">铁三角区域负责人</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-300">
+                                <tr>
+                                    <td class="px-4 py-3">2403APIXN1089</td>
+                                    <td class="px-4 py-3 text-left-col">鸿富锦精密-成都-AOI-测试-2</td>
+                                    <td class="px-4 py-3"><span class="status-badge blue">货到款</span></td>
+                                    <td class="px-4 py-3">商务</td>
+                                    <td class="px-4 py-3 text-left-col"></td>
+                                    <td class="px-4 py-3"><span class="name-card">董峰</span></td>
+                                    <td class="px-4 py-3">三部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2403APIXB1001</td>
+                                    <td class="px-4 py-3 text-left-col">咸阳彩虹-咸阳-API-OC三部-2</td>
+                                    <td class="px-4 py-3"><span class="status-badge orange">验收款</span></td>
+                                    <td class="px-4 py-3">技术</td>
+                                    <td class="px-4 py-3 text-left-col">1 台瑕疵、2台点缺</td>
+                                    <td class="px-4 py-3"><span class="name-card">宋瑞兆</span></td>
+                                    <td class="px-4 py-3">二部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2403AIRXN0907</td>
+                                    <td class="px-4 py-3 text-left-col">惠科H4-绵阳-AI-模组-4</td>
+                                    <td class="px-4 py-3"><span class="status-badge orange">验收款</span></td>
+                                    <td class="px-4 py-3">技术</td>
+                                    <td class="px-4 py-3 text-left-col"></td>
+                                    <td class="px-4 py-3"><span class="name-card">曾涛</span></td>
+                                    <td class="px-4 py-3">二部战区</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3">2403AIRHZ1052</td>
+                                    <td class="px-4 py-3 text-left-col">华星T5-武汉-端子AOI智能检测-模组-1</td>
+                                    <td class="px-4 py-3"><span class="status-badge orange">验收款</span></td>
+                                    <td class="px-4 py-3">技术</td>
+                                    <td class="px-4 py-3 text-left-col"></td>
+                                    <td class="px-4 py-3"><span class="name-card">黎维</span></td>
+                                    <td class="px-4 py-3">一部战区</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMonthlyGoalCharts();
+            initializeTabs();
+            
+            const timeEl = document.getElementById('current-time');
+            function updateCurrentTime() {
+                if (!timeEl) return;
+                timeEl.textContent = new Date().toLocaleString('zh-CN', { hour12: false });
+            }
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+        });
+
+        function initializeMonthlyGoalCharts() {
+            const orderChartDom = document.getElementById('order-chart');
+            const incomeChartDom = document.getElementById('income-chart');
+            const paymentChartDom = document.getElementById('payment-chart');
+
+            if(!orderChartDom || !incomeChartDom || !paymentChartDom) return;
+
+            const orderChart = echarts.init(orderChartDom);
+            const incomeChart = echarts.init(incomeChartDom);
+            const paymentChart = echarts.init(paymentChartDom);
+
+            // This function is now corrected
+            const createChartOption = (title, percentage, color) => {
+                return {
+                    title: {
+                        text: percentage + '%',
+                        left: 'center',
+                        top: 'center',
+                        textStyle: {
+                            color: color,
+                            fontSize: 28,
+                            fontWeight: 'bold',
+                            fontFamily: 'Noto Sans SC, sans-serif'
+                        }
+                    },
+                    series: [
+                        {
+                            name: title,
+                            type: 'pie',
+                            radius: ['80%', '95%'],
+                            avoidLabelOverlap: false,
+                            label: { show: false },
+                            emphasis: { scale: false },
+                            labelLine: { show: false },
+                            data: [
+                                {
+                                    value: percentage,
+                                    name: '达成',
+                                    itemStyle: {
+                                        color: color,
+                                        borderRadius: 10
+                                    }
+                                },
+                                {
+                                    value: 100 - percentage,
+                                    name: '未达成',
+                                    itemStyle: {
+                                        color: 'rgba(55, 65, 81, 0.5)', // slate-700 with opacity
+                                        borderRadius: 10
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                };
+            };
+            
+            orderChart.setOption(createChartOption('订单', 62.0, '#0ea5e9'));
+            incomeChart.setOption(createChartOption('收入', 55.3, '#22c55e'));
+            paymentChart.setOption(createChartOption('回款', 40.0, '#f97316'));
+
+            window.addEventListener('resize', () => {
+                orderChart.resize();
+                incomeChart.resize();
+                paymentChart.resize();
+            });
+        }
+
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active-tab'));
+                    button.classList.add('active-tab');
+
+                    const tab = button.dataset.tab;
+                    tabContents.forEach(content => {
+                        if (content.id === `${tab}-content`) {
+                            content.style.display = 'block';
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>
