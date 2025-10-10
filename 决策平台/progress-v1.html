@@ -153,27 +153,6 @@
             font-weight: bold;
         }
         
-        /* 按钮样式 */
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.2s;
-        }
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
         .card {
             background: var(--card-bg);
             border-radius: 8px;
@@ -234,31 +213,56 @@
             color: var(--dark-text);
         }
 
+        /* --- 布局修改：横向时间轴样式 --- */
         .timeline {
             position: relative;
-            padding: 1rem 0;
+            display: flex;
+            justify-content: space-around;
+            padding-top: 20px;
+            margin-top: 1rem;
         }
 
         .timeline::before {
             content: '';
             position: absolute;
-            left: 12px;
-            top: 10px;
-            bottom: 0;
-            width: 2px;
+            top: 101px; /* 调整连接线位置以适应上方信息区 */
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 2px;
             background-color: var(--border);
+            z-index: 1;
         }
 
         .timeline-item {
             position: relative;
-            padding-left: 3rem;
-            margin-bottom: 1rem;
+            flex: 1;
+            text-align: center;
+            padding: 0 10px;
+            display: flex; /* 使用flex进行内部对齐 */
+            flex-direction: column; /* 垂直排列 */
+            align-items: center; /* 水平居中 */
         }
 
+        /* --- 新增：节点上方信息区样式 --- */
+        .timeline-top-info {
+            height: 70px; /* 固定高度，防止内容变化导致跳动 */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* 内容底部对齐 */
+            margin-bottom: 10px; /* 与节点圆点间距 */
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        .timeline-top-info .participants {
+            font-weight: 500;
+            color: var(--dark-text);
+        }
+        /* --- 新增样式结束 --- */
+
         .timeline-dot {
-            position: absolute;
-            left: 0;
-            top: 0.25rem;
+            position: relative;
+            z-index: 2;
             width: 24px;
             height: 24px;
             border-radius: 50%;
@@ -268,6 +272,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            flex-shrink: 0; /* 防止圆点被压缩 */
         }
 
         .timeline-item.completed .timeline-dot {
@@ -283,40 +288,32 @@
         }
 
         .timeline-content {
+            margin-top: 10px; /* 与节点圆点间距 */
             background-color: var(--light-bg);
-            padding: 0.75rem 1rem;
+            padding: 1rem;
             border-radius: 8px;
             border: 1px solid var(--border);
+            text-align: left;
+            width: 100%;
         }
 
         .timeline-title {
             font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
         }
-
+        
+        /* 移除timeline-meta，因为信息已移到上方 */
         .timeline-meta {
-            font-size: 0.85rem;
-            color: var(--gray-text);
-            margin-bottom: 0.5rem;
+           display: none;
         }
 
-        /* 移除之前删除的 timeline-body 样式 */
         .timeline-body p {
-            font-size: 0.9rem;
-            color: var(--dark-text);
             margin-bottom: 0.5rem;
         }
+        /* --- 布局修改结束 --- */
 
-        /* --- 新增：用于左右布局的容器 --- */
-        .info-dashboard {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* 两列等宽 */
-            gap: 24px;
-            align-items: start;
-        }
-
-        /* --- 新增：表单专用样式 --- */
+        /* --- 表单专用样式 --- */
         .decision-form {
             border: 1px solid var(--border);
             border-radius: 8px;
@@ -473,82 +470,93 @@
                 <span class="process-tag tag-business">经营管理决策</span>
             </div>
 
-            <div class="info-dashboard">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">基本信息</h3>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">基本信息</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">模块负责人</div>
+                        <div class="value">张三</div>
                     </div>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <div class="label">模块负责人</div>
-                            <div class="value">张三</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">创建时间</div>
-                            <div class="value">2025-09-02 09:30</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">当前状态</div>
-                            <div class="value" style="color: var(--primary);">进行中</div>
-                        </div>
-                        <div class="info-item">
-                            <div class="label">当前节点</div>
-                            <div class="value">评审</div>
-                        </div>
+                    <div class="info-item">
+                        <div class="label">创建时间</div>
+                        <div class="value">2025-09-02 09:30</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">当前状态</div>
+                        <div class="value" style="color: var(--primary);">进行中</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">当前节点</div>
+                        <div class="value">评审</div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">流程详情</h3>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">流程详情</h3>
+                </div>
+                <div class="timeline">
+                    <div class="timeline-item completed">
+                        <div class="timeline-top-info">
+                            <div class="participants">李四, 王五</div>
+                            <div class="date">2025-09-10 14:00</div>
+                        </div>
+                        <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                        <div class="timeline-content">
+                            <h4 class="timeline-title">SP评审</h4>
+                            <div class="timeline-meta">完成于: 2025-09-10 14:00</div>
+                            <div class="timeline-body">
+                                <p><strong>评审意见:</strong> 同意，SP目标明确，符合公司战略方向。</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="timeline">
-                        <div class="timeline-item completed">
-                            <div class="timeline-dot"><i class="fas fa-check"></i></div>
-                            <div class="timeline-content">
-                                <h4 class="timeline-title">SP评审</h4>
-                                <div class="timeline-meta">完成于: 2025-09-10 14:00</div>
-                                <div class="timeline-body">
-                                    <p><strong>意见:</strong> 同意，目标明确。</p>
-                                </div>
+                    <div class="timeline-item completed">
+                        <div class="timeline-top-info">
+                            <div class="participants">赵六, 孙七</div>
+                            <div class="date">2025-09-15 11:30</div>
+                        </div>
+                        <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                        <div class="timeline-content">
+                            <h4 class="timeline-title">BP评审</h4>
+                            <div class="timeline-meta">完成于: 2025-09-15 11:30</div>
+                            <div class="timeline-body">
+                                <p><strong>评审意见:</strong> 同意，商业计划可行，预算合理。</p>
                             </div>
                         </div>
-                        <div class="timeline-item completed">
-                            <div class="timeline-dot"><i class="fas fa-check"></i></div>
-                            <div class="timeline-content">
-                                <h4 class="timeline-title">BP评审</h4>
-                                <div class="timeline-meta">完成于: 2025-09-15 11:30</div>
-                                <div class="timeline-body">
-                                    <p><strong>意见:</strong> 预算合理，计划可行。</p>
-                                    <p><strong>参与人:</strong> 赵六, 孙七</p>
-                                </div>
+                    </div>
+                    <div class="timeline-item active">
+                        <div class="timeline-top-info">
+                             <div class="participants">待办: 周八</div>
+                             <div class="date">进行中...</div>
+                        </div>
+                        <div class="timeline-dot">3</div>
+                        <div class="timeline-content">
+                            <h4 class="timeline-title">评审</h4>
+                            <div class="timeline-meta">进行中...</div>
+                            <div class="timeline-body">
+                                <p>正在等待管理层最终评审。</p>
                             </div>
                         </div>
-                        <div class="timeline-item active">
-                            <div class="timeline-dot">3</div>
-                            <div class="timeline-content">
-                                <h4 class="timeline-title">最终评审</h4>
-                                <div class="timeline-meta">进行中...</div>
-                                <div class="timeline-body">
-                                    <p><strong>待办人:</strong> 周八 (管理层)</p>
-                                </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-top-info">
                             </div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-dot">4</div>
-                            <div class="timeline-content">
-                                <h4 class="timeline-title">组织绩效目标评审</h4>
-                                <div class="timeline-meta">待开始</div>
-                            </div>
+                        <div class="timeline-dot">4</div>
+                        <div class="timeline-content">
+                            <h4 class="timeline-title">组织绩效目标评审</h4>
+                            <div class="timeline-meta">未开始</div>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="card">
-                <div class="card-header" style="justify-content: center;">
-                    <h3 class="card-title">PAC决策申请</h3>
+                <div class="card-header">
+                    <h3 class="card-title">决策申请单</h3>
                 </div>
-
                 <form class="decision-form">
                     <div class="form-row">
                         <div class="form-label">申请人</div>
@@ -564,7 +572,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-label">项目编号</div>
                         <div class="form-content">
@@ -579,7 +586,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-label">决策类别</div>
                         <div class="form-content radio-group">
@@ -588,8 +594,7 @@
                             <label><input type="radio" name="decision-type" value="temporary" disabled><span></span>临时性决策</label>
                         </div>
                     </div>
-
-                    <div class="form-row">
+                     <div class="form-row">
                         <div class="form-label">需求描述</div>
                         <div class="form-content">
                             <textarea id="description" readonly>对2025年度的公司战略、业务计划及财务预算进行全面评审，确保资源有效分配，支撑战略目标达成。</textarea>
@@ -600,7 +605,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-label">资料初审</div>
                         <div class="form-content" style="flex-direction: column; align-items: flex-start;">
@@ -619,7 +623,6 @@
                             </div>
                         </div>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-label">评审结果</div>
                         <div class="form-content" style="flex-direction: column; align-items: flex-start;">
@@ -631,7 +634,6 @@
                             <textarea id="result-comment" placeholder="请填写评审意见..."></textarea>
                         </div>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-label">申请人确认</div>
                         <div class="form-content" style="flex-direction: column; align-items: flex-start;">
@@ -644,7 +646,6 @@
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 
