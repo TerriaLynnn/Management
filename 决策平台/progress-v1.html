@@ -97,7 +97,7 @@
         .main-content {
             flex: 1;
             padding: 24px;
-            overflow-y: auto;
+            /* overflow-y: auto; */ /* [REMOVED] 移除此处的 overflow 以便 sticky 生效 */
         }
         
         .search-bar input {
@@ -314,6 +314,11 @@
             z-index: 99;
         }
 
+        /* 新增：为没有悬浮窗的节点禁用桥接元素 */
+        .timeline-item.no-hover::after {
+            display: none;
+        }
+
         /* 悬停时显示卡片 */
         .timeline-item:hover > .timeline-content {
             visibility: visible;
@@ -349,6 +354,15 @@
             text-align: center; /* 居中 */
             padding: 15px 0;
             border-bottom: 1px solid var(--border);
+        }
+        /* 新增：审批意见区块样式 */
+        .review-block {
+            width: 100%;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background-color: #fcfcfc;
+            padding: 15px;
+            margin-bottom: 15px; /* 增加区块间距 */
         }
 
         .form-row {
@@ -397,6 +411,15 @@
             padding: 8px 12px;
             border: 1px solid var(--border);
             border-radius: 6px;
+            font-size: 1rem; /* 新增：放大字体 */
+        }
+        /* 新增：只读输入框样式覆盖 */
+        .form-group input[readonly],
+        textarea[readonly] {
+            background-color: transparent;
+            border: none;
+            padding-left: 0;
+            padding-right: 0;
         }
 
         textarea {
@@ -406,6 +429,7 @@
             border: 1px solid var(--border);
             border-radius: 6px;
             resize: vertical; /* 允许垂直调整大小 */
+            font-size: 1rem; /* 新增：放大字体 */
         }
         
         /* 自定义 Radio Button 样式 */
@@ -472,6 +496,62 @@
             flex-grow: 0 !important; /* 防止它占据过多空间 */
             width: 300px;
         }
+
+        /* --- 新增：操作按钮样式 --- */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-success { background-color: var(--success); color: white; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-secondary { background-color: #f0f0f0; color: var(--dark-text); border: 1px solid var(--border); }
+        .btn-success:hover { background-color: #28a745; }
+        .btn-danger:hover { background-color: #c82333; }
+        .btn-secondary:hover { background-color: #e2e6ea; }
+
+        /* --- 新增：二次确认弹窗样式 --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none; /* 默认隐藏 */
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
     </style>
 </head>
 <body>
@@ -487,94 +567,75 @@
         </div>
         
         <div class="main-content">
-            <div class="page-title-container">
-                <div class="page-title-group">
-                    <h2 class="page-title">2025年度全面预算评审</h2>
-                    <span class="process-tag tag-business">经营管理决策</span>
-                </div>
-                <div class="user-info">
-                    <div class="user-avatar">Y</div>
-                    <span>袁立 (开发经理)</span>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">基本信息</h3>
-                </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="label">模块负责人</div>
-                        <div class="value">张三</div>
+            <div class="sticky-header-container">
+                <div class="page-title-container" style="margin-bottom: 0; padding-bottom: 24px;">
+                    <div class="page-title-group">
+                        <h2 class="page-title">2025年度全面预算评审</h2>
+                        <span class="process-tag tag-business">经营管理决策</span>
                     </div>
-                    <div class="info-item">
-                        <div class="label">创建时间</div>
-                        <div class="value">2025-09-02 09:30</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="label">当前状态</div>
-                        <div class="value" style="color: var(--primary);">进行中</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="label">当前节点</div>
-                        <div class="value">评审</div>
+                    <div class="user-info">
+                        <div class="user-avatar">Y</div>
+                        <span>袁立 (开发经理)</span>
                     </div>
                 </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">流程详情</h3>
-                </div>
-                <div class="timeline">
-                    <div class="timeline-item completed">
-                        <div class="timeline-top-info">
-                            <div class="participants">李四, 王五</div>
-                            <div class="date">2025-09-10 14:00</div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">流程详情</h3>
+                        <div class="action-buttons">
+                            <button class="btn btn-danger" id="disagree-btn">不同意</button>
+                            <button class="btn btn-success" id="agree-btn">同意</button>
                         </div>
-                        <div class="timeline-content">
-                            <div class="timeline-body">
-                                <p><strong>评审意见:</strong> 同意，SP目标明确，符合公司战略方向。</p>
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item completed">
+                            <div class="timeline-top-info">
+                                <div class="participants">李四, 王五</div>
+                                <div class="date">2025-09-10 14:00</div>
                             </div>
-                        </div>
-                        <div class="timeline-dot"><i class="fas fa-check"></i></div>
-                        <h4 class="timeline-title">SP评审</h4>
-                    </div>
-                    <div class="timeline-item completed">
-                        <div class="timeline-top-info">
-                            <div class="participants">赵六, 孙七</div>
-                            <div class="date">2025-09-15 11:30</div>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="timeline-body">
-                                <p><strong>评审意见:</strong> 同意，商业计划可行，预算合理。</p>
+                            <div class="timeline-content">
+                                <div class="timeline-body">
+                                    <p><strong>评审意见:</strong> 同意，SP目标明确，符合公司战略方向。</p>
+                                </div>
                             </div>
+                            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                            <h4 class="timeline-title">SP评审</h4>
                         </div>
-                        <div class="timeline-dot"><i class="fas fa-check"></i></div>
-                        <h4 class="timeline-title">BP评审</h4>
-                    </div>
-                    <div class="timeline-item active">
-                        <div class="timeline-top-info">
-                             <div class="participants">待办: 周八</div>
-                             <div class="date">进行中...</div>
-                        </div>
-                        <div class="timeline-content">
-                            <div class="timeline-body">
-                                <p>正在等待管理层最终评审。</p>
+                        <div class="timeline-item completed">
+                            <div class="timeline-top-info">
+                                <div class="participants">赵六, 孙七</div>
+                                <div class="date">2025-09-15 11:30</div>
                             </div>
+                            <div class="timeline-content">
+                                <div class="timeline-body">
+                                    <p><strong>评审意见:</strong> 同意，商业计划可行，预算合理。</p>
+                                </div>
+                            </div>
+                            <div class="timeline-dot"><i class="fas fa-check"></i></div>
+                            <h4 class="timeline-title">BP评审</h4>
                         </div>
-                        <div class="timeline-dot">3</div>
-                        <h4 class="timeline-title">评审</h4>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-top-info predict">
-                            <div class="participants" style="color: var(--gray-text);">预测: 钱十</div>
+                        <div class="timeline-item active">
+                            <div class="timeline-top-info">
+                                 <div class="participants">待办: 周八</div>
+                                 <div class="date">进行中...</div>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-body">
+                                    <p>正在等待管理层最终评审。</p>
+                                </div>
+                            </div>
+                            <div class="timeline-dot">3</div>
+                            <h4 class="timeline-title">评审</h4>
                         </div>
-                        <div class="timeline-content">
-                            <!-- 此处内容为空，因为标题已移出 -->
+                        <div class="timeline-item">
+                            <div class="timeline-top-info predict">
+                                <div class="participants" style="color: var(--gray-text);">预测: 钱十</div>
+                            </div>
+                            <div class="timeline-content">
+                                <!-- 此处内容为空，因为标题已移出 -->
+                            </div>
+                            <div class="timeline-dot">4</div>
+                            <h4 class="timeline-title">组织绩效目标评审</h4>
                         </div>
-                        <div class="timeline-dot">4</div>
-                        <h4 class="timeline-title">组织绩效目标评审</h4>
                     </div>
                 </div>
             </div>
@@ -630,45 +691,102 @@
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="form-label">资料初审</div>
-                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
-                            <div class="radio-group" style="margin-bottom: 15px;">
-                                <label><input type="radio" name="initial-review" value="pass" checked disabled><span></span>符合，建议评审</label>
-                                <label><input type="radio" name="initial-review" value="fail" disabled><span></span>不符合</label>
+                        <div class="form-label">审批意见</div>
+                        <div class="form-content" style="flex-direction: column; align-items: flex-start; gap: 0;">
+                            <!-- SP评审意见区块 -->
+                            <div class="review-block">
+                                <h4 class="timeline-title" style="margin-top: 0; margin-bottom: 15px;">SP评审</h4>
+                                <textarea readonly>资料齐全，符合公司年度预算评审要求。</textarea>
+                                <div style="display: flex; gap: 20px; width: 100%; margin-top: 15px;">
+                                    <div class="form-group">
+                                        <label>评审人:</label>
+                                        <input type="text" value="李四, 王五" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>日期:</label>
+                                        <input type="text" value="2025-09-10" readonly>
+                                    </div>
+                                </div>
                             </div>
-                            <textarea id="initial-review-comment" placeholder="意见..." readonly>资料齐全，符合公司年度预算评审要求。</textarea>
-                             <div class="form-group" style="width:100%; margin-top: 15px;">
-                                <label>预计评审/研讨日期:</label>
-                                <input type="text" value="2025-09-10" readonly style="max-width: 200px;">
-                                <div class="form-group signature-area">
-                                    <label>签名/日期:</label>
-                                    <input type="text" value="李四 / 2025-09-05" readonly>
+                            <!-- BP评审意见区块 -->
+                            <div class="review-block">
+                                <h4 class="timeline-title" style="margin-top: 0; margin-bottom: 15px;">BP评审</h4>
+                                <textarea readonly>同意，商业计划可行，预算合理。</textarea>
+                                <div style="display: flex; gap: 20px; width: 100%; margin-top: 15px;">
+                                    <div class="form-group">
+                                        <label>评审人:</label>
+                                        <input type="text" value="赵六, 孙七" readonly>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>日期:</label>
+                                        <input type="text" value="2025-09-15" readonly>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-label">评审结果</div>
-                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
-                             <div class="upload-area" style="margin-bottom: 15px;">
+                        <div class="form-content" style="flex-direction: column; align-items: flex-start; gap: 15px;">
+                            <textarea id="result-comment" placeholder="请填写“评审”节点意见..."></textarea>
+                            <div class="upload-area">
                                 <label for="file-upload-result" class="upload-btn"><i class="fas fa-paperclip"></i>附件上传</label>
                                 <input type="file" id="file-upload-result">
                                 <span class="upload-file-name" id="file-name-result"></span>
                             </div>
-                            <textarea id="result-comment" placeholder="请填写评审意见..."></textarea>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-label">申请人确认</div>
-                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
-                            <textarea id="applicant-confirm-comment" placeholder="请填写确认意见..."></textarea>
-                            <div class="form-group signature-area" style="width:100%; margin-top: 15px;">
-                                <label>签名/日期:</label>
-                                <input type="text" value="">
-                            </div>
                         </div>
                     </div>
                 </form>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">基本信息</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">模块负责人</div>
+                        <div class="value">张三</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">创建时间</div>
+                        <div class="value">2025-09-02 09:30</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">当前状态</div>
+                        <div class="value" style="color: var(--primary);">进行中</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">当前节点</div>
+                        <div class="value">评审</div>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                .sticky-header-container {
+                    position: sticky;
+                    top: 0; /* 吸顶后紧贴浏览器顶部 */
+                    z-index: 102; /* 确保在其他内容之上 */
+                    background-color: var(--light-bg);
+                    /* 关键：通过负 margin 抵消父元素的 padding，实现全宽 */
+                    margin: 0 -24px 6px -24px; /* 上 右 下 左，下方间距缩短为 6px */
+                    padding: 24px 24px 6px 24px; /* 恢复内部元素的边距，下方内边距缩短 */
+                }
+                body {
+                    overflow-y: auto; /* 将滚动条移到 body 上 */
+                }
+            </style>
+        </div>
+    </div>
+
+    <!-- 新增：二次确认弹窗 -->
+    <div class="modal-overlay" id="confirmation-modal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modal-title">您确定要执行此操作吗？</h3>
+            <p id="modal-body">请确认您的选择。</p>
+            <div class="modal-actions">
+                <button class="btn" id="modal-confirm-btn">确认</button>
+                <button class="btn btn-secondary" id="modal-cancel-btn">取消</button>
             </div>
         </div>
     </div>
@@ -699,6 +817,50 @@
             console.log('当前决策ID:', projectId);
             // 之后可以根据 projectId 从后端或静态数据中获取详细信息并填充页面
         });
+
+        // --- 新增：二次确认弹窗逻辑 ---
+        const modal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        const agreeBtn = document.getElementById('agree-btn');
+        const disagreeBtn = document.getElementById('disagree-btn');
+
+        let currentAction = null;
+
+        const actions = {
+            agree: {
+                title: '确认同意',
+                body: '您确定要同意该决策申请吗？此操作不可撤销。',
+                confirmClass: 'btn-success',
+                callback: () => alert('已执行“同意”操作。')
+            },
+            disagree: {
+                title: '确认不同意',
+                body: '您确定要不同意该决策申请吗？此操作不可撤销。',
+                confirmClass: 'btn-danger',
+                callback: () => alert('已执行“不同意”操作。')
+            }
+        };
+
+        function showModal(actionType) {
+            currentAction = actions[actionType];
+            modalTitle.textContent = currentAction.title;
+            modalBody.textContent = currentAction.body;
+            confirmBtn.className = `btn ${currentAction.confirmClass}`; // 更新确认按钮样式
+            modal.style.display = 'flex';
+        }
+
+        agreeBtn.addEventListener('click', () => showModal('agree'));
+        disagreeBtn.addEventListener('click', () => showModal('disagree'));
+        confirmBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            if (currentAction && typeof currentAction.callback === 'function') {
+                currentAction.callback();
+            }
+        });
+        cancelBtn.addEventListener('click', () => modal.style.display = 'none');
     </script>
 </body>
 </html>
