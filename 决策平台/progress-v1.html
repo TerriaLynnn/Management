@@ -303,8 +303,8 @@
             /* [MODIFIED] 移除 pointer-events: none; 以便可以复制内容 */
         }
 
-        /* [MODIFIED] 增加一个透明的伪元素来“桥接”触发区域和卡片，防止鼠标移动时卡片消失 */
-        .timeline-item::after {
+        /* [MODIFIED] 增加一个透明的伪元素来"桥接"触发区域和卡片，防止鼠标移动时卡片消失 */
+        .timeline-item:not(.no-hover)::after {
             content: '';
             position: absolute;
             left: 0;
@@ -319,8 +319,8 @@
             display: none;
         }
 
-        /* 悬停时显示卡片 */
-        .timeline-item:hover > .timeline-content {
+        /* 悬停时显示卡片 - 修改为只对非 no-hover 的项目生效 */
+        .timeline-item:not(.no-hover):hover > .timeline-content {
             visibility: visible;
             opacity: 1;
             transform: translateX(-50%) translateY(0);
@@ -357,12 +357,24 @@
         }
         /* 新增：审批意见区块样式 */
         .review-block {
+            width: 100%; /* 保持宽度100% */
+            margin-bottom: 15px; /* 保留区块间距 */
+        }
+        /* 新增：用于分割标签和内容的表单组样式 */
+        .form-group-split {
+            display: flex;
             width: 100%;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            background-color: #fcfcfc;
-            padding: 15px;
-            margin-bottom: 15px; /* 增加区块间距 */
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            overflow: hidden; /* 确保子元素的圆角生效 */
+        }
+        .form-group-split > label {
+            width: 100px;
+            background-color: #f7f7f7;
+            padding: 8px 12px;
+            text-align: center;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .form-row {
@@ -420,6 +432,19 @@
             border: none;
             padding-left: 0;
             padding-right: 0;
+        }
+        /* 新增：输入框错误/无效状态 */
+        .is-invalid {
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.2);
+        }
+        /* 新增：高亮当前需要操作的表单行 */
+        .form-row.active-section {
+            background-color: #fffbeb; /* 淡黄色背景 */
+        }
+        .form-row.active-section > .form-label {
+            background-color: #fff1c7; /* 匹配的深黄色标签背景 */
+            font-weight: 700;
         }
 
         textarea {
@@ -582,8 +607,8 @@
                     <div class="card-header">
                         <h3 class="card-title">流程详情</h3>
                         <div class="action-buttons">
-                            <button class="btn btn-danger" id="disagree-btn">不同意</button>
                             <button class="btn btn-success" id="agree-btn">同意</button>
+                            <button class="btn btn-danger" id="disagree-btn">不同意</button>
                         </div>
                     </div>
                     <div class="timeline">
@@ -626,7 +651,7 @@
                             <div class="timeline-dot">3</div>
                             <h4 class="timeline-title">评审</h4>
                         </div>
-                        <div class="timeline-item">
+                        <div class="timeline-item no-hover">  <!-- 添加 no-hover 类 -->
                             <div class="timeline-top-info predict">
                                 <div class="participants" style="color: var(--gray-text);">预测: 钱十</div>
                             </div>
@@ -681,8 +706,10 @@
                     </div>
                      <div class="form-row">
                         <div class="form-label">需求描述</div>
-                        <div class="form-content">
-                            <textarea id="description" readonly>对2025年度的公司战略、业务计划及财务预算进行全面评审，确保资源有效分配，支撑战略目标达成。</textarea>
+                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
+                            <div class="form-group-split" style="width: 100%;">
+                                <textarea id="description" readonly style="border: none; background: transparent; padding: 8px 12px;">对2025年度的公司战略、业务计划及财务预算进行全面评审，确保资源有效分配，支撑战略目标达成。</textarea>
+                            </div>
                             <div class="upload-area">
                                 <label for="file-upload-desc" class="upload-btn"><i class="fas fa-paperclip"></i>查看附件</label>
                                 <input type="file" id="file-upload-desc" disabled>
@@ -695,37 +722,41 @@
                         <div class="form-content" style="flex-direction: column; align-items: flex-start; gap: 0;">
                             <!-- SP评审意见区块 -->
                             <div class="review-block">
-                                <h4 class="timeline-title" style="margin-top: 0; margin-bottom: 15px;">SP评审</h4>
-                                <textarea readonly>资料齐全，符合公司年度预算评审要求。</textarea>
-                                <div style="display: flex; gap: 20px; width: 100%; margin-top: 15px;">
-                                    <div class="form-group">
-                                        <label>评审人:</label>
-                                        <input type="text" value="李四, 王五" readonly>
+                                <div class="form-group-split" style="margin-bottom: 15px;">
+                                    <label>SP评审</label>
+                                    <textarea readonly style="border: none; background: transparent; padding: 8px 12px;">资料齐全，符合公司年度预算评审要求。</textarea>
+                                </div>
+                                <div style="display: flex; gap: 20px; width: 100%;">
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审人</label>
+                                        <input type="text" value="李四, 王五" readonly style="border: none; background: transparent; padding: 8px 12px;">
                                     </div>
-                                    <div class="form-group">
-                                        <label>日期:</label>
-                                        <input type="text" value="2025-09-10" readonly>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>日期</label>
+                                        <input type="text" value="2025-09-10" readonly style="border: none; background: transparent; padding: 8px 12px;">
                                     </div>
                                 </div>
                             </div>
                             <!-- BP评审意见区块 -->
                             <div class="review-block">
-                                <h4 class="timeline-title" style="margin-top: 0; margin-bottom: 15px;">BP评审</h4>
-                                <textarea readonly>同意，商业计划可行，预算合理。</textarea>
-                                <div style="display: flex; gap: 20px; width: 100%; margin-top: 15px;">
-                                    <div class="form-group">
-                                        <label>评审人:</label>
-                                        <input type="text" value="赵六, 孙七" readonly>
+                                <div class="form-group-split" style="margin-bottom: 15px;">
+                                    <label>BP评审</label>
+                                    <textarea readonly style="border: none; background: transparent; padding: 8px 12px;">同意，商业计划可行，预算合理。</textarea>
+                                </div>
+                                <div style="display: flex; gap: 20px; width: 100%;">
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审人</label>
+                                        <input type="text" value="赵六, 孙七" readonly style="border: none; background: transparent; padding: 8px 12px;">
                                     </div>
-                                    <div class="form-group">
-                                        <label>日期:</label>
-                                        <input type="text" value="2025-09-15" readonly>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>日期</label>
+                                        <input type="text" value="2025-09-15" readonly style="border: none; background: transparent; padding: 8px 12px;">
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row active-section">
                         <div class="form-label">评审结果</div>
                         <div class="form-content" style="flex-direction: column; align-items: flex-start; gap: 15px;">
                             <textarea id="result-comment" placeholder="请填写“评审”节点意见..."></textarea>
@@ -826,6 +857,7 @@
         const cancelBtn = document.getElementById('modal-cancel-btn');
         const agreeBtn = document.getElementById('agree-btn');
         const disagreeBtn = document.getElementById('disagree-btn');
+        const resultCommentTextarea = document.getElementById('result-comment');
 
         let currentAction = null;
 
@@ -844,16 +876,27 @@
             }
         };
 
-        function showModal(actionType) {
+        function showModal(actionType) { // This function now only handles showing the modal
             currentAction = actions[actionType];
             modalTitle.textContent = currentAction.title;
             modalBody.textContent = currentAction.body;
             confirmBtn.className = `btn ${currentAction.confirmClass}`; // 更新确认按钮样式
             modal.style.display = 'flex';
         }
+        
+        // New function to handle validation before showing the modal
+        function validateAndShowModal(actionType) {
+            const comment = resultCommentTextarea.value.trim();
+            if (comment === '') {
+                resultCommentTextarea.classList.add('is-invalid');
+                resultCommentTextarea.focus();
+                return; // Stop if validation fails
+            }
+            showModal(actionType); // Proceed if validation passes
+        }
 
-        agreeBtn.addEventListener('click', () => showModal('agree'));
-        disagreeBtn.addEventListener('click', () => showModal('disagree'));
+        agreeBtn.addEventListener('click', () => validateAndShowModal('agree'));
+        disagreeBtn.addEventListener('click', () => validateAndShowModal('disagree'));
         confirmBtn.addEventListener('click', () => {
             modal.style.display = 'none';
             if (currentAction && typeof currentAction.callback === 'function') {
@@ -861,6 +904,13 @@
             }
         });
         cancelBtn.addEventListener('click', () => modal.style.display = 'none');
+
+        // Remove the red border when the user starts typing
+        resultCommentTextarea.addEventListener('input', () => {
+            if (resultCommentTextarea.classList.contains('is-invalid')) {
+                resultCommentTextarea.classList.remove('is-invalid');
+            }
+        });
     </script>
 </body>
 </html>
