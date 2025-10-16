@@ -149,22 +149,21 @@
         }
         .toggle-icon:hover { color: #e2e8f0; /* slate-200 */ }
 
-        /* --- 冻结表头和列的关键样式 --- */
+        /* --- [最终修复] 冻结表头和列的关键样式 --- */
         thead th {
             position: sticky;
             top: 0;
-            z-index: 10;
-            /* [MODIFIED] 只保留下边框 */
             box-shadow: inset 0 -1px 0 rgba(100, 116, 139, 0.5); /* 模拟 bottom border */
-
         }
 
         thead .group-header th {
             top: 0;
+            z-index: 20; /* 确保第一行层级高于第二行 */
         }
 
         thead .field-header th {
             top: 30px; 
+            z-index: 10; /* 确保第二行层级低于第一行 */
         }
 
         /* 冻结列：所有冻结列里的单元格 */
@@ -175,16 +174,16 @@
 
         /* 冻结列的表头（第二行） */
         thead .field-header th:nth-child(-n+4) {
-            z-index: 30;
+            z-index: 30; /* 高于普通滚动的表头 */
         }
         /* 冻结列的表头（第一行） */
         thead .group-header th:first-child {
-            z-index: 30;
+            z-index: 40; /* 确保第一行的冻结列在所有元素的最顶层 */
         }
 
         /* 冻结列的主体单元格 */
         tbody td:nth-child(-n+4) {
-            z-index: 20;
+            z-index: 2; /* 低于表头即可 */
         }
 
         /* 为冻结列提供背景色，防止滚动时文字重叠 */
@@ -207,6 +206,7 @@
         tbody tr:hover td:nth-child(-n+4) {
             background-color: rgb(30 41 59);
         }
+        /* --- [修复结束] --- */
         
 
         /* --- 特定列格式 --- */
@@ -498,32 +498,7 @@
     thead .group-header th:first-child { left: 0; }
 </style>
 <style>
-/* 
-   终极解决方案：使用属性选择器，直接覆盖由JS生成的内联样式。
-   这个选择器的意思是：找到所有th和td标签，只要它们的style属性里包含 "width: 550px" 这个字符串。
-   这比之前所有的选择器都更精确、更有力。
-*/
-.table-container th[style*="width: 550px"],
-.table-container td[style*="width: 550px"] {
-  width: 350px !important;
-  max-width: 350px !important;
-  min-width: 350px !important;
-  
-  /* 方便定位的颜色，确认成功后可删除 */
-  border: 3px solid green !important;
-  background-color: lightgreen !important;
-}
-
-/* 
-   为了确保表格本身也收缩，我们再次强制设置表格布局。
-   如果您的table没有class，就直接用table标签。
-*/
-.table-container table {
-  table-layout: fixed !important;
-  width: auto !important; /* 让表格宽度由内容决定，而不是撑满父容器 */
-  max-width: 100% !important;
-}
-
+/* [REMOVED] 移除之前用于调试的所有 !important 强制样式 */
 </style>
 
 <body>
@@ -545,7 +520,6 @@
                 <tr class="group-header">
                     <th id="group-header-info" colspan="1">
                         <div class="group-header-content">
-                            <!-- [MODIFIED] 将图标和文字组合在一起，确保它们始终在左侧 -->
                             <span class="toggle-icon" title="切换显示/隐藏列">[+]</span>
                             <span>申请信息</span>                            
                         </div>
