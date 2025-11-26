@@ -443,10 +443,11 @@
     <div class="container">
         <div class="sidebar">
             <div class="logo"><h1>决策平台</h1></div>
-            <a href="Decision v1.html" class="nav-item active"><i class="fas fa-home"></i> 主页</a>
-            <a href="Process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+            <a href="Decision-v1.html" class="nav-item active"><i class="fas fa-home"></i> 主页</a>
+            <a href="process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
             <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
             <a href="Doc-v1.html" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+            <a href="Schedule-v1.html" class="nav-item"><i class="fas fa-calendar-alt"></i> 评审计划</a>
             <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
             <a href="#" class="nav-item"><i class="fas fa-cog"></i> 系统设置</a>
         </div>
@@ -457,7 +458,7 @@
                 <div class="header-right">
                     <div class="user-info">
                         <div class="user-avatar">Y</div>
-                        <span>袁立 (开发经理)</span>
+                        <span>评审团成员E</span>
                     </div>
                 </div>
             </div>
@@ -484,14 +485,12 @@
                                         </div>
                                         <div class="process-status"><span class="status-dot" style="background-color: var(--business-color);"></span><span>进行中</span></div>
                                     </div>
-                                    <div class="process-meta"><span>模块负责人: 张三</span><span>当前审批人: 周八</span><span>创建于: 2025-09-02 09:30</span></div>
+                                    <div class="process-meta"><span>模块负责人: 张三</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-02 09:30</span></div>
                                     <div class="progress-tracker">
                                         <div class="steps-container">
-                                            <div class="progress-line" style="width: 62.5%;"></div>
-                                            <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">SP评审</div></div>
-                                            <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">BP评审</div></div>
-                                            <div class="progress-step active"><div class="step-dot"></div><div class="step-label">评审</div></div>
-                                            <div class="progress-step"><div class="step-dot"></div><div class="step-label">组织绩效目标评审</div></div>
+                                            <div class="progress-line" style="width: 25%;"></div>
+                                            <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                            <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
                                         </div>
                                     </div>
                                 </div>
@@ -506,14 +505,12 @@
                                         </div>
                                        <div class="process-status"><span class="status-dot status-processing" style="background-color: var(--primary);"></span><span>进行中</span></div>
                                    </div>
-                                   <div class="process-meta"><span>项目经理: 张明</span><span>当前审批人: 黄九</span><span>创建于: 2025-09-08 10:15</span></div>
+                                   <div class="process-meta"><span>项目经理: 张明</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-08 10:15</span></div>
                                    <div class="progress-tracker">
                                        <div class="steps-container">
-                                           <div class="progress-line" style="width: 37.5%;"></div>
-                                           <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">订单评审</div></div>
-                                           <div class="progress-step active"><div class="step-dot"></div><div class="step-label">计划评审</div></div>
-                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">出货决策</div></div>
-                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项决策</div></div>
+                                           <div class="progress-line" style="width: 25%;"></div>
+                                           <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
                                        </div>
                                    </div>
                                </div>
@@ -528,19 +525,12 @@
                                         </div>
                                        <div class="process-status"><span class="status-dot status-warning" style="background-color: var(--warning);"></span><span>资料审核中</span></div>
                                    </div>
-                                   <div class="process-meta"><span>项目经理: 李华</span><span>当前审批人: 韩三</span><span>创建于: 2025-09-05 16:45</span></div>
+                                   <div class="process-meta"><span>项目经理: 李华</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-05 16:45</span></div>
                                    <div class="progress-tracker">
                                        <div class="steps-container">
-                                           <div class="progress-line" style="width: 30%;"></div>
-                                           <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">立项决策</div></div>
-                                           <div class="progress-step active decision-tooltip">
-                                                <div class="step-dot"></div>
-                                                <div class="step-label">计划决策 <i class="fas fa-info-circle fa-xs"></i></div>
-                                                <span class="tooltip-text">PAC决策点: 继续或终止/转向</span>
-                                            </div>
-                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">早期销售</div></div>
-                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">产品发布</div></div>
-                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项决策</div></div>
+                                           <div class="progress-line" style="width: 25%;"></div>
+                                           <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                           <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
                                        </div>
                                    </div>
                                </div>
@@ -553,9 +543,9 @@
                                            <span class="process-name">ITR全流程线上化项目</span>
                                            <span class="process-tag tag-management">管理类项目</span>
                                         </div>
-                                       <div class="process-status"><span class="status-dot status-processing" style="background-color: var(--primary);"></span><span>进行中</span></div>
+                                       <div class="process-status"><span class="status-dot status-danger" style="background-color: var(--danger);"></span><span>已超期</span></div>
                                    </div>
-                                   <div class="process-meta"><span>项目经理: 李四</span><span>当前审批人: 卫甲</span><span>创建于: 2025-09-09 11:00</span></div>
+                                   <div class="process-meta"><span>项目经理: 李四</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-09 11:00</span></div>
                                    <div class="progress-tracker">
                                        <div class="steps-container">
                                            <div class="progress-line" style="width: 25%;"></div>
@@ -573,7 +563,7 @@
                                            <span class="process-name">供应链紧急调整方案</span>
                                            <span class="process-tag tag-temporary">临时决策评审</span>
                                         </div>
-                                       <div class="process-status"><span class="status-dot status-danger"></span><span>已超期</span></div>
+                                       <div class="process-status"><span class="status-dot status-completed" style="background-color: var(--success);"></span><span>已完成</span></div>
                                    </div>
                                    <div class="process-meta"><span>项目经理: 王五</span><span>当前审批人: 已完成</span><span>创建于: 2025-09-07 15:20</span></div>
                                    <div class="progress-tracker">
@@ -599,7 +589,7 @@
                     <div class="card">
                         <div class="card-header"><div class="card-title">风险预警</div></div>
                         <div class="alert-list">
-                            <div class="alert-item alert-danger"><div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div><div class="alert-content"><div class="alert-title">供应链紧急调整方案已超期</div><div class="alert-desc">该决策流程已超过预定完成时间2天，请尽快处理</div></div></div>
+                            <div class="alert-item alert-danger"><div class="alert-icon"><i class="fas fa-exclamation-circle"></i></div><div class="alert-content"><div class="alert-title">ITR全流程线上化项目已超期</div><div class="alert-desc">该决策流程已超过预定完成时间2天，请尽快处理</div></div></div>
                             <div class="alert-item alert-warning"><div class="alert-icon"><i class="fas fa-clock"></i></div><div class="alert-content"><div class="alert-title">OLED生产线采购项目即将到期</div><div class="alert-desc">该决策流程剩余时间不足3天，请关注</div></div></div>
                             <div class="alert-item alert-warning"><div class="alert-icon"><i class="fas fa-file-signature"></i></div><div class="alert-content"><div class="alert-title">新一代显示技术研发资料不全</div><div class="alert-desc">缺少技术可行性分析报告，请补充</div></div></div>
                         </div>
