@@ -175,6 +175,10 @@
             border-radius: 6px;
         }
         .tag-business { background-color: rgba(255, 149, 0, 0.1); color: var(--business-color); }
+        .tag-sales { background-color: rgba(0, 122, 255, 0.1); color: var(--sales-color); }
+        .tag-rd { background-color: rgba(255, 59, 48, 0.1); color: var(--rd-color); }
+        .tag-management { background-color: rgba(88, 86, 214, 0.1); color: var(--manage-color); }
+        .tag-temporary { background-color: rgba(52, 199, 89, 0.1); color: var(--temporary-color); }
 
         .info-grid {
             display: grid;
@@ -359,6 +363,23 @@
         .review-block {
             width: 100%; /* 保持宽度100% */
             margin-bottom: 15px; /* 保留区块间距 */
+            padding: 15px; /* 内部留白 */
+            border-radius: 6px; /* 圆角 */
+            border: 3px solid var(--border); /* [MODIFIED] 默认边框加粗 */
+        }
+        #review-blocks-container > .review-block:last-child {
+            margin-bottom: 0; /* 最后一个区块无下外边距 */
+        }
+        /* 新增：历史审批记录颜色状态 */
+        .review-block.agreed {
+            border-color: var(--success); /* 同意时边框变绿 */
+        }
+        .review-block.disagreed {
+            border-color: var(--danger); /* 不同意时边框变红 */
+        }
+        /* [NEW] 新增：待评审状态样式 */
+        .review-block.pending-review {
+            border-color: #eac278; /* 米黄色边框 */
         }
         /* 新增：用于分割标签和内容的表单组样式 */
         .form-group-split {
@@ -372,9 +393,20 @@
             width: 100px;
             background-color: #f7f7f7;
             padding: 8px 12px;
-            text-align: center;
+            /* [MODIFIED] 使用flex实现完全居中 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-right: 1px solid var(--border);
             flex-shrink: 0;
+        }
+        /* [NEW] 新增：对齐只读输入框的聚焦样式 */
+        .form-group-split input[readonly]:focus {
+            outline: none; /* 移除输入框自身的轮廓 */
+        }
+        .form-group-split:focus-within {
+            border-color: var(--primary); /* 将父容器边框变蓝 */
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); /* 添加辉光效果 */
         }
 
         .form-row {
@@ -446,6 +478,22 @@
             background-color: #fff1c7; /* 匹配的深黄色标签背景 */
             font-weight: 700;
         }
+        /* 新增：决策完成后的状态样式 */
+        .form-row.decision-made.agreed {
+            background-color: #e5f9ed; /* 淡绿色 */
+        }
+        .form-row.decision-made.agreed > .form-label {
+            background-color: #c8e6c9; /* 深一点的淡绿色 */
+        }
+        .form-row.decision-made.disagreed {
+            background-color: #ffebee; /* 淡红色 */
+        }
+        .form-row.decision-made.disagreed > .form-label {
+            background-color: #ffcdd2; /* 深一点的淡红色 */
+        }
+        .form-row.decision-made textarea {
+            background-color: #f5f5f5; /* 锁定后文本框背景变灰 */
+        }
 
         textarea {
             width: 100%;
@@ -512,6 +560,34 @@
             color: var(--gray-text);
             font-size: 14px;
         }
+
+        /* [NEW] 新增文件预览容器样式 */
+        .file-preview-container {
+            position: relative;
+            background-color: #f7f7f7;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            padding-right: 30px; /* 为关闭按钮留出空间 */
+            display: flex;
+            align-items: center;
+        }
+
+        /* [NEW] 新增关闭按钮样式 */
+        .cancel-upload {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            font-size: 20px;
+            color: var(--gray-text);
+            cursor: pointer;
+            line-height: 1;
+        }
+        .cancel-upload:hover {
+            color: var(--dark-text);
+        }
+
         input[type="file"] {
             display: none;
         }
@@ -577,15 +653,29 @@
             gap: 15px;
             margin-top: 25px;
         }
+
+        /* [NEW] 文件名可点击样式 */
+        .review-block .upload-file-name {
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            transition: text-decoration-color 0.2s;
+        }
+        .review-block .upload-file-name:hover {
+            color: var(--primary);
+            text-decoration-color: var(--primary);
+        }
+
+
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
             <div class="logo"><h1>决策平台</h1></div>
-            <a href="Decision v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
-            <a href="#" class="nav-item active"><i class="fas fa-project-diagram"></i> 决策流程</a>
-            <a href="#" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+            <a href="Decision-v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
+            <a href="process-all.html" class="nav-item active"><i class="fas fa-project-diagram"></i> 决策流程</a>
+            <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
             <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
             <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
             <a href="#" class="nav-item"><i class="fas fa-cog"></i> 系统设置</a>
@@ -600,17 +690,11 @@
                     </div>
                     <div class="user-info">
                         <div class="user-avatar">Y</div>
-                        <span>袁立 (开发经理)</span>
+                        <span>评审团成员E</span>
                     </div>
                 </div>
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">流程详情</h3>
-                        <div class="action-buttons">
-                            <button class="btn btn-success" id="agree-btn">同意</button>
-                            <button class="btn btn-danger" id="disagree-btn">不同意</button>
-                        </div>
-                    </div>
+                    <div class="card-header"><h3 class="card-title">流程详情</h3></div>
                     <div class="timeline">
                         <div class="timeline-item completed">
                             <div class="timeline-top-info">
@@ -719,38 +803,122 @@
                     </div>
                     <div class="form-row">
                         <div class="form-label">审批意见</div>
-                        <div class="form-content" style="flex-direction: column; align-items: flex-start; gap: 0;">
-                            <!-- SP评审意见区块 -->
-                            <div class="review-block">
-                                <div class="form-group-split" style="margin-bottom: 15px;">
-                                    <label>SP评审</label>
-                                    <textarea readonly style="border: none; background: transparent; padding: 8px 12px;">资料齐全，符合公司年度预算评审要求。</textarea>
+                        <div id="review-blocks-container" class="form-content" style="flex-direction: column; align-items: flex-start; gap: 0;">
+                            <!-- [MODIFIED] 静态审批意见区块 -->
+                            <div class="review-block agreed"> <!-- 同意 -> 绿色边框 -->
+                                <!-- [MODIFIED] 使用Grid布局实现精确对齐 -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                                    <div class="form-group-split" style="grid-column: 1 / 3; height: 100px;">
+                                        <label>审批内容</label>
+                                        <textarea readonly style="border: none; background: transparent; padding: 8px 12px; resize: none;">资料齐全，符合公司年度预算评审要求。</textarea>
+                                    </div>
+                                    <div class="form-group-split" style="grid-column: 3 / 4; height: 100px;">
+                                        <label>附件内容</label>
+                                        <div style="padding: 8px 12px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto;">
+                                            <span class="upload-file-name">预算草案V1.pdf</span>
+                                            <span class="upload-file-name">市场分析报告.docx</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 20px; width: 100%;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                                     <div class="form-group-split" style="flex: 1;">
                                         <label>评审人</label>
-                                        <input type="text" value="李四, 王五" readonly style="border: none; background: transparent; padding: 8px 12px;">
+                                        <input type="text" value="评审团成员A" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
                                     </div>
                                     <div class="form-group-split" style="flex: 1;">
-                                        <label>日期</label>
-                                        <input type="text" value="2025-09-10" readonly style="border: none; background: transparent; padding: 8px 12px;">
+                                        <label>评审结果</label>
+                                        <input type="text" value="不同意" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审日期</label>
+                                        <input type="text" value="2025-11-15" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
                                     </div>
                                 </div>
                             </div>
-                            <!-- BP评审意见区块 -->
-                            <div class="review-block">
-                                <div class="form-group-split" style="margin-bottom: 15px;">
-                                    <label>BP评审</label>
-                                    <textarea readonly style="border: none; background: transparent; padding: 8px 12px;">同意，商业计划可行，预算合理。</textarea>
+                            <!-- [ADDED] 新增静态审批意见区块 2 -->
+                            <div class="review-block agreed"> <!-- 同意 -> 绿色边框 -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                                    <div class="form-group-split" style="grid-column: 1 / 3; height: 100px;">
+                                        <label>审批内容</label>
+                                        <textarea readonly style="border: none; background: transparent; padding: 8px 12px; resize: none;">预算合理，风险可控。</textarea>
+                                    </div>
+                                    <div class="form-group-split" style="grid-column: 3 / 4; height: 100px;">
+                                        <label>附件内容</label>
+                                        <div style="padding: 8px 12px;">
+                                            <!-- 此处无附件 -->
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style="display: flex; gap: 20px; width: 100%;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                                     <div class="form-group-split" style="flex: 1;">
                                         <label>评审人</label>
-                                        <input type="text" value="赵六, 孙七" readonly style="border: none; background: transparent; padding: 8px 12px;">
+                                        <input type="text" value="评审团成员B" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
                                     </div>
                                     <div class="form-group-split" style="flex: 1;">
-                                        <label>日期</label>
-                                        <input type="text" value="2025-09-15" readonly style="border: none; background: transparent; padding: 8px 12px;">
+                                        <label>评审结果</label>
+                                        <input type="text" value="同意" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审日期</label>
+                                        <input type="text" value="2025-11-16" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- [ADDED] 新增静态审批意见区块 3 -->
+                            <div class="review-block disagreed"> <!-- 不同意 -> 红色边框 -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                                    <div class="form-group-split" style="grid-column: 1 / 3; height: 100px;">
+                                        <label>审批内容</label>
+                                        <textarea readonly style="border: none; background: transparent; padding: 8px 12px; resize: none;">市场预测部分需要更多数据支撑，建议补充后再次评审。</textarea>
+                                    </div>
+                                    <div class="form-group-split" style="grid-column: 3 / 4; height: 100px;">
+                                        <label>附件内容</label>
+                                        <div style="padding: 8px 12px;">
+                                            <span class="upload-file-name">补充数据说明.pdf</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审人</label>
+                                        <input type="text" value="评审团成员C" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审结果</label>
+                                        <input type="text" value="不同意" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审日期</label>
+                                        <input type="text" value="2025-11-16" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- [ADDED] 新增静态审批意见区块 4 -->
+                            <div class="review-block pending-review"> <!-- [MODIFIED] 待评审 -> 米黄色边框 -->
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px;">
+                                    <div class="form-group-split" style="grid-column: 1 / 3; height: 100px;">
+                                        <label>审批内容</label>
+                                        <textarea readonly style="border: none; background: transparent; padding: 8px 12px; resize: none;"></textarea>
+                                    </div>
+                                    <div class="form-group-split" style="grid-column: 3 / 4; height: 100px;">
+                                        <label>附件内容</label>
+                                        <div style="padding: 8px 12px;">
+                                            <!-- 此处无附件 -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审人</label>
+                                        <input type="text" value="评审团成员D (待评审)" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审结果</label>
+                                        <input type="text" value="" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
+                                    </div>
+                                    <div class="form-group-split" style="flex: 1;">
+                                        <label>评审日期</label>
+                                        <input type="text" value="" readonly style="border: none; background: transparent; padding: 8px 12px; font-weight: 500;">
                                     </div>
                                 </div>
                             </div>
@@ -759,11 +927,24 @@
                     <div class="form-row active-section">
                         <div class="form-label">评审结果</div>
                         <div class="form-content" style="flex-direction: column; align-items: flex-start; gap: 15px;">
-                            <textarea id="result-comment" placeholder="请填写“评审”节点意见..."></textarea>
-                            <div class="upload-area">
-                                <label for="file-upload-result" class="upload-btn"><i class="fas fa-paperclip"></i>附件上传</label>
-                                <input type="file" id="file-upload-result">
-                                <span class="upload-file-name" id="file-name-result"></span>
+                            <textarea id="result-comment" placeholder="请填写“评审”节点意见..." style="width: 100%;"></textarea>
+                            <div style="width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                                <div class="upload-area">
+                                    <label for="file-upload-result" class="upload-btn"><i class="fas fa-paperclip"></i>附件上传</label>
+                                    <input type="file" id="file-upload-result">
+                                    <div class="file-preview-container" id="file-preview-result" style="display: none;">
+                                        <span class="upload-file-name" id="file-name-result"></span>
+                                        <span class="cancel-upload" id="cancel-upload-result">&times;</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; color: var(--gray-text); font-size: 14px;">
+                                    <i class="fas fa-clock"></i>
+                                    <span id="decision-clock"></span>
+                                </div>
+                            </div>
+                            <div class="action-buttons" style="width: 100%; display: flex; justify-content: flex-end;">
+                                <button type="button" class="btn btn-success" id="agree-btn">同意</button>
+                                <button type="button" class="btn btn-danger" id="disagree-btn">不同意</button>
                             </div>
                         </div>
                     </div>
@@ -794,18 +975,9 @@
             </div>
             
             <style>
-                .sticky-header-container {
-                    position: sticky;
-                    top: 0; /* 吸顶后紧贴浏览器顶部 */
-                    z-index: 102; /* 确保在其他内容之上 */
-                    background-color: var(--light-bg);
-                    /* 关键：通过负 margin 抵消父元素的 padding，实现全宽 */
-                    margin: 0 -24px 6px -24px; /* 上 右 下 左，下方间距缩短为 6px */
-                    padding: 24px 24px 6px 24px; /* 恢复内部元素的边距，下方内边距缩短 */
-                }
-                body {
-                    overflow-y: auto; /* 将滚动条移到 body 上 */
-                }
+                /* 移除所有吸顶/冻结相关样式 */
+                /* .sticky-header-container, .sticky-card { position: static; } */
+                /* body { overflow: initial; } */
             </style>
         </div>
     </div>
@@ -816,37 +988,261 @@
             <h3 class="modal-title" id="modal-title">您确定要执行此操作吗？</h3>
             <p id="modal-body">请确认您的选择。</p>
             <div class="modal-actions">
-                <button class="btn" id="modal-confirm-btn">确认</button>
-                <button class="btn btn-secondary" id="modal-cancel-btn">取消</button>
+                <button type="button" class="btn" id="modal-confirm-btn">确认</button>
+                <button type="button" class="btn btn-secondary" id="modal-cancel-btn">取消</button>
             </div>
         </div>
     </div>
 
+    <!-- 新增：文件预览弹窗 -->
+    <div class="modal-overlay" id="file-preview-modal">
+        <div class="modal-content" style="max-width: 800px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h3 class="modal-title" id="file-preview-title">文件预览</h3>
+                <button type="button" class="btn btn-secondary" id="file-preview-close-btn">关闭</button>
+            </div>
+            <div id="file-preview-body" style="height: 60vh; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: var(--gray-text); border-radius: 6px;">
+                <p>文件内容预览区</p>
+            </div>
+        </div>
+    </div>
+
+
     <script>
         // JS 逻辑用于显示上传的文件名
-        function handleFileUpload(inputId, nameId) {
+        function handleFileUpload(inputId, nameId, previewId, cancelId) {
             const fileInput = document.getElementById(inputId);
             const fileNameSpan = document.getElementById(nameId);
-            if (fileInput) {
+            const previewContainer = document.getElementById(previewId);
+            const cancelBtn = document.getElementById(cancelId);
+
+            if (fileInput && fileNameSpan && previewContainer && cancelBtn) {
                 fileInput.addEventListener('change', function() {
                     if (this.files.length > 0) {
                         fileNameSpan.textContent = this.files[0].name;
+                        previewContainer.style.display = 'flex';
                     } else {
                         fileNameSpan.textContent = '';
+                        previewContainer.style.display = 'none';
                     }
+                });
+
+                cancelBtn.addEventListener('click', function() {
+                    fileInput.value = ''; // 清空文件输入
+                    fileNameSpan.textContent = '';
+                    previewContainer.style.display = 'none';
                 });
             }
         }
         
         // 绑定事件到可用的文件上传按钮
-        handleFileUpload('file-upload-result', 'file-name-result');
+        handleFileUpload('file-upload-result', 'file-name-result', 'file-preview-result', 'cancel-upload-result');
 
-        // 可以在这里添加JS逻辑来动态获取URL参数并加载对应的数据
+        // --- 新增：决策时钟逻辑 ---
+        function updateClock() {
+            const clockElement = document.getElementById('decision-clock');
+            if (clockElement) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                clockElement.textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            }
+        }
+        updateClock(); // 立即执行一次
+        setInterval(updateClock, 1000); // 每秒更新
+
         document.addEventListener('DOMContentLoaded', () => {
+            // --- 数据源 ---
+            // 模拟从Decision-v1.html页面提取的流程数据
+            const processData = {
+                'budget-2025': {
+                    title: '2025年度全面预算评审',
+                    tag: '经营管理决策', 
+                    tagClass: 'tag-business',
+                    personInCharge: '张三',
+                    creationDate: '2025-09-02 09:30',
+                    statusText: '进行中', 
+                    currentNode: '项目立项评审',
+                    currentApprover: '评审团成员A, B, C, D, E',
+                    steps: [
+                        { name: '项目立项评审', status: 'active' },
+                        { name: '结项评审', status: 'pending' }
+                    ]
+                },
+                'oled-purchase': {
+                    title: 'OLED生产线采购项目',
+                    tag: '销售订单类', 
+                    tagClass: 'tag-sales',
+                    personInCharge: '张明',
+                    creationDate: '2025-09-08 10:15',
+                    statusText: '进行中', 
+                    currentNode: '项目立项评审',
+                    currentApprover: '评审团成员A, B, C, D, E',
+                    steps: [
+                        { name: '项目立项评审', status: 'active' },
+                        { name: '结项评审', status: 'pending' }
+                    ]
+                },
+                'new-display-tech': {
+                    title: '新一代显示技术研发',
+                    tag: '研发立项类', 
+                    tagClass: 'tag-rd',
+                    personInCharge: '李华',
+                    creationDate: '2025-09-05 16:45',
+                    statusText: '资料审核中', 
+                    currentNode: '项目立项评审',
+                    currentApprover: '评审团成员A, B, C, D, E',
+                    steps: [
+                        { name: '项目立项评审', status: 'active' },
+                        { name: '结项评审', status: 'pending' }
+                    ]
+                },
+                'itr-online': {
+                    title: 'ITR全流程线上化项目',
+                    tag: '管理类项目', 
+                    tagClass: 'tag-management',
+                    personInCharge: '李四',
+                    creationDate: '2025-09-09 11:00',
+                    statusText: '进行中', 
+                    currentNode: '项目立项评审',
+                    currentApprover: '评审团成员A, B, C, D, E',
+                    steps: [
+                        { name: '项目立项评审', status: 'active' },
+                        { name: '结项评审', status: 'pending' }
+                    ]
+                },
+                'supply-chain-emergency': {
+                    title: '供应链紧急调整方案',
+                    tag: '临时决策评审', 
+                    tagClass: 'tag-temporary',
+                    personInCharge: '王五',
+                    creationDate: '2025-09-07 15:20',
+                    statusText: '已完成', 
+                    currentNode: '已完成',
+                    currentApprover: '已完成',
+                    steps: [
+                        { name: '项目立项评审', status: 'completed' },
+                        { name: '结项评审', status: 'completed' }
+                    ]
+                }
+            };
+
+            // --- 页面渲染函数 ---
+
+            function renderTimeline(steps, currentApprover) {
+                const timelineContainer = document.querySelector('.timeline');
+                if (!timelineContainer) return;
+                timelineContainer.innerHTML = ''; // 清空现有时间轴
+
+                // 模拟的各节点详细信息数据
+                const placeholderDetails = {
+                    '项目立项评审': { participants: `待办: ${currentApprover}`, date: '进行中...', comment: '等待立项评审' },
+                    '结项评审': { participants: '预测: 周金蓉', date: '', comment: '项目完成后进行结项评审' }
+                };
+
+                steps.forEach((step, index) => {
+                    const details = placeholderDetails[step.name] || { participants: '待处理', date: '', comment: '' };
+                    const item = document.createElement('div');
+                    let dotContent = index + 1;
+
+                    let topInfoHTML = '';
+                    let contentHTML = '';
+                    
+                    item.className = 'timeline-item';
+
+                    if (step.status === 'completed') {
+                        const completedDetails = {
+                            '项目立项评审': { participants: '评审团成员A', date: '2025-09-10', comment: '同意立项' },
+                            '结项评审': { participants: '周金蓉', date: '2025-09-12', comment: '项目已结项' }
+                        };
+                        details = completedDetails[step.name] || details;
+                    }
+
+                    switch (step.status) {
+                        case 'completed':
+                            item.classList.add('completed');
+                            dotContent = '<i class="fas fa-check"></i>';
+                            break;
+                        case 'active':
+                            item.classList.add('active');
+                            break;
+                        case 'pending':
+                            item.classList.add('no-hover');
+                            break;
+                    }
+                    
+                    if (step.status === 'pending') {
+                        let pendingParticipants = details.participants;
+                        if (pendingParticipants.startsWith('待办: ')) pendingParticipants = `预测: ${pendingParticipants.substring(4)}`;
+
+                        topInfoHTML = `<div class="timeline-top-info predict"><div class="participants" style="color: var(--gray-text);">${pendingParticipants}</div></div>`;
+                    } else {
+                        topInfoHTML = `<div class="timeline-top-info"><div class="participants">${details.participants}</div><div class="date">${details.date}</div></div>`;
+                    }
+
+                    if (details.comment) {
+                        contentHTML = `<div class="timeline-content"><div class="timeline-body"><p><strong>评审意见:</strong> ${details.comment}</p></div></div>`;
+                    } else {
+                        item.classList.add('no-hover');
+                    }
+                    
+                    item.innerHTML = `
+                        ${topInfoHTML}
+                        ${contentHTML}
+                        <div class="timeline-dot">${dotContent}</div>
+                        <h4 class="timeline-title">${step.name}</h4>
+                    `;
+                    timelineContainer.appendChild(item);
+                });
+            }
+
+            function updatePage(projectId) {
+                const data = processData[projectId];
+                if (!data) {
+                    document.querySelector('.page-title').textContent = '未找到项目';
+                    document.querySelector('.main-content').style.display = 'none';
+                    return;
+                }
+
+                // Update title and tag
+                document.querySelector('.page-title').textContent = data.title;
+                const tagElement = document.querySelector('.process-tag');
+                tagElement.textContent = data.tag;
+                tagElement.className = 'process-tag ' + (data.tagClass || '');
+
+                // Render dynamic sections
+                renderTimeline(data.steps, data.currentApprover);
+                // renderReviewBlocks(data.steps, data.currentApprover); // [REMOVED] 移除动态渲染
+
+                // Update basic info card
+                const infoGridValues = document.querySelectorAll('.info-grid .value');
+                infoGridValues[0].textContent = data.personInCharge;
+                infoGridValues[1].textContent = data.creationDate;
+                infoGridValues[2].textContent = data.statusText;
+                infoGridValues[3].textContent = data.currentNode;
+
+                // Update form fields
+                document.querySelector('#applicant').value = data.personInCharge;
+                document.querySelector('#apply-date').value = data.creationDate.split(' ')[0];
+                document.querySelector('#project-no').value = projectId;
+
+                // Hide input/buttons for completed or non-active processes
+                const isProcessActive = data.steps.some(step => step.status === 'active');
+                const reviewResultRow = document.querySelector('.form-row.active-section');
+
+                if (reviewResultRow) {
+                    reviewResultRow.style.display = isProcessActive ? 'flex' : 'none';
+                }
+            }
+
             const params = new URLSearchParams(window.location.search);
-            const projectId = params.get('id');
+            const projectId = params.get('id') || 'budget-2025';
             console.log('当前决策ID:', projectId);
-            // 之后可以根据 projectId 从后端或静态数据中获取详细信息并填充页面
+            updatePage(projectId);
         });
 
         // --- 新增：二次确认弹窗逻辑 ---
@@ -859,6 +1255,7 @@
         const disagreeBtn = document.getElementById('disagree-btn');
         const resultCommentTextarea = document.getElementById('result-comment');
 
+        resultCommentTextarea.placeholder = "必填"; // 设置placeholder为“必填”
         let currentAction = null;
 
         const actions = {
@@ -866,13 +1263,25 @@
                 title: '确认同意',
                 body: '您确定要同意该决策申请吗？此操作不可撤销。',
                 confirmClass: 'btn-success',
-                callback: () => alert('已执行“同意”操作。')
+                callback: () => {
+                    const reviewSection = document.querySelector('.form-row.active-section');
+                    reviewSection.classList.add('decision-made', 'agreed');
+                    resultCommentTextarea.readOnly = true;
+                    agreeBtn.disabled = true;
+                    disagreeBtn.disabled = true;
+                }
             },
             disagree: {
                 title: '确认不同意',
                 body: '您确定要不同意该决策申请吗？此操作不可撤销。',
                 confirmClass: 'btn-danger',
-                callback: () => alert('已执行“不同意”操作。')
+                callback: () => {
+                    const reviewSection = document.querySelector('.form-row.active-section');
+                    reviewSection.classList.add('decision-made', 'disagreed');
+                    resultCommentTextarea.readOnly = true;
+                    agreeBtn.disabled = true;
+                    disagreeBtn.disabled = true;
+                }
             }
         };
 
@@ -880,7 +1289,7 @@
             currentAction = actions[actionType];
             modalTitle.textContent = currentAction.title;
             modalBody.textContent = currentAction.body;
-            confirmBtn.className = `btn ${currentAction.confirmClass}`; // 更新确认按钮样式
+            confirmBtn.className = `btn ${currentAction.confirmClass}`;
             modal.style.display = 'flex';
         }
         
@@ -888,9 +1297,8 @@
         function validateAndShowModal(actionType) {
             const comment = resultCommentTextarea.value.trim();
             if (comment === '') {
-                resultCommentTextarea.classList.add('is-invalid');
-                resultCommentTextarea.focus();
-                return; // Stop if validation fails
+                alert('请填写评审内容'); // 弹框提示
+                return; 
             }
             showModal(actionType); // Proceed if validation passes
         }
@@ -911,6 +1319,30 @@
                 resultCommentTextarea.classList.remove('is-invalid');
             }
         });
+
+        // --- 新增：文件预览弹窗逻辑 ---
+        const filePreviewModal = document.getElementById('file-preview-modal');
+        const filePreviewTitle = document.getElementById('file-preview-title');
+        const filePreviewBody = document.getElementById('file-preview-body');
+        const filePreviewCloseBtn = document.getElementById('file-preview-close-btn');
+
+        function openFilePreview(fileName) {
+            filePreviewTitle.textContent = `预览: ${fileName}`;
+            filePreviewBody.innerHTML = `<p>正在加载 "${fileName}" 的内容...</p>`;
+            filePreviewModal.style.display = 'flex';
+        }
+
+        function closeFilePreview() {
+            filePreviewModal.style.display = 'none';
+        }
+
+        document.querySelectorAll('#review-blocks-container .upload-file-name').forEach(fileElement => {
+            fileElement.addEventListener('click', () => {
+                openFilePreview(fileElement.textContent);
+            });
+        });
+
+        filePreviewCloseBtn.addEventListener('click', closeFilePreview);
     </script>
 </body>
 </html>
