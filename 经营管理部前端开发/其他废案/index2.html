@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企业信息查询首页</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background: #1a73e8;
+            color: #fff;
+            padding: 18px 0 16px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .container {
+            max-width: 700px;
+            margin: 60px auto 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            padding: 40px 36px 32px 36px;
+        }
+        .search-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: #222;
+            text-align: center;
+        }
+        .search-bar {
+            display: flex;
+            margin-bottom: 24px;
+        }
+        .search-bar input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            font-size: 18px;
+            border: 1px solid #d0d4da;
+            border-radius: 6px 0 0 6px;
+            outline: none;
+            transition: border 0.2s;
+        }
+        .search-bar input[type="text"]:focus {
+            border-color: #1a73e8;
+        }
+        .search-bar button {
+            padding: 0 32px;
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 0 6px 6px 0;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-bar button:hover {
+            background: #1760c4;
+        }
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px 32px;
+            margin-bottom: 10px;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+        }
+        .filter-group label {
+            margin-right: 8px;
+            color: #555;
+            font-size: 15px;
+        }
+        .filter-group select, .filter-group input[type="text"] {
+            padding: 6px 12px;
+            border: 1px solid #d0d4da;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 18px 6px;
+            }
+            .search-title {
+                font-size: 20px;
+            }
+            .search-bar input[type="text"], .search-bar button {
+                font-size: 15px;
+            }
+            .filters {
+                flex-direction: column;
+                gap: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">企业信息查询</div>
+    <div class="container">
+        <div class="search-title">查企业、查老板、查关系</div>
+        <form>
+            <div class="search-bar">
+                <input type="text" placeholder="请输入企业名/人名/品牌/产品等关键词" required>
+                <button type="submit">搜索</button>
+            </div>
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="province">省份：</label>
+                    <select id="province" name="province">
+                        <option value="">不限</option>
+                        <option value="北京">北京</option>
+                        <option value="上海">上海</option>
+                        <option value="广东">广东</option>
+                        <option value="浙江">浙江</option>
+                        <option value="江苏">江苏</option>
+                        <!-- 可继续补充 -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="industry">行业：</label>
+                    <select id="industry" name="industry">
+                        <option value="">不限</option>
+                        <option value="互联网">互联网</option>
+                        <option value="制造业">制造业</option>
+                        <option value="金融">金融</option>
+                        <option value="医疗">医疗</option>
+                        <option value="教育">教育</option>
+                        <!-- 可继续补充 -->
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="regcapital">注册资本：</label>
+                    <select id="regcapital" name="regcapital">
+                        <option value="">不限</option>
+                        <option value="0-100万">0-100万</option>
+                        <option value="100-1000万">100-1000万</option>
+                        <option value="1000万以上">1000万以上</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="establish">成立年限：</label>
+                    <select id="establish" name="establish">
+                        <option value="">不限</option>
+                        <option value="1">1年内</option>
+                        <option value="3">3年内</option>
+                        <option value="5">5年内</option>
+                        <option value="10">10年以上</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

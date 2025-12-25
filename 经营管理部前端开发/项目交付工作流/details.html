@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 继承主页面的所有样式 */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a192f; /* 深蓝色背景 */
+            color: #e6f1ff;
+        }
+        .dashboard-header {
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 194, 255, 0.2);
+        }
+        .details-card {
+            background: rgba(17, 34, 64, 0.75);
+            border: 1px solid rgba(0, 194, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 194, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+        .status-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse-animation 2s infinite;
+        }
+        .status-light.normal {
+            background-color: #22c55e; /* green-500 */
+            --pulse-color: rgba(34, 197, 94, 0.5);
+        }
+        .status-light.warning {
+            background-color: #f97316; /* orange-500 */
+            --pulse-color: rgba(249, 115, 22, 0.5);
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 var(--pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 物料表格样式 */
+        .material-table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+        }
+        .material-table thead { background-color: rgba(10, 25, 47, 0.8); }
+        .material-table th, .material-table td {
+            padding: 12px 10px;
+            text-align: center; /* Center align all columns */
+            word-wrap: break-word;
+        }
+        .material-table td:nth-child(3),
+        .material-table td:nth-child(13) {
+            text-align: left; /* Left align Name and Remark */
+        }
+
+        /* Column Widths */
+        .material-table th:nth-child(1) { width: 4%; } /* 序号 */
+        .material-table th:nth-child(2) { width: 10%; } /* 物料编码 */
+        .material-table th:nth-child(3) { width: 26%; } /* 名称 */
+        .material-table th:nth-child(4) { width: 8%; } /* 规格 */
+        .material-table th:nth-child(5) { width: 6%; } /* 单套用量 */
+        .material-table th:nth-child(6) { width: 4%; } /* 单位 */
+        .material-table th:nth-child(7) { width: 6%; } /* 总数量 */
+        .material-table th:nth-child(8) { width: 6%; } /* 实发数 */
+        .material-table th:nth-child(9) { width: 6%; } /* 产品线 */
+        .material-table th:nth-child(10) { width: 8%; } /* 属性码 */
+        .material-table th:nth-child(11) { width: 6%; } /* 优选等级 */
+        .material-table th:nth-child(12) { width: 5%; } /* 禁空运 */
+        .material-table th:nth-child(13) { width: auto; } /* 备注 */
+
+        .material-table tbody tr { border-bottom: 1px solid rgb(55 65 81); }
+        .material-table tbody tr:hover { background-color: rgb(30 41 59); } /* slate-800 */
+
+        /* 进度时间轴样式 */
+        #timeline-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            width: 100%;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        #timeline-container::before {
+            content: '';
+            position: absolute;
+            width: calc(100% - 4rem);
+            height: 4px;
+            background-color: #374151; /* gray-700 */
+            top: 8px;
+            left: 2rem;
+            z-index: 0;
+            border-radius: 2px;
+        }
+        #timeline-container::after {
+            content: '';
+            position: absolute;
+            width: var(--progress-width, 0%);
+            height: 4px;
+            background-image: linear-gradient(to right, #22c55e, #00c2ff);
+            top: 8px;
+            left: 2rem;
+            z-index: 1;
+            border-radius: 2px;
+            transition: width 0.5s ease-in-out;
+        }
+        .timeline-item {
+            flex: 1;
+            position: relative;
+            text-align: center;
+            padding: 2rem 0.5rem 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            background: #112240;
+        }
+        .timeline-dot-completed {
+            background-color: #22c55e;
+            border: 3px solid rgba(34, 197, 94, 0.3);
+            animation: pop-in 0.5s ease-in-out;
+        }
+        .timeline-dot-active { background-color: #00c2ff; border: 3px solid rgba(0, 194, 255, 0.3); animation: pulse-animation 2s infinite; --pulse-color: rgba(0, 194, 255, 0.5); }
+        .timeline-dot-pending { background-color: #4b5563; border: 3px solid #6b7280; }
+
+        .sort-asc .flex-col svg:first-child { color: #00c2ff; }
+        .sort-desc .flex-col svg:last-child { color: #00c2ff; }
+        
+        /* 成本分析模块样式 */
+        .cost-chart-container {
+            position: relative;
+            height: 140px;
+            width: 140px;
+            margin: 0 auto;
+        }
+        .cost-chart-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .progress-bar-container {
+            background-color: #374151; /* gray-700 */
+            border-radius: 9999px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 9999px;
+            background-image: linear-gradient(to right, #0ea5e9, #00c2ff);
+            transition: width 0.5s ease-in-out;
+        }
+        .progress-bar.over-budget {
+            background-image: linear-gradient(to right, #f97316, #ef4444);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="dashboard-header sticky top-0 z-50">
+        <div class="w-full px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="L1 - black.html" class="flex items-center space-x-2 text-slate-400 hover:text-cyan-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1
+ 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                    <span>返回看板</span>
+                </a>
+                <span class="font-bold text-xl tracking-wider text-slate-200">项目详情</span>
+            </div>
+            <div id="current-time" class="text-sm text-slate-400"></div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 md:px-12 lg:px-24 xl:px-32 py-12 md:py-16 w-full">
+        
+        <div class="space-y-8">
+            
+            <section class="details-card">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div id="project-status-light" class="status-light"></div>
+                            <h2 id="project-name" class="text-2xl font-bold text-slate-100"></h2>
+                        </div>
+                        <p id="project-id" class="text-base text-slate-400 ml-6"></p>
+                    </div>
+                    <div class="text-sm">
+                        <p class="text-slate-400">项目启动人: <span id="project-owner" class="font-semibold text-slate-200"></span></p>
+                        <p class="text-slate-400 mt-1">总周期(天): <span id="project-cycle" class="font-semibold text-slate-200"></span></p>
+                    </div>
+                </div>
+                <div class="mt-6 border-t border-slate-700 pt-6">
+                    <div class="flex items-start">
+                        <p class="text-slate-400 text-sm flex-shrink-0">项目状态</p>
+                        <div class="ml-4">
+                            <div class="flex items-center gap-x-3">
+                                <span class="font-bold text-lg text-green-400">正常进行</span>
+                                <span class="text-sm bg-slate-600 text-slate-200 px-2 py-0.5 rounded">【8-20】</span>
+                            </div>
+                            <p class="text-slate-300 mt-2">现场光学联调中，一致性本周输出测试结果给客户</p>
+                            <p class="text-xs text-slate-500 mt-2 text-right">曹雷 更新于2024年8月21日</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="details-card">
+                 <h3 class="text-lg font-bold text-cyan-400 mb-6">项目进度追踪</h3>
+                 <div id="timeline-container"></div>
+                 <p id="project-remark" class="text-slate-400 mt-6 text-sm"></p>
+            </section>
+            
+            <section class="details-card">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-cyan-400">物料状态查询</h3>
+                    <div class="flex items-center">
+                        <input type="text" id="material-search" placeholder="输入物料编码查询" class="bg-slate-800 border border-slate-600 rounded-md px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 w-56">
+                        <button id="search-btn" class="ml-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-1.5 px-4 rounded-md text-sm">查询</button>
+                        <button id="reset-btn" class="ml-2 bg-slate-600 hover:bg-slate-700 text-white font-bold py-1.5 px-4 rounded-md text-sm">重置</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="material-table" class="material-table w-full text-sm text-left text-slate-300">
+                        <thead class="text-sm text-slate-300 uppercase">
+                             <tr>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>序号</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>物料编码</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>名称</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>规格</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>单套用量</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>单位</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>总数量</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>实发数</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>产品线</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>属性码</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>优选等级</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>禁空运</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                                <th class="px-4 py-3 text-center whitespace-nowrap cursor-pointer"><div class="flex items-center justify-center"><span>备注</span><div class="ml-2 flex flex-col"><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6l-4 4h8l-4-4z"></path></svg><svg class="h-3 w-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path d="M10 14l4-4H6l4 4z"></path></svg></div></div></th>
+                            </tr>
+                        </thead>
+                        <tbody id="material-tbody-static">
+                            <tr><td class="px-4 py-3 text-center">10</td><td class="px-4 py-3">2030100097</td><td class="px-4 py-3 font-medium text-white">大尺寸超高分辨率液晶模组讯号发生器GS033N-D(钣金，黑色细砂纹)</td><td class="px-4 py-3">GA033I</td><td class="px-4 py-3 text-center">1</td><td class="px-4 py-3">PCS</td><td class="px-4 py-3 text-center">1</td><td class="px-4 py-3"></td><td class="px-4 py-3">GET</td><td class="px-4 py-3">自研自制</td><td class="px-4 py-3">~</td><td class="px-4 py-3 text-center">N</td><td class="px-4 py-3 text-slate-400 text-xs"></td></tr>
+                            <tr><td class="px-4 py-3 text-center">20</td><td class="px-4 py-3">2040100089</td><td class="px-4 py-3 font-medium text-white">8K分体式讯号适配器GA033I主体（钣金黑色细砂纹）</td><td class="px-4 py-3">GA033I</td><td class="px-4 py-3 text-center">2</td><td class="px-4 py-3">PCS</td><td class="px-4 py-3 text-center">2</td><td class="px-4 py-3"></td><td class="px-4 py-3">GET</td><td class="px-4 py-3">~</td><td class="px-4 py-3">启用</td><td class="px-4 py-3 text-center">N</td><td class="px-4 py-3 text-slate-400 text-xs"></td></tr>
+                            <tr><td class="px-4 py-3 text-center">30</td><td class="px-4 py-3">2040100103</td><td class="px-4 py-3 font-medium text-white">8K分体式讯号适配器GA033I LVDS信号扩展套件（钣金，黑色细砂纹）</td><td class="px-4 py-3">GA033I</td><td class="px-4 py-3 text-center">2</td><td class="px-4 py-3">PCS</td><td class="px-4 py-3 text-center">2</td><td class="px-4 py-3"></td><td class="px-4 py-3">GET</td><td class="px-4 py-3">~</td><td class="px-4 py-3">~</td><td class="px-4 py-3 text-center">N</td><td class="px-4 py-3 text-slate-400 text-xs"></td></tr>
+                            <tr><td class="px-4 py-3 text-center">40</td><td class="px-4 py-3">2040100102</td><td class="px-4 py-3 font-medium text-white">8K分体式讯号适配器GA033I DP信号扩展套件（钣金，黑色细砂纹）</td><td class="px-4 py-3">GA033I</td><td class="px-4 py-3 text-center">2</td><td class="px-4 py-3">PCS</td><td class="px-4 py-3 text-center">2</td><td class="px-4 py-3"></td><td class="px-4 py-3">GET</td><td class="px-4 py-3">~</td><td class="px-4 py-3">~</td><td class="px-4 py-3 text-center">N</td><td class="px-4 py-3 text-slate-400 text-xs"></td></tr>
+                            <tr><td class="px-4 py-3 text-center">50</td><td class="px-4 py-3">2040100098</td><td class="px-4 py-3 font-medium text-white">8K分体式讯号适配器GA033I DP/HDMI信号扩展套件（钣金，黑色细砂纹）　</td><td class="px-4 py-3">GA033I　</td><td class="px-4 py-3 text-center">1</td><td class="px-4 py-3">PCS</td><td class="px-4 py-3 text-center">1</td><td class="px-4 py-3"></td><td class="px-4 py-3">GET</td><td class="px-4 py-3">"</td><td class="px-4 py-3">~</td><td class="px-4 py-3 text-center">N</td><td class="px-4 py-3 text-slate-400 text-xs">与其他物料分开，单独发货，发货地址待定</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="details-card">
+                <h3 class="text-lg font-bold text-cyan-400 mb-6">成本分析 (项目: 2508DDEJXN316)</h3>
+                <div id="cost-analysis-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // --- 静态数据源 START ---
+        const projectDataCSV = `
+序号,项目编号,项目名称,需求出货时间,节点,项目启动,研发BOM发布,生产程序释放,核心部件出货,设备MOVE IN,安装验收,调试验收,急单标识,开始,结束,总周期(天),状态,备注
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,人员,佘黎,佘黎,,张琰,邓炜,韦柏杨,韦柏杨,是,,,,风险预警,经与销售协调一致，可从8/22调整至9/8号出货
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,计划,2025-08-11,2025-08-12,,,2025-09-02,2025-09-15,2025-09-22,是,2025-08-11,2025-09-02,22,风险预警,
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,实际,2025-08-14,,,,,,,是,,2025-09-17,,风险预警,
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,人员,佘黎,佘黎,,杨蓉,,,,否,,,,正常进行,与2506DDEHZ2889 一同出货
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,计划,2025-08-12,2025-08-13,,,,,,否,2025-08-12,2025-08-25,13,正常进行,
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,实际,2025-08-12,2025-08-13,,,,,,否,,,,正常进行,
+8,2508DDEHD3918,杭州-PG GS033-1 发货清单,2025-08-20,人员,张三,李四,,王五,,,,是,,,,正常进行,
+8,2508DDEHD3918,杭州-PG GS033-1 发货清单,2025-08-20,计划,2025-08-10,2025-08-11,,,,,,是,2025-08-10,2025-08-20,10,正常进行,
+8,2508DDEHD3918,杭州-PG GS033-1 发货清单,2025-08-20,实际,2025-08-10,2025-08-12,,,,,,是,,,,正常进行,
+        `;
+        
+        const costData = {
+            '总未税成本': {
+                items: [
+                    { name: '材料&包装运输', budget: 22627840.31, difference: 15271095.81 },
+                    { name: '制造费用', budget: 1147734.58, difference: 1147734.58 },
+                    { name: '售后&管理&其他', budget: 115171.20, difference: 112531.08 },
+                    { name: '研发费用', budget: 337704.00, difference: 239666.13 },
+                ]
+            },
+            'GET产品线未税成本': {
+                items: [
+                    { name: '材料&包装运输', budget: 21388640.31, difference: 1067726.35 },
+                    { name: '制造费用', budget: 943009.58, difference: -734071.53 },
+                    { name: '售后&管理&其他', budget: 115171.20, difference: 0 },
+                    { name: '研发费用', budget: 337704.00, difference: -231509.31 },
+                ]
+            },
+            'JVT产品线未税成本': {
+                items: [
+                    { name: '材料&包装运输', budget: 1239200.00, difference: 268000.00 },
+                    { name: '制造费用', budget: 204725.00, difference: -204725.00 },
+                    { name: '售后&管理&其他', budget: 0, difference: 0 },
+                    { name: '研发费用', budget: 0, difference: 0 },
+                ]
+            }
+        };
+        // --- 静态数据源 END ---
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeProjectDetails(projectDataCSV);
+            renderCostAnalysis(costData);
+            initializeMaterialSearch();
+
+            const timeEl = document.getElementById('current-time');
+            function updateTime() {
+                timeEl.textContent = new Date().toLocaleString('zh-CN', { hour12: false });
+            }
+            setInterval(updateTime, 1000);
+            updateTime();
+        });
+        
+        // ---- 渲染函数 ----
+        
+        function initializeProjectDetails(csv) {
+            const params = new URLSearchParams(window.location.search);
+            const projectId = params.get('id') || '2508DDEHD3918';
+            
+            const allProjectsData = parseCSV(csv);
+            const projectData = allProjectsData.find(p => p.overview['项目编号'] === projectId);
+
+            if (!projectData) {
+                document.querySelector('main').innerHTML = `<p class="text-center text-red-500">错误：项目编号 "${projectId}" 不存在。</p>`;
+                return;
+            }
+
+            document.getElementById('project-name').textContent = projectData.overview['项目名称'];
+            document.getElementById('project-id').textContent = projectData.overview['项目编号'];
+            document.getElementById('project-owner').textContent = projectData.overview['项目启动人'];
+            document.getElementById('project-status-text').textContent = projectData.overview['状态'];
+            document.getElementById('project-start-date').textContent = projectData.overview['下单时间'];
+            document.getElementById('project-end-date').textContent = projectData.overview['结束时间'];
+            document.getElementById('project-delivery-date').textContent = projectData.overview['需求出货时间'];
+            document.getElementById('project-remark').textContent = projectData.overview['备注'] ? '备注：' + projectData.overview['备注'] : '';
+            
+            const totalCycle = calculateDaysBetween(projectData.overview['下单时间'], projectData.overview['需求出货时间']);
+            document.getElementById('project-cycle').textContent = totalCycle;
+            
+            const statusLight = document.getElementById('project-status-light');
+            statusLight.classList.add(projectData.overview['状态'] === '风险预警' ? 'warning' : 'normal');
+
+            renderTimeline(projectData.nodes);
+        }
+
+        function renderTimeline(nodes) {
+            const detailedNodeKeys = ['项目启动', '研发BOM发布', '生产程序释放', '核心部件出货', '设备MOVE IN', '安装验收', '调试验收'];
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+            let activeNodeFound = false;
+            let completedCount = 0;
+
+            detailedNodeKeys.forEach((key) => {
+                const node = nodes[key];
+                let status = 'pending';
+                let dotClass = 'timeline-dot-pending';
+                let checkIcon = '';
+
+                if (node['实际']) {
+                    status = 'completed';
+                    dotClass = 'timeline-dot-completed';
+                    checkIcon = '<svg class="w-4 h-4 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>';
+                    completedCount++;
+                } else if (!activeNodeFound) {
+                    status = 'active';
+                    dotClass = 'timeline-dot-active';
+                    activeNodeFound = true;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.innerHTML = `
+                    <div class="timeline-dot ${dotClass}">${checkIcon}</div>
+                    <div>
+                        <h4 class="font-bold text-base ${status === 'active' ? 'text-cyan-400' : 'text-slate-200'}">${key}</h4>
+                        <p class="text-sm text-slate-400 mt-1">负责人: ${node['人员'] || '待分配'}</p>
+                        <div class="text-sm mt-2 text-slate-400">
+                            <p>计划: <span class="text-slate-300">${node['计划'] || '-'}</span></p>
+                            ${status === 'completed' ? `<p class="mt-1">实际: <span class="font-semibold text-green-400">${node['实际']}</span></p>` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            const progress = (completedCount / (detailedNodeKeys.length - 1)) * 100;
+            container.style.setProperty('--progress-width', `${progress}%`);
+        }
+
+        function renderCostAnalysis(data) {
+            const container = document.getElementById('cost-analysis-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            Object.entries(data).forEach(([title, categoryData], index) => {
+                const totalBudget = categoryData.items.reduce((sum, item) => sum + item.budget, 0);
+                const totalDifference = categoryData.items.reduce((sum, item) => sum + item.difference, 0);
+                const totalActual = totalBudget - totalDifference;
+                const usagePercent = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
+                
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800/50 p-5 rounded-lg border border-slate-700';
+                
+                let breakdownHtml = categoryData.items.map(item => {
+                    const actual = item.budget - item.difference;
+                    const percent = item.budget > 0 ? (actual / item.budget) * 100 : 0;
+                    const isOverBudget = actual > item.budget;
+                    const diff_color = item.difference >= 0 ? 'text-green-400' : 'text-red-500';
+                    const diff_sign = item.difference >= 0 ? '+' : '';
+
+                    return `
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-400 text-sm truncate">${item.name}</span>
+                                <span class="text-xs ${diff_color} font-medium">
+                                    差额: ${diff_sign}${formatCurrency(item.difference, true)}
+                                </span>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar ${isOverBudget ? 'over-budget' : ''}" style="width: ${Math.min(percent, 100)}%;"></div>
+                            </div>
+                            <div class="text-xs text-right text-slate-500">
+                                <span>${formatCurrency(actual, true)}</span> / <span class="opacity-70">${formatCurrency(item.budget, true)}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const total_diff_color = totalDifference >= 0 ? 'text-green-400' : 'text-red-500';
+                const total_diff_sign = totalDifference >= 0 ? '+' : '';
+
+                card.innerHTML = `
+                    <h4 class="text-base font-bold text-slate-200 mb-4 text-center">${title}</h4>
+                    <div class="cost-chart-container mb-4">
+                        <canvas id="costChart${index}"></canvas>
+                        <div class="cost-chart-center-text">
+                            <span class="text-slate-400 text-sm">预算使用</span>
+                            <p class="font-bold text-2xl ${usagePercent > 100 ? 'text-red-500' : 'text-cyan-400'}">${usagePercent.toFixed(1)}%</p>
+                        </div>
+                    </div>
+                    <div class="text-center space-y-1 mb-6">
+                         <p class="text-sm text-slate-400">实际成本: <span class="font-semibold text-slate-200">${formatCurrency(totalActual, true)}</span></p>
+                         <p class="text-sm text-slate-400">预算成本: <span class="font-semibold text-slate-200 opacity-80">${formatCurrency(totalBudget, true)}</span></p>
+                         <p class="text-sm ${total_diff_color}">成本差额: <span class="font-semibold">${total_diff_sign}${formatCurrency(totalDifference, true)}</span></p>
+                    </div>
+                    <div class="space-y-4 border-t border-slate-700 pt-4">
+                        ${breakdownHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+                
+                // 渲染图表
+                const ctx = document.getElementById(`costChart${index}`).getContext('2d');
+                const chartColor = usagePercent > 100 ? '#ef4444' : (usagePercent > 90 ? '#f97316' : '#00c2ff');
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [usagePercent > 100 ? 100 : usagePercent, 100 - (usagePercent > 100 ? 100 : usagePercent)],
+                            backgroundColor: [chartColor, '#374151'],
+                            borderWidth: 0,
+                            cutout: '80%',
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+                });
+            });
+        }
+
+        function initializeMaterialSearch() {
+            const searchBtn = document.getElementById('search-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const searchInput = document.getElementById('material-search');
+            const table = document.getElementById('material-table');
+            const tableBody = table.tBodies[0];
+
+            if(searchBtn) {
+                searchBtn.addEventListener('click', () => {
+                    const searchTerm = searchInput.value.toLowerCase();
+                    Array.from(tableBody.rows).forEach(row => {
+                        const cellText = row.cells[1]?.textContent.toLowerCase() || '';
+                        row.style.display = cellText.includes(searchTerm) ? '' : 'none';
+                    });
+                });
+            }
+
+            if(resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    searchInput.value = '';
+                    Array.from(tableBody.rows).forEach(row => row.style.display = '');
+                    table.querySelectorAll('th').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+                });
+            }
+
+            table.querySelectorAll('th').forEach((header, i) => {
+                if (i > 12) return;
+                header.addEventListener('click', () => {
+                    const isAsc = header.classList.contains('sort-asc');
+                    table.querySelectorAll('th').forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+                    header.classList.toggle('sort-desc', isAsc);
+                    header.classList.toggle('sort-asc', !isAsc);
+                    sortTableByColumn(table, i, !isAsc);
+                });
+            });
+        }
+
+        // ---- 辅助函数 ----
+
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            const headers = lines[0].split(',');
+            const projects = {};
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const rowData = headers.reduce((obj, h, j) => ({ ...obj, [h.trim()]: values[j]?.trim() || '' }), {});
+                const id = rowData['项目编号'];
+                if (!projects[id]) {
+                    projects[id] = {
+                        overview: { ...rowData },
+                        nodes: {}
+                    };
+                }
+                const nodeType = rowData['节点'];
+                const detailedNodeKeys = ['项目启动', '研发BOM发布', '生产程序释放', '核心部件出货', '设备MOVE IN', '安装验收', '调试验收'];
+                detailedNodeKeys.forEach(key => {
+                    if (!projects[id].nodes[key]) projects[id].nodes[key] = {};
+                    if(rowData[key]) projects[id].nodes[key][nodeType] = rowData[key];
+                });
+                if (nodeType === '人员') projects[id].overview['项目启动人'] = rowData['项目启动'];
+                if (nodeType === '计划') {
+                    projects[id].overview['下单时间'] = rowData['开始'];
+                    projects[id].overview['结束时间'] = rowData['结束'];
+                }
+            }
+            return Object.values(projects);
+        }
+        
+        function calculateDaysBetween(start, end) {
+            if (!start || !end || start === '-' || end === '-') return '-';
+            const diffTime = Math.abs(new Date(end) - new Date(start));
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function sortTableByColumn(table, column, asc = true) {
+            const dir = asc ? 1 : -1;
+            const tBody = table.tBodies[0];
+            const rows = Array.from(tBody.rows);
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.cells[column].textContent.trim();
+                const bText = b.cells[column].textContent.trim();
+                return aText.localeCompare(bText, undefined, { numeric: true }) * dir;
+            });
+            tBody.append(...sortedRows);
+        }
+        
+        function formatCurrency(num, withSymbol = false) {
+            if (typeof num !== 'number') return 'N/A';
+            const symbol = withSymbol ? '¥ ' : '';
+            return symbol + num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策详情 - 决策平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- 核心UI优化：全新的色彩体系和更细腻的视觉元素 --- */
+        :root {
+            /* --- Apple/Red Dot 风格新增变量 --- */
+            /* 调色板 */
+            --bg-body: #F5F5F7;        /* Apple 浅灰背景 */
+            --bg-card: #FFFFFF;        /* 纯白卡片 */
+            
+            --text-primary: #1D1D1F;   /* 深黑主色 */
+            --text-secondary: #86868B; /* 次级灰色 */
+            --text-tertiary: #B2B2B2;  /* 辅助灰色 */
+            
+            --accent-blue: #0066CC;    /* 交互蓝 */
+            --accent-green: #28CD41;   /* 成功绿 */
+            --accent-red: #FF3B30;     /* 警示红 */
+            --accent-orange: #FF9500;  /* 提示橙 */
+            --accent-purple: #AF52DE;  /* 强调紫 */
+
+            --border-light: rgba(0, 0, 0, 0.06); 
+            
+            /* 投影体系 - 弥散光感 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.1);
+
+            /* 圆角 */
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* 字体栈 */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+
+            /* 局部变量，保持此页面原有设计 */
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --sales-color: var(--accent-blue);
+            --rd-color: var(--accent-red);
+            --manage-color: var(--accent-purple);
+            --temporary-color: var(--accent-green);
+            --business-color: var(--accent-orange);
+            --light-bg: var(--bg-body);
+            --dark-text: var(--text-primary);
+            --gray-text: var(--text-secondary);
+            --border: #dcdfe6; /* 保持原border以兼容旧组件 */
+            --card-bg: var(--bg-card);
+            --card-shadow: var(--shadow-md);
+            --apple-blue: var(--accent-blue);
+            --apple-green: var(--accent-green);
+            --apple-red: var(--accent-red);
+            --apple-gray-bg: var(--bg-body);
+            --bubble-bg: #F9F9FB;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* 侧边栏样式 */
+        /* --- 侧边栏 (Sidebar) - 保持一致性 --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 1px 0 0 var(--border-light); /* 极细分割线 */
+        }
+        
+        .logo {
+            padding: 0 16px 32px;
+            margin-bottom: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, #434344 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover { background-color: rgba(0, 0, 0, 0.03); color: var(--text-primary); }
+        .nav-item.active { background-color: rgba(0, 102, 204, 0.08); color: var(--accent-blue); }
+        
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        /* 主内容区样式 */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0px; 
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .page-title-container {
+            display: flex;
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 1.5rem;
+        }
+        .page-title-group {
+            display: flex; align-items: center; gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .process-tag {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .tag-business { background-color: rgba(255, 149, 0, 0.1); color: var(--business-color); }
+        .tag-sales { background-color: rgba(0, 122, 255, 0.1); color: var(--sales-color); }
+        .tag-rd { background-color: rgba(255, 59, 48, 0.1); color: var(--rd-color); }
+        .tag-management { background-color: rgba(88, 86, 214, 0.1); color: var(--manage-color); }
+        .tag-temporary { background-color: rgba(52, 199, 89, 0.1); color: var(--temporary-color); }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .info-item .label {
+            font-size: 0.9rem;
+            color: var(--gray-text);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-item .value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--dark-text);
+        }
+
+        /* --- 布局修改：横向时间轴样式 --- */
+        .timeline {
+            position: relative;
+            display: flex;
+            justify-content: space-around;
+            padding-top: 10px;
+            margin-top: 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 101px;
+            /* [修改] 让线条延伸到节点前后 */
+            left: 40px; 
+            right: 40px;
+            height: 2px;
+            background-color: var(--border);
+            z-index: 1;
+        }
+
+        .timeline-item {
+            position: relative;
+            flex: 0 1 300px; /* 限制宽度，不要太宽 */
+            text-align: center;
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .timeline-top-info {
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            background-color: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            gap: 4px;
+            min-width: 200px; /* 保证宽度统一 */
+        }
+        .timeline-top-info.predict {
+            background-color: rgba(0, 0, 0, 0.02);
+            border: 1px dashed rgba(0, 0, 0, 0.1); /* 虚线框表示预测 */
+            color: var(--gray-text);
+        }
+        .timeline-top-info .participants {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+        .timeline-top-info .date {
+            font-size: 0.85rem;
+        }
+
+        .timeline-dot {
+            position: relative;
+            z-index: 2;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .timeline-item.completed .timeline-dot {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .timeline-item.active .timeline-dot {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.15); /* 增加呼吸感光圈 */
+        }
+
+        .timeline-content {
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(0,0,0,0.08);
+            text-align: left;
+            width: 280px;
+            z-index: 100;
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out, visibility 0.2s;
+        }
+
+        .timeline-item:not(.no-hover)::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 24px;
+            height: 80px;
+            z-index: 99;
+        }
+        .timeline-item.no-hover::after {
+            display: none;
+        }
+
+        .timeline-item:not(.no-hover):hover > .timeline-content {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .timeline-content::after {
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 8px; border-style: solid; border-color: var(--card-bg) transparent transparent transparent;
+        }
+
+        .timeline-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .timeline-body p {
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- 表单样式 --- */
+        .decision-form {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .form-title {
+            font-size: 20px;
+            font-weight: 600;
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* --- Apple/Red Dot 风格：审批流样式 (Review Stream) --- */
+        /* 覆盖原有的 form-content 默认样式以适应审批流 */
+        .form-content.review-stream-container {
+            display: block; /* 取消 flex */
+            padding: 30px;
+            background: #fff;
+        }
+
+        .review-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            position: relative;
+            padding-left: 10px;
+        }
+        
+        /* 审批流左侧连接线 */
+        .review-stream::before {
+            content: ''; 
+            position: absolute; 
+            left: 33px; /* 对齐头像中心 */
+            top: 24px; 
+            bottom: 24px; 
+            width: 2px; 
+            background: #F2F2F7; 
+            z-index: 0;
+        }
+
+        .review-card {
+            display: flex;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .reviewer-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* 增加投影 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #555;
+            flex-shrink: 0;
+            font-size: 14px;
+        }
+        /* 状态颜色 */
+        .review-card.agreed .reviewer-avatar { color: var(--apple-green); border-color: var(--apple-green); }
+        .review-card.disagreed .reviewer-avatar { color: var(--apple-red); border-color: var(--apple-red); }
+        .review-card.active .reviewer-avatar { color: white; background: var(--apple-blue); border-color: var(--apple-blue); box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3); }
+        
+        /* 未填写/待办状态 */
+        .review-card.pending .reviewer-avatar { 
+            color: #C7C7CC; 
+            border: 2px dashed #D1D1D6; 
+            background: #FAFAFC;
+            box-shadow: none; 
+        }
+
+        .review-content-bubble {
+            flex: 1;
+            background: var(--bubble-bg);
+            padding: 24px;
+            border-radius: 0 20px 20px 20px; /* 经典气泡圆角 */
+            border: 1px solid rgba(0,0,0,0.03);
+            transition: all 0.2s;
+        }
+        
+        /* 未填写状态的气泡 */
+        .review-card.pending .review-content-bubble {
+            background: #fff;
+            border: 1px dashed #E5E5EA;
+        }
+
+        .review-card:not(.pending):hover .review-content-bubble {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+        }
+
+        .review-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .reviewer-name { font-weight: 600; font-size: 15px; color: var(--dark-text); }
+        .review-date { font-size: 13px; color: var(--gray-text); margin-left: 8px; }
+        .review-status-text { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+        
+        .text-green { color: var(--apple-green); }
+        .text-red { color: var(--apple-red); }
+        .text-blue { color: var(--apple-blue); }
+        .text-gray { color: #8E8E93; }
+
+        .review-text-body {
+            font-size: 15px;
+            color: var(--dark-text);
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+        
+        .review-card.pending .review-text-body {
+            color: #AEAEB2;
+            font-style: italic;
+        }
+
+        /* 附件胶囊样式 */
+        .attachment-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: #fff;
+            border: 1px solid rgba(0,0,0,0.05);
+            border-radius: 99px;
+            font-size: 13px;
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .attachment-pill:hover { background: #f0f7ff; border-color: var(--primary); }
+
+        /* --- 当前操作区样式 (Action Area Bubble) --- */
+        .action-area-bubble {
+            background: #F0F7FF; /* 淡蓝背景 */
+            border: 1px dashed var(--apple-blue); /* 虚线框 */
+            border-radius: 0 20px 20px 20px;
+            padding: 24px;
+            flex: 1;
+        }
+
+        .modern-textarea {
+            width: 100%;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 15px;
+            min-height: 120px;
+            outline: none;
+            transition: all 0.2s;
+            resize: vertical;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            margin-bottom: 16px;
+        }
+        .modern-textarea:focus {
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.1);
+        }
+
+        /* 按钮组 */
+        .action-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 复用并覆盖 btn 样式 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 24px;
+            border-radius: 100px; /* 药丸形状 */
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+        }
+        
+        .btn-upload {
+            background: white;
+            color: var(--dark-text);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid transparent;
+        }
+        .btn-upload:hover { background: #fafafa; border-color: #eee; }
+
+        .btn-success {
+            background: var(--apple-blue); /* 同意用蓝色 (Apple风格) 或保留绿色 */
+            background: var(--apple-green); 
+            box-shadow: 0 4px 12px rgba(40, 205, 65, 0.3);
+        }
+        .btn-success:hover { background: #22b338; transform: translateY(-1px); }
+
+        .btn-danger {
+            background: rgba(255, 59, 48, 0.1);
+            color: var(--apple-red);
+            border: 1px solid transparent;
+        }
+        .btn-danger:hover { background: rgba(255, 59, 48, 0.2); }
+
+        /* --- Form Row 通用 --- */
+        .form-row {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+        .form-row:last-child {
+            border-bottom: none;
+        }
+
+        .form-label {
+            width: 120px;
+            background-color: #f7f7f7;
+            padding: 15px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-right: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .form-content {
+            flex-grow: 1;
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            flex: 1 1 200px;
+        }
+        
+        .form-group label {
+            margin-right: 10px;
+            white-space: nowrap;
+        }
+
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .form-group input[readonly],
+        textarea[readonly] {
+            background-color: transparent;
+            border: none;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        /* 自定义 Radio Button 样式 */
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+        .radio-group input[type="radio"] {
+            display: none;
+        }
+        .radio-group input[type="radio"] + span {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            margin-right: 8px;
+            position: relative;
+        }
+        .radio-group input[type="radio"]:checked + span::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary);
+            border-radius: 50%;
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        /* User Profile Style from Decision-v1.html */
+        .user-profile { display: flex; align-items: center; gap: 12px; background: var(--bg-card); padding: 6px 12px 6px 6px; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s; }
+        .user-profile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00C6FB, #005BEA); border-radius: 50%; color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>决策平台</h1>
+            </div>
+            <nav>
+                <a href="Decision-v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
+                <a href="process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+                <a href="Statistics-v1.html" class="nav-item"><i class="fas fa-chart-pie"></i> 决策统计</a>
+                <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+                <a href="Doc-v1.html" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="Schedule-v1.html" class="nav-item"><i class="fas fa-calendar-alt"></i> 评审计划</a>
+                <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="sticky-header-container">
+                <div class="page-title-container" style="margin-bottom: 0; padding-bottom: 24px;">
+                    <div class="page-title-group">
+                        <h2 class="page-title">2025年度全面预算评审</h2>
+                        <span class="process-tag tag-business">经营管理决策</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="avatar">E</div>
+                        <span class="user-name">评审团成员E</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">流程详情</h3></div>
+                    <div class="timeline">
+                        <!-- 节点 1：项目立项评审 (进行中) -->
+                        <div class="timeline-item active">
+                            <div class="timeline-top-info">
+                                <div class="participants">待办: 评审团成员A, B, C, D, E</div>
+                                <div class="date" style="color: var(--primary); font-weight: bold;">进行中...</div>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-body">
+                                    <p>当前阶段正在收集团队评审意见。</p>
+                                </div>
+                            </div>
+                            <div class="timeline-dot"><i class="fas fa-sync-alt fa-spin" style="font-size: 12px;"></i></div>
+                            <h4 class="timeline-title">项目立项评审</h4>
+                        </div>
+
+                        <!-- 节点 2：结项评审 (预测) -->
+                        <div class="timeline-item no-hover">
+                            <div class="timeline-top-info predict">
+                                <div class="participants" style="color: var(--gray-text);">预测：周金蓉</div>
+                            </div>
+                            <div class="timeline-dot">2</div>
+                            <h4 class="timeline-title">结项评审</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <form class="decision-form">
+                    <div class="form-title">PAC决策申请单</div>
+                    <!-- 基本信息行 -->
+                    <div class="form-row">
+                        <div class="form-label">申请人</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="applicant" value="张三" readonly>
+                            </div>
+                        </div>
+                         <div class="form-label">申请部门</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="department" value="研发部" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-label">项目编号</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="project-no" value="RD-2025-001" readonly>
+                            </div>
+                        </div>
+                         <div class="form-label">申请日期</div>
+                        <div class="form-content">
+                             <div class="form-group">
+                                <input type="text" id="apply-date" value="2025-09-02" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- [NEW] 新增：决策类别 -->
+                    <div class="form-row">
+                        <div class="form-label">决策类别</div>
+                        <div class="form-content radio-group">
+                            <label><input type="radio" name="decision-type" value="business" checked disabled><span></span>经营决策</label>
+                            <label><input type="radio" name="decision-type" value="project" disabled><span></span>项目决策</label>
+                            <label><input type="radio" name="decision-type" value="temporary" disabled><span></span>临时性决策</label>
+                        </div>
+                    </div>
+
+                     <div class="form-row">
+                        <div class="form-label">需求描述</div>
+                        <div class="form-content" style="flex-direction: column; align-items: flex-start;">
+                            <div style="width: 100%;">
+                                <!-- [修改] 增加 height:auto, overflow-y:hidden, resize:none 实现自适应高度 -->
+                                <!-- [修改] 将 font-size 设置为 14px 并增加 padding: 8px 以适应“8px”的视觉精细度要求，同时保持可读性 -->
+                                <textarea id="description" readonly style="border: none; background: transparent; padding: 8px 0; line-height: 1.6; color: #333; width: 100%; height: auto; overflow-y: hidden; resize: none; font-size: 14px;">对2025年度的公司战略、业务计划及财务预算进行全面评审，确保资源有效分配，支撑战略目标达成。</textarea>
+                            </div>
+                            <div class="upload-area">
+                                <span class="attachment-pill"><i class="fas fa-file-pdf"></i> 2025年度预算报告.pdf</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 审批意见区域 - 使用 Apple/Red Dot 风格流式布局 -->
+                    <div class="form-row">
+                        <div class="form-label">审批流程</div>
+                        <div class="form-content review-stream-container">
+                            
+                            <div class="review-stream">
+                                <!-- 成员 A -->
+                                <div class="review-card agreed">
+                                    <div class="reviewer-avatar">A</div>
+                                    <div class="review-content-bubble">
+                                        <div class="review-header-row">
+                                            <div><span class="reviewer-name">评审团成员A</span> <span class="review-date"> · 2025-11-15</span></div>
+                                            <div class="review-status-text text-green"><i class="fas fa-check-circle"></i> 同意</div>
+                                        </div>
+                                        <div class="review-text-body">资料齐全，符合公司年度预算评审要求。建议后续重点关注Q3季度的现金流预测。</div>
+                                        <div class="attachment-pill"><i class="fas fa-paperclip"></i> 预算草案V1.pdf</div>
+                                    </div>
+                                </div>
+
+                                <!-- 成员 B -->
+                                <div class="review-card agreed">
+                                    <div class="reviewer-avatar">B</div>
+                                    <div class="review-content-bubble">
+                                        <div class="review-header-row">
+                                            <div><span class="reviewer-name">评审团成员B</span> <span class="review-date"> · 2025-11-16</span></div>
+                                            <div class="review-status-text text-green"><i class="fas fa-check-circle"></i> 同意</div>
+                                        </div>
+                                        <div class="review-text-body">预算合理，风险可控。</div>
+                                    </div>
+                                </div>
+
+                                <!-- 成员 C -->
+                                <div class="review-card disagreed">
+                                    <div class="reviewer-avatar">C</div>
+                                    <div class="review-content-bubble">
+                                        <div class="review-header-row">
+                                            <div><span class="reviewer-name">评审团成员C</span> <span class="review-date"> · 2025-11-16</span></div>
+                                            <div class="review-status-text text-red"><i class="fas fa-times-circle"></i> 不同意</div>
+                                        </div>
+                                        <div class="review-text-body">市场预测部分需要更多数据支撑，建议补充后再次评审。</div>
+                                        <div class="attachment-pill"><i class="fas fa-file-alt"></i> 补充数据说明.pdf</div>
+                                    </div>
+                                </div>
+
+                                <!-- 成员 D (未填写 - 待评审样式) -->
+                                <div class="review-card pending">
+                                    <div class="reviewer-avatar">D</div>
+                                    <div class="review-content-bubble">
+                                        <div class="review-header-row">
+                                            <div><span class="reviewer-name" style="color: #8E8E93;">评审团成员D</span></div>
+                                            <div class="review-status-text text-gray"><i class="far fa-clock"></i> 待评审</div>
+                                        </div>
+                                        <div class="review-text-body">尚未提交评审意见...</div>
+                                    </div>
+                                </div>
+
+                                <!-- 成员 E (当前操作区 - 您处于此位置) -->
+                                <div class="review-card active">
+                                    <div class="reviewer-avatar">E</div>
+                                    <div class="action-area-bubble">
+                                        <div class="review-header-row">
+                                            <span class="reviewer-name" style="color: var(--apple-blue);">当前操作: 评审团成员E (您)</span>
+                                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-text);">
+                                                <i class="fas fa-clock"></i> <span id="decision-clock">--:--:--</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <textarea id="result-comment" class="modern-textarea" placeholder="请输入您的评审意见...（驳回必填）"></textarea>
+                                        
+                                        <div class="action-toolbar">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <button type="button" class="btn btn-upload" onclick="document.getElementById('file-upload-result').click()">
+                                                    <i class="fas fa-cloud-upload-alt"></i> 上传附件
+                                                </button>
+                                                <input type="file" id="file-upload-result" hidden>
+                                                <div id="file-preview-result" style="display: none; align-items: center; gap: 5px;">
+                                                    <span class="upload-file-name" id="file-name-result" style="font-size: 12px;"></span>
+                                                    <span id="cancel-upload-result" style="cursor: pointer; color: #999;">&times;</span>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; gap: 12px;">
+                                                <button type="button" class="btn btn-danger" id="disagree-btn">不同意</button>
+                                                <button type="button" class="btn btn-success" id="agree-btn">同意通过</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">基本信息</h3>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="label">模块负责人</div>
+                        <div class="value">张三</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">创建时间</div>
+                        <div class="value">2025-09-02 09:30</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">当前状态</div>
+                        <div class="value" style="color: var(--primary);">进行中</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="label">当前节点</div>
+                        <div class="value">管理评审</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 二次确认弹窗 -->
+    <div class="modal-overlay" id="confirmation-modal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modal-title">操作确认</h3>
+            <p id="modal-body" style="color: #666; margin-bottom: 24px;">您确定要提交此评审意见吗？</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-upload" id="modal-cancel-btn">取消</button>
+                <button type="button" class="btn" id="modal-confirm-btn">确认提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件预览弹窗 -->
+    <div class="modal-overlay" id="file-preview-modal">
+        <div class="modal-content" style="max-width: 800px; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h3 class="modal-title" id="file-preview-title">文件预览</h3>
+                <button type="button" class="btn btn-upload" id="file-preview-close-btn">关闭</button>
+            </div>
+            <div id="file-preview-body" style="height: 60vh; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: var(--gray-text); border-radius: 6px;">
+                <p>文件内容预览区</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 时钟逻辑
+        function updateClock() {
+            const clockElement = document.getElementById('decision-clock');
+            if (clockElement) {
+                const now = new Date();
+                clockElement.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // 文件上传逻辑
+        const fileInput = document.getElementById('file-upload-result');
+        const fileNameSpan = document.getElementById('file-name-result');
+        const previewDiv = document.getElementById('file-preview-result');
+        const cancelUpload = document.getElementById('cancel-upload-result');
+
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                fileNameSpan.textContent = this.files[0].name;
+                previewDiv.style.display = 'flex';
+            }
+        });
+
+        cancelUpload.addEventListener('click', function() {
+            fileInput.value = '';
+            fileNameSpan.textContent = '';
+            previewDiv.style.display = 'none';
+        });
+
+        // 弹窗逻辑
+        const modal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const confirmBtn = document.getElementById('modal-confirm-btn');
+        const cancelBtn = document.getElementById('modal-cancel-btn');
+        const agreeBtn = document.getElementById('agree-btn');
+        const disagreeBtn = document.getElementById('disagree-btn');
+        const commentBox = document.getElementById('result-comment');
+
+        let currentType = '';
+
+        function showModal(type) {
+            const comment = commentBox.value.trim();
+            if (type === 'disagree' && !comment) {
+                alert("驳回时必须填写评审意见！");
+                commentBox.focus();
+                return;
+            }
+            
+            currentType = type;
+            modal.style.display = 'flex';
+            
+            if (type === 'agree') {
+                modalTitle.innerText = "确认同意通过？";
+                confirmBtn.className = "btn btn-success";
+                confirmBtn.style.background = "var(--apple-green)";
+            } else {
+                modalTitle.innerText = "确认驳回申请？";
+                confirmBtn.className = "btn btn-danger";
+                confirmBtn.style.background = "var(--apple-red)";
+                confirmBtn.style.color = "white";
+            }
+        }
+
+        agreeBtn.addEventListener('click', () => showModal('agree'));
+        disagreeBtn.addEventListener('click', () => showModal('disagree'));
+        cancelBtn.addEventListener('click', () => modal.style.display = 'none');
+
+        confirmBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+            alert("提交成功！");
+            commentBox.disabled = true;
+            agreeBtn.disabled = true;
+            disagreeBtn.disabled = true;
+        });
+
+        // 简单的文件预览模拟
+        const previewModal = document.getElementById('file-preview-modal');
+        document.getElementById('file-preview-close-btn').addEventListener('click', () => {
+            previewModal.style.display = 'none';
+        });
+
+        document.querySelectorAll('.attachment-pill').forEach(pill => {
+            pill.addEventListener('click', function() {
+                const text = this.textContent.trim();
+                document.getElementById('file-preview-title').textContent = `预览: ${text}`;
+                document.getElementById('file-preview-body').innerHTML = `<div style="text-align:center;"><i class="fas fa-file-pdf" style="font-size:48px; margin-bottom:10px; color:#ff3b30;"></i><p>正在加载 ${text}...</p></div>`;
+                previewModal.style.display = 'flex';
+            });
+        });
+
+        // [修改] 需求描述自适应高度逻辑
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto'; // 重置高度
+            el.style.height = el.scrollHeight + 'px'; // 设置为内容高度
+        }
+
+        const descTextarea = document.getElementById('description');
+        if (descTextarea) {
+            // 初始化调整
+            autoResizeTextarea(descTextarea);
+            // 监听窗口大小变化
+            window.addEventListener('resize', () => autoResizeTextarea(descTextarea));
+        }
+    </script>
+</body>
+</html>

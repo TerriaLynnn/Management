@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>现场物料管理报表</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- 基础与主题 --- */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a192f; /* 深蓝色背景 */
+            color: #e6f1ff; /* 基础文字颜色 */
+            margin: 0;
+            padding: 2rem;
+            font-size: 14px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            color: #e2e8f0; /* 标题颜色 (slate-200) */
+            font-size: 2rem;
+            margin: 0;
+        }
+
+        /* --- 表格外层容器 --- */
+        .table-container {
+            width: 100%; /* 缩小到80% */
+            overflow: auto; /* 同时处理垂直和水平滚动 */
+            max-height: calc(100vh - 10rem); /* 关键：限制最大高度，让滚动条在屏幕内 */
+            background: rgba(17, 34, 64, 0.75); /* 暗色背景 */
+            border: 1px solid rgba(0, 194, 255, 0.3); /* 青色边框 */
+            border-radius: 0.75rem;
+            box-shadow: 0 0 15px rgba(0, 194, 255, 0.1);
+        }
+
+
+        /* --- 表格样式 --- */
+       table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;          
+            table-layout: fixed; /* [ADDED] 关键：启用固定布局算法，使宽度设置生效 */
+        }
+
+        th, td {
+            padding: 0.4rem 1rem; /* 进一步压缩垂直内边距 */
+            text-align: left;
+            border-bottom: 1px solid rgb(55 65 81); /* slate-700 */
+            border-right: 1px solid rgb(55 65 81); /* slate-700 */
+            vertical-align: middle;
+        }
+        
+        th:last-child, td:last-child {
+            border-right: none; /* 最后一列不需要右边框 */
+        }
+
+
+        /* --- 表头样式 --- */
+        thead {
+            font-weight: 500;
+            color: #94a3b8; /* slate-400 */
+        }
+        
+        thead .group-header th {
+            background-color: rgba(10, 25, 47, 0.9); /* 深色表头背景 */
+            text-align: center;
+            border-bottom: 1px solid rgb(71 85 105); /* slate-600 */
+            border-right: 1px solid rgb(71 85 105); /* slate-600 */
+        }
+
+        thead .group-header th:last-child {
+            border-right: none;
+        }
+
+        thead .field-header th {
+            background-color: rgba(10, 25, 47, 0.9); /* 深色表头背景 */          
+        }
+
+        /* --- [MODIFIED] 响应式列宽设置 for 1920px width --- */
+        .field-header th:nth-child(1) { width: 6.6%; }    /* 流程编码 */
+        .field-header th:nth-child(2) { width: 4.1%; }    /* 申请日期 */
+        .field-header th:nth-child(3) { width: 3.3%; }    /* 申请人 */
+        .field-header th:nth-child(4) { width: 6.6%; }    /* 项目编号 */
+        .field-header th:nth-child(5) { width: 12.4%; }   /* 项目名称 */        
+        .field-header th:nth-child(6) { width: 6.6%; }    /* 物料编码 */
+        .field-header th:nth-child(7) { width: 12.4%; }   /* 物料名称 */
+        /* Columns 8, 9, 10 are display:none */
+        .field-header th:nth-child(11) { width: 240px; }  /* 签核进度 (Fixed Width) */
+        .field-header th:nth-child(12) { width: 16.1%; }  /* 物流状态 */
+
+        /* --- 表体样式 --- */
+        tbody tr {
+            color: #cbd5e1; /* slate-300 */
+        }
+        tbody tr:nth-child(even) {
+            background-color: transparent; /* 移除斑马条纹，保持一致暗色 */
+        }
+
+        tbody tr:hover {
+            background-color: rgb(30 41 59); /* slate-800 */
+        }
+
+        /* --- 新增：表头切换图标样式 --- */
+        .toggle-icon {
+            cursor: pointer;
+            font-weight: bold;
+            color: #64748b; /* slate-500 */
+            margin-right: 8px;
+            display: inline-block;
+            transition: color 0.2s;
+        }
+        .toggle-icon:hover { color: #e2e8f0; /* slate-200 */ }
+
+        /* --- 冻结表头和列的关键样式 --- */
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10; 
+        }
+
+        thead .group-header th {
+            top: 0;
+        }
+
+        thead .field-header th {
+            top: 30px; 
+        }
+
+        /* 冻结列：所有冻结列里的单元格 */
+        td:nth-child(-n+4),
+        th:nth-child(-n+4) {
+            position: sticky;
+        }
+
+        /* 冻结列的表头（第二行） */
+        thead .field-header th:nth-child(-n+4) {
+            z-index: 30;
+        }
+        /* 冻结列的表头（第一行） */
+        thead .group-header th:first-child {
+            z-index: 30;
+        }
+
+        /* 冻结列的主体单元格 */
+        tbody td:nth-child(-n+4) {
+            z-index: 20;
+        }
+
+        /* 为冻结列提供背景色，防止滚动时文字重叠 */
+        thead .group-header th:first-child {
+             background-color: rgba(10, 25, 47, 0.9);
+        }
+
+        thead .field-header th:nth-child(-n+4) {
+             background-color: rgba(10, 25, 47, 0.9);
+        }
+        
+        tbody tr:nth-child(odd) td:nth-child(-n+4) {
+            background-color: rgba(17, 34, 64, 0.75);
+        }
+
+        tbody tr:nth-child(even) td:nth-child(-n+4) {
+            background-color: rgba(17, 34, 64, 0.75);
+        }
+        
+        tbody tr:hover td:nth-child(-n+4) {
+            background-color: rgb(30 41 59);
+        }
+        
+        /* --- 特定列格式 --- */
+        .mono-font {
+            font-family: 'SF Mono', 'Courier New', Courier, monospace;
+        }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+
+        /* --- 进度条通用 --- */
+        .progress-track {
+            display: flex;
+            align-items: center; /* 垂直居中对齐 */
+            padding: 0.25rem 0;
+            position: relative;
+            width: 80%; /* [MODIFIED] 缩小轨道宽度以压缩节点 */
+            margin: 0 auto; /* [MODIFIED] 使缩小的轨道居中 */
+        }
+        .progress-step {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            min-width: 60px; /* 每个步骤的最小宽度 */
+        }
+        .step-node {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #475569; /* Pending node color (slate-600) */
+            border: 2px solid #0a192f;
+            margin-bottom: 0.5rem;
+        }
+        .step-label {
+            font-size: 0.75rem;
+            color: #94a3b8; /* slate-400 */
+            white-space: normal; /* 允许标签换行 */
+        }
+        .progress-step.completed .step-node {
+            background-color: #22c55e; /* Green for completed */
+        }
+        .progress-step.completed .step-label {
+            color: #e2e8f0; /* slate-200 */
+            font-weight: 500;
+        }
+
+        /* --- 签核进度条 --- */
+        .approval-track::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 10%; 
+            width: 80%;
+            height: 2px;
+            background-color: #334155; /* slate-700 */
+            z-index: 1;
+        }
+
+        /* 【新增】签核进度单元格布局样式 */
+         .approval-container {
+            /* min-width is removed */
+        }
+        .approval-dates {
+            display: flex;
+            justify-content: flex-start; /* [MODIFIED] 使内容左对齐 */
+            gap: 2rem; /* [MODIFIED] 增加列间距 */
+            font-size: 0.75rem; /* 12px */
+            padding: 0 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        .date-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+        .date-label {
+            color: #94a3b8; /* slate-400 */
+            margin-right: 0.5em;
+        }
+        .date-value {
+            color: #cbd5e1; /* slate-300 */
+            font-weight: 500;
+        }
+        /* 【新增结束】 */
+
+
+        /* --- 物料追踪 --- */
+        .material-track::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 15%;
+            width: 70%;
+            height: 2px;
+            background-color: #334155; /* slate-700 */
+            z-index: 1;
+        }
+        .step-date {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            margin-top: 2px;
+        }
+        .logistics-info {
+            font-size: 0.8rem;
+            color: #94a3b8; /* slate-400 */
+            padding-top: 0.5rem;
+            text-align: left;
+            white-space: normal;
+        }
+        .logistics-info strong {
+            color: #cbd5e1; /* slate-300 */
+        }
+
+        /* --- 物流看板样式 --- */
+        .logistics-board {
+            background-color: #1e293b; /* slate-800 */
+            border: 1px solid #334155; /* slate-700 */
+            border-radius: 0.5rem;
+            padding: 0.5rem; /* 减小内边距 */
+            font-size: 0.8rem;
+            min-width: 250px; /* 确保看板有足够宽度 */
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem; /* 增加元素间距 */
+        }
+
+        .logistics-board > div:first-child {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .board-input {
+            background-color: #334155; /* slate-700 */
+            border: 1px solid #475569; /* slate-600 */
+            color: #e2e8f0;
+            border-radius: 0.375rem; /* rounded-md */
+            font-size: 0.75rem; /* text-xs */
+            padding: 2px 6px;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .board-input:focus {
+            outline: none; ring: 2px; ring-color: #0ea5e9;
+        }
+        .board-input.date-input {
+            width: 120px;
+        }
+        .board-input.qty-input {
+            width: 28px; /* 缩小尺寸 */
+            height: 28px;
+            border-radius: 50%; /* 设置为圆形 */
+            text-align: center;
+            padding: 0; /* 移除内边距以更好地居中 */
+        }
+        /* 隐藏数字输入框的上下箭头 (适用于Chrome, Safari, Edge) */
+        .board-input.qty-input::-webkit-outer-spin-button,
+        .board-input.qty-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* 隐藏数字输入框的上下箭头 (适用于Firefox) */
+        .board-input.qty-input[type=number] {
+            -moz-appearance: textfield;
+        }
+        .ship-date-text {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #94a3b8; /* slate-400 */
+        }
+        /* 允许特定列的文本换行 */
+        .wrap-text {
+            white-space: normal;
+            word-break: break-all;
+        }
+
+        .search-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #475569; /* slate-600 */
+            border-radius: 0.375rem; /* rounded-md */
+            width: 180px; /* 调整宽度以适应多个搜索框 */
+            font-size: 14px;
+            background-color: #1e293b; /* slate-800 */
+            color: #e2e8f0;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.5);
+        }
+        .reset-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #475569; /* slate-600 */
+            background-color: #334155; /* slate-700 */
+            color: #e2e8f0; /* slate-200 */
+            border-radius: 0.375rem;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap; /* 防止文字换行 */
+        }
+        .reset-btn:hover { background-color: #475569; /* slate-600 */ }
+    </style>
+    
+<style>
+    /* --- 新增的列隐藏/显示样式 --- */
+    .collapsible-col {
+        display: none;
+    }
+    .table-container.show-collapsed .collapsible-col {
+        display: table-cell;
+    }
+
+    /* --- [MODIFIED] 冻结列 left 值动态调整 (使用百分比) --- */
+
+    /* 展开状态 (.show-collapsed) - Updated for new widths */
+    .table-container.show-collapsed th:nth-child(1),
+    .table-container.show-collapsed td:nth-child(1) { left: 0; }
+
+    .table-container.show-collapsed th:nth-child(2),
+    .table-container.show-collapsed td:nth-child(2) { left: 6.6%; } /* Col 1 width */
+
+    .table-container.show-collapsed th:nth-child(3),
+    .table-container.show-collapsed td:nth-child(3) { left: 10.7%; } /* Col 1 + 2 widths (6.6% + 4.1%) */
+
+    .table-container.show-collapsed th:nth-child(4),
+    .table-container.show-collapsed td:nth-child(4) { left: 14.0%; } /* Col 1 + 2 + 3 widths (10.7% + 3.3%) */
+
+    /* 折叠状态 (default) - Updated for new widths */
+    .table-container:not(.show-collapsed) th:nth-child(2),
+    .table-container:not(.show-collapsed) td:nth-child(2) { left: 0; } /* 申请日期 is now first */
+
+    .table-container:not(.show-collapsed) th:nth-child(4),
+    .table-container:not(.show-collapsed) td:nth-child(4) { left: 4.1%; } /* 项目编号 is after 申请日期 (Col 2 width) */
+    
+    /* 确保第一行表头的合并单元格始终在最左侧 */
+    thead .group-header th:first-child { left: 0; }
+</style>
+<style>
+/* 
+   终极解决方案：使用属性选择器，直接覆盖由JS生成的内联样式。
+   这个选择器的意思是：找到所有th和td标签，只要它们的style属性里包含 "width: 550px" 这个字符串。
+   这比之前所有的选择器都更精确、更有力。
+*/
+.table-container th[style*="width: 550px"],
+.table-container td[style*="width: 550px"] {
+  width: 550px !important;
+  max-width: 550px !important;
+  min-width: 550px !important;
+  
+  /* 方便定位的颜色，确认成功后可删除 */
+  border: 3px solid green !important;
+  background-color: lightgreen !important;
+}
+
+/* 
+   为了确保表格本身也收缩，我们再次强制设置表格布局。
+   如果您的table没有class，就直接用table标签。
+*/
+.table-container table {
+  table-layout: fixed !important;
+  width: auto !important; /* 让表格宽度由内容决定，而不是撑满父容器 */
+  max-width: 100% !important;
+}
+
+</style>
+
+<body>
+
+    <div class="page-header">
+        <h1>现场物料管理报表</h1>
+        <div class="search-wrapper" style="display: flex; gap: 0.75rem; align-items: center;">
+            <input type="text" id="search-material-code" class="search-input" placeholder="按物料编码搜索...">
+            <input type="text" id="search-project-number" class="search-input" placeholder="按项目编号搜索...">
+            <input type="text" id="search-applicant" class="search-input" placeholder="按申请人搜索...">
+            <button id="reset-button" class="reset-btn">重置</button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr class="group-header">
+                    <th id="group-header-info" colspan="1">
+                        <div class="flex items-center justify-start pl-4">
+                            <span class="toggle-icon" title="切换显示/隐藏列">[+]</span>
+                            <span>申请信息</span>
+                        </div>
+                    </th>
+                    <th id="group-header-material" colspan="3" style="background-color: rgba(10, 25, 47, 0.9);">项目与物料</th><th colspan="3" style="display: none;">需求与计划</th><th colspan="6">签核追踪</th><th colspan="1" style="background-color: rgba(10, 25, 47, 0.9);">物料追踪</th>
+                </tr>
+                <tr class="field-header">
+                    <th class="collapsible-col wrap-text">流程编码</th>
+                    <th class="wrap-text">申请日期</th>
+                    <th class="collapsible-col wrap-text">申请人</th>
+                    <th class="wrap-text">项目编号</th>
+                    <th class="wrap-text">项目名称</th>
+                    <th class="collapsible-col wrap-text">物料编码</th>
+                    <th class="wrap-text">物料名称</th>
+                    <th class="text-right" style="display: none;">需求数量</th>
+                    <th style="display: none;">需求日期</th>
+                    <th style="display: none;">计划到货日期</th>
+                    <th colspan="6">签核进度</th>
+                    <th>物流状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCSHWL202509237135</td>
+                    <td class="wrap-text">2025-09-27</td>
+                    <td class="collapsible-col wrap-text">程伦勇</td>
+                    <td class="mono-font wrap-text">2208AUTXN2568-S</td>
+                    <td class="wrap-text">2208AUTXN2568-S</td>
+                    <td class="mono-font collapsible-col wrap-text">10501000000011</td>
+                    <td class="wrap-text">伺服电机(开槽)</td>
+                    <td class="text-right mono-font" style="display: none;">3</td>
+                    <td style="display: none;">2025-10-10</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-10-10</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">海靖杰</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-28</span>
+                                <input type="number" value="3" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">SZ-ECN202509270002</td>
+                    <td class="wrap-text">2025-09-27</td>
+                    <td class="collapsible-col wrap-text">卜凡</td>
+                    <td class="mono-font wrap-text">2504QMSHN2042</td>
+                    <td class="wrap-text">华星M6/M7-惠州-M7B工程部-98寸 DEMAPI一体机-1</td>
+                    <td class="mono-font collapsible-col wrap-text">1230360473</td>
+                    <td class="wrap-text">拔线单元</td>
+                    <td class="text-right mono-font" style="display: none;">1</td>
+                    <td style="display: none;">2025-09-28</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-09-28</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-28</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-29</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">肖治祥</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">金志龙</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-29</span>
+                                <input type="number" value="1" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> 顺丰 SF123456789</div>
+                            <div><strong>关联单号:</strong> JLE25091258</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">SZ-ECN202509270001</td>
+                    <td class="wrap-text">2025-09-27</td>
+                    <td class="collapsible-col wrap-text">刘江涛</td>
+                    <td class="mono-font wrap-text">2506APIXN3064</td>
+                    <td class="wrap-text">成都B16-成都-Normal模组-IT线体ABI-4</td>
+                    <td class="mono-font collapsible-col wrap-text">2111860318</td>
+                    <td class="wrap-text">自动插线工站外罩单元（正向线）</td>
+                    <td class="text-right mono-font" style="display: none;">1</td>
+                    <td style="display: none;">2025-10-13</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-10-13</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-29</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-30</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">2025-10-02</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">郭宗友</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">金志龙</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-30</span>
+                                <input type="number" value="1" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> 京东 JDL987654321</div>
+                            <div><strong>关联单号:</strong> JLE25091257</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCHDXC202509262048</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">冯吕呈</td>
+                    <td class="mono-font wrap-text">2411WAIHD4897</td>
+                    <td class="wrap-text">-</td>
+                    <td class="mono-font collapsible-col wrap-text">1150260406</td>
+                    <td class="wrap-text">RTX 3090 无 (英伟达)</td>
+                    <td class="text-right mono-font" style="display: none;">1</td>
+                    <td style="display: none;">2025-09-26</td>
+                    <td style="display: none;">2025-09-26</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-09-26</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-25</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-26</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">2025-09-28</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">洪展华</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-26</span>
+                                <input type="number" value="1" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> 跨越 KYE88888888</div>
+                            <div><strong>关联单号:</strong> JLE25091256</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCSHWL202509267162</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">胡兵兵</td>
+                    <td class="mono-font wrap-text">2306APIHD2124-S</td>
+                    <td class="wrap-text">2306APIHD2124-S◆厦门-AVT*8套</td>
+                    <td class="mono-font collapsible-col wrap-text">12905243257-LD11-BJ-1030</td>
+                    <td class="wrap-text">8进8出端子台防护钣金（黑色）</td>
+                    <td class="text-right mono-font" style="display: none;">12</td>
+                    <td style="display: none;">2025-10-08</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-10-08</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">尹浩</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="12" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCHDXC202509262047</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">杨蓉</td>
+                    <td class="mono-font wrap-text">2509PASXN4567</td>
+                    <td class="wrap-text">-</td>
+                    <td class="mono-font collapsible-col wrap-text">1010961301</td>
+                    <td class="wrap-text">GI361_D12_P1_FPC JC-FPC-TDD069A 无 (无)</td>
+                    <td class="text-right mono-font" style="display: none;">160</td>
+                    <td style="display: none;">2025-09-26</td>
+                    <td style="display: none;">2025-09-26</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-09-26</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-25</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-26</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">2025-09-29</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">洪展华</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-26</span>
+                                <input type="number" value="160" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> 德邦 DP123123123</div>
+                            <div><strong>关联单号:</strong> JLE25091255</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCSHWL202509267161</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">代子群</td>
+                    <td class="mono-font wrap-text">2404AUTHD1519-S</td>
+                    <td class="wrap-text">2404AUTHD1519-S◆自动化检测设备*2套</td>
+                    <td class="mono-font collapsible-col wrap-text">12905241519-YJ01-XJ-0410</td>
+                    <td class="wrap-text">防撞块</td>
+                    <td class="text-right mono-font" style="display: none;">1</td>
+                    <td style="display: none;">2025-10-15</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-10-15</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">陈锴</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="1" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCSHWL202509267161</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">代子群</td>
+                    <td class="mono-font wrap-text">2404AUTHD1519-S</td>
+                    <td class="wrap-text">2404AUTHD1519-S◆自动化检测设备*2套</td>
+                    <td class="mono-font collapsible-col wrap-text">11805241519-YJ01-SG-0030</td>
+                    <td class="wrap-text">滚珠丝杠</td>
+                    <td class="text-right mono-font" style="display: none;">1</td>
+                    <td style="display: none;">2025-10-15</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-10-15</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">陈锴</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="1" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">202509260006</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">陶辉</td>
+                    <td class="mono-font wrap-text">2507DEMHZ3818</td>
+                    <td class="wrap-text">津海-襄阳-模组-DEMURA-2</td>
+                    <td class="mono-font collapsible-col wrap-text">10905000000266</td>
+                    <td class="wrap-text">通讯盒（正确单位为PCS）</td>
+                    <td class="text-right mono-font" style="display: none;">1</td>
+                    <td style="display: none;">-</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">张威</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">张兰兰</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="1" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">SZ-ECN202509260024</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">王越越</td>
+                    <td class="mono-font wrap-text">2506APIXN3064</td>
+                    <td class="wrap-text">成都B16-成都-Normal模组-IT线体ABI-4</td>
+                    <td class="mono-font collapsible-col wrap-text">2111860317</td>
+                    <td class="wrap-text">自动插线工站外罩单元</td>
+                    <td class="text-right mono-font" style="display: none;">1</td>
+                    <td style="display: none;">2025-10-13</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-10-13</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">郭宗友</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">金志龙</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">沈小蓉</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="1" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCHDXC202509262046</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">王聪</td>
+                    <td class="mono-font wrap-text">2402AUTXN0498</td>
+                    <td class="wrap-text">-</td>
+                    <td class="mono-font collapsible-col wrap-text">1230161247</td>
+                    <td class="wrap-text">智赢驱动器 AKS-0132AECDB (智赢)</td>
+                    <td class="text-right mono-font" style="display: none;">2</td>
+                    <td style="display: none;">2025-09-26</td>
+                    <td style="display: none;">2025-09-26</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-09-26</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-25</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-26</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">李小虎</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">钟天慧</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">沈小蓉</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-26</span>
+                                <input type="number" value="2" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCFHQD202509262811</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">罗洁明</td>
+                    <td class="mono-font wrap-text">2506MARHD3044</td>
+                    <td class="wrap-text">上海-REL-D240 P1 EE carrier&B2B Board-470</td>
+                    <td class="mono-font collapsible-col wrap-text">1011060678</td>
+                    <td class="wrap-text">JC-PGD-MAR018A</td>
+                    <td class="text-right mono-font" style="display: none;">470</td>
+                    <td style="display: none;">-</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">罗洁明</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">龚四羊</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="470" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCFHQD202509262811</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">罗洁明</td>
+                    <td class="mono-font wrap-text">2506MARHD3044</td>
+                    <td class="wrap-text">上海-REL-D240 P1 EE carrier&B2B Board-470</td>
+                    <td class="mono-font collapsible-col wrap-text">2011060784</td>
+                    <td class="wrap-text">JC-DC-MAR141A</td>
+                    <td class="text-right mono-font" style="display: none;">70</td>
+                    <td style="display: none;">-</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">罗洁明</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">龚四羊</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="70" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCFHQD202509262811</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">罗洁明</td>
+                    <td class="mono-font wrap-text">2506MARHD3044</td>
+                    <td class="wrap-text">上海-REL-D240 P1 EE carrier&B2B Board-470</td>
+                    <td class="mono-font collapsible-col wrap-text">1011060675</td>
+                    <td class="wrap-text">JC-MB-MAR115A</td>
+                    <td class="text-right mono-font" style="display: none;">70</td>
+                    <td style="display: none;">-</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">罗洁明</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">龚四羊</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="70" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">JCFHQD202509262811</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">罗洁明</td>
+                    <td class="mono-font wrap-text">2506MARHD3044</td>
+                    <td class="wrap-text">上海-REL-D240 P1 EE carrier&B2B Board-470</td>
+                    <td class="mono-font collapsible-col wrap-text">12910224014-JG39-XJ-0750</td>
+                    <td class="wrap-text">"D240 Manual Locating block "</td>
+                    <td class="text-right mono-font" style="display: none;">70</td>
+                    <td style="display: none;">-</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">-</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">-</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">-</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">罗洁明</div></div>
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">龚四羊</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">-</span>
+                                <input type="number" value="70" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> -</div>
+                            <div><strong>关联单号:</strong> -</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">SZ-ECN202509260023</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">郭显椿</td>
+                    <td class="mono-font wrap-text">2503APIHD1474</td>
+                    <td class="wrap-text">京东方B5-合肥-后工程-FI AOI大相机升级-13</td>
+                    <td class="mono-font collapsible-col wrap-text">12905251474-AO40-XC-1090</td>
+                    <td class="wrap-text">18线API工站改造单元</td>
+                    <td class="text-right mono-font" style="display: none;">2</td>
+                    <td style="display: none;">2025-09-30</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-09-30</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-24</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-25</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">2025-09-27</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">金志龙</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-25</span>
+                                <input type="number" value="2" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> 顺丰 SF02890697249</div>
+                            <div><strong>关联单号:</strong> JLE25091259</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">SZ-ECN202509260023</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">郭显椿</td>
+                    <td class="mono-font wrap-text">2503APIHD1474</td>
+                    <td class="wrap-text">京东方B5-合肥-后工程-FI AOI大相机升级-13</td>
+                    <td class="mono-font collapsible-col wrap-text">12905251474-AO40-XC-1100</td>
+                    <td class="wrap-text">18线API工站改造单元</td>
+                    <td class="text-right mono-font" style="display: none;">2</td>
+                    <td style="display: none;">2025-09-30</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-09-30</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-24</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-25</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">2025-09-27</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">金志龙</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-25</span>
+                                <input type="number" value="2" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> 顺丰 SF02890697249</div>
+                            <div><strong>关联单号:</strong> JLE25091259</div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mono-font collapsible-col wrap-text">SZ-ECN202509260023</td>
+                    <td class="wrap-text">2025-09-26</td>
+                    <td class="collapsible-col wrap-text">郭显椿</td>
+                    <td class="mono-font wrap-text">2503APIHD1474</td>
+                    <td class="wrap-text">京东方B5-合肥-后工程-FI AOI大相机升级-13</td>
+                    <td class="mono-font collapsible-col wrap-text">12905251474-AO40-BJ-1050</td>
+                    <td class="wrap-text">18线API工站改造单元</td>
+                    <td class="text-right mono-font" style="display: none;">4</td>
+                    <td style="display: none;">2025-09-30</td>
+                    <td style="display: none;">-</td>
+                    <td colspan="6">
+                        <div class="approval-container">
+                             <div class="approval-dates">
+                                <div class="date-column">
+                                    <div><span class="date-label">需求日期:</span><span class="date-value">2025-09-30</span></div>
+                                    <div><span class="date-label">入库日期:</span><span class="date-value">2025-09-24</span></div>
+                                </div>
+                                <div class="date-column">
+                                    <div><span class="date-label">寄件日期:</span><span class="date-value">2025-09-25</span></div>
+                                    <div><span class="date-label">签收日期:</span><span class="date-value">2025-09-27</span></div>
+                                </div>
+                            </div>
+                            <div class="progress-track approval-track">
+                                <div class="progress-step completed"><div class="step-node"></div><div class="step-label">金志龙</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核2</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核3</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">签核4</div></div>
+                                <div class="progress-step"><div class="step-node"></div><div class="step-label">完成</div></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                         <div class="logistics-board">
+                            <div>
+                                <span class="ship-date-text">2025-09-25</span>
+                                <input type="number" value="4" class="board-input qty-input">
+                            </div>
+                            <div><strong>物流信息:</strong> JE JLE25091259</div>
+                            <div><strong>关联单号:</strong> JLE25091259</div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchMaterialCode = document.getElementById('search-material-code');
+            const searchProjectNumber = document.getElementById('search-project-number');
+            const searchApplicant = document.getElementById('search-applicant');
+            const resetButton = document.getElementById('reset-button');
+            const tableBody = document.querySelector('.table-container tbody');
+            const rows = Array.from(tableBody.getElementsByTagName('tr'));
+
+            function filterTable() {
+                const materialCodeTerm = searchMaterialCode.value.toLowerCase().trim();
+                const projectNumberTerm = searchProjectNumber.value.toLowerCase().trim();
+                const applicantTerm = searchApplicant.value.toLowerCase().trim();
+
+                rows.forEach(row => {
+                    // 获取对应单元格的内容，注意列索引的调整
+                    const applicant = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+                    const projectNumber = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                    const materialCode = row.querySelector('td:nth-child(6)').textContent.toLowerCase();
+
+                    // 检查每一行是否同时满足所有搜索条件
+                    const isVisible = applicant.includes(applicantTerm) &&
+                                      projectNumber.includes(projectNumberTerm) &&
+                                      materialCode.includes(materialCodeTerm);
+                    
+                    row.style.display = isVisible ? '' : 'none';
+                });
+            }
+
+            // 为每个搜索框添加事件监听
+            [searchMaterialCode, searchProjectNumber, searchApplicant].forEach(input => {
+                input.addEventListener('input', filterTable);
+            });
+
+            resetButton.addEventListener('click', function() {
+                searchMaterialCode.value = '';
+                searchProjectNumber.value = '';
+                searchApplicant.value = '';
+                filterTable(); // 重新执行筛选，因为所有条件为空，会显示所有行
+            });
+        });
+
+        // 新增：切换列显示/隐藏的逻辑
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleIcons = document.querySelectorAll('.toggle-icon');
+            const tableContainer = document.querySelector('.table-container');
+            const groupHeader = document.querySelector('.group-header');
+            const firstGroupTh = groupHeader.querySelector('th:first-child');
+            const secondGroupTh = groupHeader.querySelector('th:nth-child(2)');
+
+            const toggleAction = function() {
+                tableContainer.classList.toggle('show-collapsed');
+                
+                // 动态调整表头 colspan
+                const isShown = tableContainer.classList.contains('show-collapsed');
+                firstGroupTh.colSpan = isShown ? 3 : 1;
+                secondGroupTh.colSpan = isShown ? 4 : 3;
+                toggleIcons.forEach(icon => icon.textContent = isShown ? '[-]' : '[+]');
+            };
+
+            toggleIcons.forEach(icon => icon.addEventListener('click', toggleAction));
+        });
+
+    </script>
+    
+</body>
+
+
+
+
+</html>

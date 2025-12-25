@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creamy Pro | 高级时间管理</title>
+  <style>
+    /* --- 1. 设计系统定义 --- */
+    :root {
+      /* 核心配色：更加温润的陶土/奶油色系 */
+      --bg-color: #E0E5EC; /* 经典的拟态灰蓝底，或者换回之前的暖奶油色 #F7F5F2 */
+      --bg-color: #F0EEE9; /* 暖调奶油灰 */
+      --card-bg: #F0EEE9;
+      
+      --text-primary: #5E5852;
+      --text-secondary: #A39E98;
+      
+      --accent-color: #D4A373; /* 焦糖色 */
+      --accent-active: #C08E60;
+      --danger-color: #D88C8C; /* 柔和红 */
+
+      /* 拟态光影系统 */
+      --shadow-out: 9px 9px 16px rgba(163, 158, 152, 0.6), 
+                    -9px -9px 16px rgba(255, 255, 255, 0.8);
+      
+      --shadow-in: inset 6px 6px 10px rgba(163, 158, 152, 0.4), 
+                   inset -6px -6px 10px rgba(255, 255, 255, 0.8);
+                   
+      --font-stack: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* --- 2. 全局重置 --- */
+    * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      height: 100vh;
+      background-color: var(--bg-color);
+      font-family: var(--font-stack);
+      color: var(--text-primary);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    /* --- 3. 主容器 (手机形态) --- */
+    .app-container {
+      width: 360px;
+      height: 700px; /* 模拟手机比例 */
+      background: var(--card-bg);
+      border-radius: 40px;
+      box-shadow: var(--shadow-out);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 30px;
+      transition: transform 0.3s ease;
+    }
+
+    /* --- 4. 顶部切换器 (Segmented Control) --- */
+    .tab-switcher {
+      display: flex;
+      background: transparent;
+      border-radius: 20px;
+      box-shadow: var(--shadow-in); /* 凹槽感 */
+      padding: 6px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      z-index: 2;
+      transition: color 0.3s;
+      border-radius: 16px;
+    }
+
+    .tab-btn.active {
+      color: var(--text-primary);
+    }
+
+    /* 滑块 (通过JS控制位置) */
+    .tab-slider {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      width: calc(50% - 6px);
+      height: calc(100% - 12px);
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 4px 4px 8px rgba(163, 158, 152, 0.3), -4px -4px 8px #fff;
+      transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+      z-index: 1;
+    }
+
+    /* --- 5. 内容区域 --- */
+    .view-section {
+      display: none; /* 默认隐藏，JS控制显示 */
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      width: 100%;
+      animation: fadeIn 0.4s ease;
+    }
+    .view-section.active-view { display: flex; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- 通用：时间显示 --- */
+    .timer-face {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      box-shadow: var(--shadow-out); /* 凸起圆盘 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 40px;
+      background: var(--card-bg);
+    }
+    
+    /* 倒计时专用：SVG圆环 */
+    .progress-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 240px;
+      height: 240px;
+      transform: rotate(-90deg); /* 从顶部开始 */
+      pointer-events: none;
+    }
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.1s linear;
+      stroke: var(--accent-color);
+      filter: drop-shadow(0 0 4px rgba(212, 163, 115, 0.4));
+    }
+
+    .time-text {
+      font-size: 48px;
+      font-weight: 300;
+      letter-spacing: -1px;
+      font-variant-numeric: tabular-nums;
+      z-index: 3;
+    }
+    .time-sub {
+      font-size: 18px;
+      color: var(--text-secondary);
+      position: absolute;
+      bottom: 60px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* --- 倒计时输入框 --- */
+    .input-group {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .input-field {
+      width: 70px;
+      height: 50px;
+      border: none;
+      background: transparent;
+      border-radius: 12px;
+      box-shadow: var(--shadow-in); /* 内凹输入框 */
+      text-align: center;
+      font-size: 20px;
+      color: var(--text-primary);
+      font-family: var(--font-stack);
+    }
+    .input-label { font-size: 20px; color: var(--text-secondary); }
+
+    /* --- 6. 底部控制栏 --- */
+    .controls-area {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      margin-bottom: 20px;
+    }
+
+    .btn-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: var(--card-bg);
+      box-shadow: var(--shadow-out);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .btn-circle:active {
+      box-shadow: var(--shadow-in);
+      transform: scale(0.95);
+    }
+
+    .btn-main {
+      width: 80px;
+      height: 80px;
+      color: var(--accent-color);
+      font-size: 14px;
+    }
+
+    /* --- 7. 计次列表 (Scrollable) --- */
+    .laps-container {
+      width: 100%;
+      flex: 1;
+      overflow-y: auto;
+      margin-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.05);
+      padding-top: 10px;
+      /* 隐藏滚动条但保留功能 */
+      scrollbar-width: none; 
+      mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+    }
+    .laps-container::-webkit-scrollbar { display: none; }
+
+    .lap-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 20px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+    .lap-item:first-child { color: var(--accent-color); font-weight: 600; } /* 最新一次高亮 */
+
+    /* 呼吸动画 (倒计时结束) */
+    @keyframes breathe {
+      0% { box-shadow: 0 0 20px rgba(216, 140, 140, 0); }
+      50% { box-shadow: 0 0 40px rgba(216, 140, 140, 0.4); }
+      100% { box-shadow: 0 0 20px rgba(216, 140, 140, 0); }
+    }
+    .time-up-mode .timer-face {
+      animation: breathe 1.5s infinite;
+      border: 2px solid var(--danger-color);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- 顶部切换 -->
+    <div class="tab-switcher">
+      <div class="tab-slider" id="tabSlider"></div>
+      <button class="tab-btn active" onclick="switchMode('stopwatch')">秒表</button>
+      <button class="tab-btn" onclick="switchMode('countdown')">倒计时</button>
+    </div>
+
+    <!-- 1. 秒表界面 -->
+    <div id="stopwatch" class="view-section active-view">
+      <div class="timer-face">
+        <span class="time-text" id="sw-main">00:00</span>
+        <span class="time-sub" id="sw-ms">.00</span>
+      </div>
+      
+      <div class="controls-area">
+        <button class="btn-circle" onclick="recordLap()">计次</button>
+        <button class="btn-circle btn-main" id="sw-toggle-btn" onclick="toggleStopwatch()">开始</button>
+        <button class="btn-circle" onclick="resetStopwatch()">重置</button>
+      </div>
+
+      <div class="laps-container" id="lapsList">
+        <!-- 计次列表将插入这里 -->
+      </div>
+    </div>
+
+    <!-- 2. 倒计时界面 -->
+    <div id="countdown" class="view-section">
+      <div class="timer-face">
+        <!-- SVG 进度环 -->
+        <svg class="progress-ring" width="240" height="240">
+          <circle 
+            class="progress-ring__circle"
+            stroke="var(--accent-color)" 
+            stroke-width="8" 
+            stroke-linecap="round"
+            fill="transparent" 
+            r="100" 
+            cx="120" 
+            cy="120"/>
+        </svg>
+        <span class="time-text" id="cd-display">00:00</span>
+      </div>
+
+      <!-- 倒计时设置输入框 -->
+      <div class="input-group" id="cd-inputs">
+        <input type="number" class="input-field" id="cd-min" placeholder="00" min="0" max="99" value="05">
+        <span class="input-label">:</span>
+        <input type="number" class="input-field" id="cd-sec" placeholder="00" min="0" max="59" value="00">
+      </div>
+
+      <div class="controls-area" style="margin-top: auto; margin-bottom: 40px;">
+        <button class="btn-circle" style="opacity:0; cursor:default"></button> <!-- 占位 -->
+        <button class="btn-circle btn-main" id="cd-toggle-btn" onclick="toggleCountdown()">开始</button>
+        <button class="btn-circle" onclick="resetCountdown()">重置</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ================= 工具函数 ================= */
+    const pad = (n) => n < 10 ? '0' + n : n;
+    const format = (ms) => {
+      let date = new Date(ms);
+      return {
+        main: `${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`,
+        sub: `.${pad(Math.floor(date.getUTCMilliseconds() / 10))}`
+      };
+    };
+
+    /* ================= 模式切换逻辑 ================= */
+    function switchMode(mode) {
+      const slider = document.getElementById('tabSlider');
+      const swView = document.getElementById('stopwatch');
+      const cdView = document.getElementById('countdown');
+      const btns = document.querySelectorAll('.tab-btn');
+
+      if (mode === 'stopwatch') {
+        slider.style.transform = 'translateX(0)';
+        swView.classList.add('active-view');
+        cdView.classList.remove('active-view');
+        btns[0].classList.add('active');
+        btns[1].classList.remove('active');
+      } else {
+        slider.style.transform = 'translateX(100%)'; // 滑块移到右边
+        cdView.classList.add('active-view');
+        swView.classList.remove('active-view');
+        btns[1].classList.add('active');
+        btns[0].classList.remove('active');
+      }
+    }
+
+    /* ================= 秒表逻辑 (Stopwatch) ================= */
+    let swState = {
+      startTime: 0, elapsed: 0, interval: null, running: false, lapCount: 0
+    };
+
+    function toggleStopwatch() {
+      const btn = document.getElementById('sw-toggle-btn');
+      if (swState.running) {
+        // 暂停
+        clearInterval(swState.interval);
+        swState.elapsed += Date.now() - swState.startTime;
+        swState.running = false;
+        btn.textContent = "继续";
+        btn.style.color = "var(--text-primary)";
+      } else {
+        // 开始
+        swState.startTime = Date.now();
+        swState.interval = setInterval(updateStopwatch, 10);
+        swState.running = true;
+        btn.textContent = "暂停";
+        btn.style.color = "var(--accent-color)";
+      }
+    }
+
+    function updateStopwatch() {
+      const total = Date.now() - swState.startTime + swState.elapsed;
+      const t = format(total);
+      document.getElementById('sw-main').textContent = t.main;
+      document.getElementById('sw-ms').textContent = t.sub;
+    }
+
+    function recordLap() {
+      if (!swState.running && swState.elapsed === 0) return; // 没开始不能计次
+      
+      const total = swState.running 
+        ? Date.now() - swState.startTime + swState.elapsed 
+        : swState.elapsed;
+      
+      const t = format(total);
+      swState.lapCount++;
+
+      const item = document.createElement('div');
+      item.className = 'lap-item';
+      item.innerHTML = `<span>计次 ${pad(swState.lapCount)}</span> <span>${t.main}${t.sub}</span>`;
+      
+      const list = document.getElementById('lapsList');
+      list.prepend(item); // 最新的在最上面
+    }
+
+    function resetStopwatch() {
+      clearInterval(swState.interval);
+      swState = { startTime: 0, elapsed: 0, interval: null, running: false, lapCount: 0 };
+      document.getElementById('sw-main').textContent = "00:00";
+      document.getElementById('sw-ms').textContent = ".00";
+      document.getElementById('sw-toggle-btn').textContent = "开始";
+      document.getElementById('sw-toggle-btn').style.color = "var(--accent-color)";
+      document.getElementById('lapsList').innerHTML = "";
+    }
+
+    /* ================= 倒计时逻辑 (Countdown) ================= */
+    // SVG 圆环配置
+    const circle = document.querySelector('.progress-ring__circle');
+    const radius = circle.r.baseVal.value;
+    const circumference = radius * 2 * Math.PI;
+    
+    circle.style.strokeDasharray = `${circumference} ${circumference}`;
+    circle.style.strokeDashoffset = circumference; // 初始隐藏（或者全满）
+
+    function setProgress(percent) {
+      const offset = circumference - (percent / 100) * circumference;
+      circle.style.strokeDashoffset = offset;
+    }
+
+    let cdState = {
+      endTime: 0, totalDuration: 0, interval: null, running: false
+    };
+
+    function toggleCountdown() {
+      const btn = document.getElementById('cd-toggle-btn');
+      const inputs = document.getElementById('cd-inputs');
+
+      if (cdState.running) {
+        // 暂停 (这里简化为重置逻辑，因为倒计时暂停比较复杂，先实现停止)
+        clearInterval(cdState.interval);
+        cdState.running = false;
+        btn.textContent = "开始";
+        inputs.style.opacity = "1";
+        inputs.style.pointerEvents = "auto";
+        // 移除结束动画
+        document.querySelector('#countdown .timer-face').classList.remove('time-up-mode');
+        return;
+      }
+
+      // 获取输入时间
+      const min = parseInt(document.getElementById('cd-min').value) || 0;
+      const sec = parseInt(document.getElementById('cd-sec').value) || 0;
+      const durationMs = (min * 60 + sec) * 1000;
+
+      if (durationMs <= 0) return;
+
+      // 开始倒计时
+      cdState.totalDuration = durationMs;
+      cdState.endTime = Date.now() + durationMs;
+      
+      inputs.style.opacity = "0.3"; // 弱化输入框
+      inputs.style.pointerEvents = "none"; // 禁止修改
+      
+      cdState.running = true;
+      btn.textContent = "停止";
+      
+      // 立即更新一次 UI
+      updateCountdown(); 
+      cdState.interval = setInterval(updateCountdown, 16); // 60fps
+    }
+
+    function updateCountdown() {
+      const remaining = cdState.endTime - Date.now();
+      
+      if (remaining <= 0) {
+        // 时间到
+        clearInterval(cdState.interval);
+        document.getElementById('cd-display').textContent = "00:00";
+        setProgress(0);
+        cdState.running = false;
+        document.getElementById('cd-toggle-btn').textContent = "结束";
+        
+        // 触发视觉提醒
+        document.querySelector('#countdown .timer-face').classList.add('time-up-mode');
+        return;
+      }
+
+      // 计算进度
+      const percent = (remaining / cdState.totalDuration) * 100;
+      setProgress(percent);
+
+      // 显示文本
+      const min = Math.floor(remaining / 60000);
+      const sec = Math.floor((remaining % 60000) / 1000);
+      document.getElementById('cd-display').textContent = `${pad(min)}:${pad(sec)}`;
+    }
+
+    function resetCountdown() {
+      clearInterval(cdState.interval);
+      cdState.running = false;
+      document.getElementById('cd-toggle-btn').textContent = "开始";
+      document.getElementById('cd-inputs').style.opacity = "1";
+      document.getElementById('cd-inputs').style.pointerEvents = "auto";
+      document.getElementById('cd-display').textContent = "00:00";
+      setProgress(0); // 归零
+      document.querySelector('#countdown .timer-face').classList.remove('time-up-mode');
+    }
+    
+    // 初始化：设置圆环为空
+    setProgress(0);
+
+  </script>
+</body>
+</html>

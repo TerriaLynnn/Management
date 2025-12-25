@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>法人档案</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 添加Chart.js库 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { margin:0; background:#f5f6fa; font-family:'Microsoft YaHei',Arial,sans-serif; color:#222; min-width: 1400px;}
+    .navbar { background: #003b87;; border-bottom:1px solid #e5e6eb; display:flex; align-items:center; height:60px; padding:0 32px; position: fixed; top: 0; left: 0; width: 100vw; z-index: 200; box-sizing: border-box;}
+    .logo { width:40px; height:40px; margin-right:10px; }
+    .logo svg { width:40px; height:40px;}
+    .nav-title { font-size:20px; font-weight:700; color:#e5e6eb; margin-right:32px;}
+    .nav-menu { display:flex; gap:20px; font-size:16px;}
+    .nav-menu .active { color:#f5f6fa; border-bottom:2px solid #f5f6fa; padding-bottom:4px;}
+    .main { max-width:1200px; margin:24px auto; background:#fff; border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,0.06); padding:0 0 32px 0; position: relative; top: 60px;}
+    .section { margin:0 40px 32px 40px; }
+    .section-title { font-size:20px; font-weight:700; color:#1a73e8; margin:32px 0 18px 0; }
+    .company-header { display:flex; align-items:center; gap:24px; padding:32px 0 16px 0; border-bottom:1px solid #f0f0f0;}
+    .company-logo { width:80px; height:80px; background:#f2f4f7; border-radius:10px; display:flex; align-items:center; justify-content:center;}
+    .company-logo svg { width:60px; height:60px;}
+    .company-info { flex:1;}
+    .company-name { font-size:26px; font-weight:700; color:#222;}
+    .company-status { background:#e6f7e6; color:#3bb34a; border-radius:3px; font-size:14px; padding:2px 10px; margin-left:10px;}
+    .company-meta { margin:10px 0 0 0; color:#666; font-size:15px;}
+    .company-meta span { margin-right:18px;}
+    .company-contact { color:#888; font-size:14px; margin-top:8px;}
+    .card { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,0.03); padding:24px; margin-bottom:24px;}
+    .risk-list { color:#e94f4f; font-size:15px; }
+    .risk-list li { margin-bottom:6px;}
+    .table-wrap { overflow-x:auto;}
+    table { border-collapse:collapse; width:100%; background:#fff;}
+    th,td { border:1px solid #e5e6eb; padding:8px 12px; text-align:left; font-size:15px;}
+    th { background:#f7f8fa; color:#1a73e8;}
+    .chart { display:flex; align-items:center; justify-content:center; height:180px; }
+    .chart svg { width:160px; height:160px;}
+    @media (max-width:900px) {
+      .main, .section { margin:0 4px 24px 4px; }
+      .company-header { flex-direction:column; align-items:flex-start;}
+    }
+    /* 筛选器样式 */
+.filter-group {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafd;
+  border-radius: 8px;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.filter-select {
+  padding: 8px 16px;
+  border: 1px solid #e0e4e9;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-select:hover {
+  border-color: #1a73e8;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.1);
+}
+
+/* 表格样式 */
+.revenue-table {
+  width: 100%;
+  min-width: 900px;
+  border-radius: 8px;
+  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.revenue-table th {
+  background:#f7f8fa; color:#1a73e8;
+  font-weight: 600;
+  padding: 12px 16px;
+  font-size: 14px;
+  text-align: left;
+  border-bottom: 2px solid #e5e9f2;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.revenue-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #333;
+  border-bottom: 1px solid #eef0f5;
+  background: #fff;
+}
+
+.revenue-table tbody tr:hover td {
+  background: #f5faff;
+}
+
+.revenue-table th .sort-arrows {
+  font-size: 12px;
+  margin-left: 6px;
+  color: #bbb;
+  cursor: pointer;
+}
+
+/* 数字列右对齐 */
+.revenue-table td:nth-child(5),
+.revenue-table td:nth-child(6),
+.revenue-table td:nth-child(7),
+.revenue-table td:nth-child(8) {
+  text-align: right;
+}
+
+/* 响应式滚动条美化 */
+.table-wrap::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+.sidebar {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  width: 210px;
+  height: calc(100vh - 60px);
+  background: #fff;
+  border-right: 1.5px solid #e5e6eb;
+  box-shadow: 2px 0 8px -4px #e5e6eb;
+  padding-top: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #003B87;
+  margin-bottom: 18px;
+  margin-left: 28px;
+  letter-spacing: 2px;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 10px 28px;
+  font-size: 15px;
+  color: #1a73e8;
+  text-decoration: none;
+  border-radius: 6px 0 0 6px;
+  margin-bottom: 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+  background: #eaf2fd;
+  color: #003B87;
+  font-weight: 600;
+}
+
+.main {
+  max-width: 1700px;
+  margin: 32px auto 0 240px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 0 0 32px 0;
+  min-height: 100vh;
+  transition: margin 0.2s;
+  position: relative;
+  top: 60px;
+}
+
+.wide-main {
+  max-width: 1700px;
+}
+
+.section {
+  margin: 0 60px 38px 60px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a73e8;
+  margin: 38px 0 18px 0;
+  letter-spacing: 1px;
+}
+
+@media (max-width: 1200px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+}
+
+/* 可加入到 <style> 里 */
+.multiselect-dropdown {
+  position: relative;
+  width: 200px;
+  min-width: 200px;
+  max-width: 100%;
+}
+.multiselect-selected {
+  padding: 8px 16px;
+  border: 1px solid #e0e4e9;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: visible;   /* 不出现横向滚动条，全部显示 */
+  overflow-y: hidden;
+}
+
+/* 切换公司弹窗下拉框美化 */
+#company-modal select {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 1px solid #e0e4e9;
+  border-radius: 6px;
+  margin-bottom: 24px;
+  background: #fff;
+  color: #333;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+#company-modal select:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.1);
+}
+#company-modal option {
+  font-size: 14px;
+  padding: 8px 0;
+    }
+    
+    /* 图表容器样式 */
+    .chart-tooltip {
+      position: absolute;
+      background: white;  /* 改回100%透明度 */
+      border: 1px solid #e0e4e9;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      padding: 12px;
+      width: 320px;  /* 减小宽度 */
+      height: 240px;  /* 减小高度 */
+      z-index: 1000;
+      display: none;
+    }
+    
+    .chart-tooltip canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Toggle Switch styles */
+    .toggle-switch-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .toggle-switch-label {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+      margin-right: 8px; /* 开关和标签之间的间距 */
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc; /* 关闭状态颜色 */
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    input:checked + .slider {
+      background-color: #1a73e8; /* 开启状态颜色，与主题蓝色一致 */
+    }
+
+    input:focus + .slider {
+      box-shadow: 0 0 1px #1a73e8;
+    }
+
+    input:checked + .slider:before {
+      -webkit-transform: translateX(20px);
+      -ms-transform: translateX(20px);
+      transform: translateX(20px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+      border-radius: 24px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <div class="logo">
+      <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#1a73e8"/><text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="16" font-family="Arial" dy=".3em">JC</text></svg>
+    </div>
+    <span class="nav-title">武汉精测电子集团股份有限公司</span>
+    <div class="nav-menu">
+      <span class="active">公司</span>
+    </div>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-title">目录</div>
+    <a href="#revenue" class="sidebar-link">营业收入</a>
+    <a href="#main-staff" class="sidebar-link">财务状况</a>
+    <a href="#invest" class="sidebar-link">资质总览</a>
+    <a href="#branch" class="sidebar-link">项目市场</a>
+    <a href="#equity" class="sidebar-link">人员结构图</a>
+  </div>
+  <div class="main wide-main">
+    <!-- 公司概况 -->
+    <div class="section">
+      <div class="company-header">
+        <div class="company-logo">
+          <svg viewBox="0 0 60 60"><rect width="60" height="60" rx="10" fill="#e3eafc"/><text x="50%" y="55%" text-anchor="middle" fill="#1a73e8" font-size="22" font-family="Arial" dy=".3em">精</text></svg>
+        </div>
+        <div class="company-info">
+          <div style="display:flex;align-items:center;gap:16px;">
+          <div class="company-name">武汉精测电子集团股份有限公司
+            <span class="company-status">存续</span>
+            </div>
+            <button id="switch-company-btn" style="margin-left:16px;padding:6px 18px;font-size:14px;background:#1a73e8;color:#fff;border:none;border-radius:5px;cursor:pointer;">切换公司</button>
+          </div>
+          <div class="company-meta" id="company-meta-block">
+            <span>法定代表人：彭骞</span>
+            <span>注册资本：27346.62万元</span>
+            <span>成立日期：2006-04-20</span>
+            <span id="company-code">统一社会信用代码：91420111783183300C</span>
+          </div>
+          <div class="company-contact" id="company-contact-block">
+            电话：027-8752****　邮箱：qiuyinyin@jdcz.cc　网址：www.wuhanjingce.com
+          </div>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.04);padding:18px 24px 18px 24px;max-width:1200px;margin:24px auto;">
+        <table style="width:100%;border-collapse:separate;border-spacing:0 6px;font-size:15px;color:#222;">
+          <tr>
+            <td style="width:23%;vertical-align:top;">
+              <div>
+                <span style="color:#888;">统一社会信用代码：</span>
+                <span style="font-weight:500;">91420111783183300C</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">法定代表人：</span>
+                <span style="color:#1a73e8;font-weight:500;cursor:pointer;">彭骞</span>
+                <span style="background:#fff7e6;color:#faad14;border-radius:3px;padding:1px 6px;font-size:13px;margin-left:4px;">关联企业 45</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">注册资本：</span>
+                <span style="font-weight:500;">27346.6227万元</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">成立日期：</span>
+                <span style="font-weight:500;">2006-04-20</span>
+              </div>
+            </td>
+            <td style="width:27%;vertical-align:top;">
+              <div>
+                <span style="color:#888;">电话：</span>
+                <span>027-87388901</span>
+                <span style="color:#1a73e8;cursor:pointer;margin-left:4px;">更多 4</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">邮箱：</span>
+                <span>yuanqin@wuhanjingce.com</span>
+                <span style="color:#1a73e8;cursor:pointer;margin-left:4px;">更多 3</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">官网：</span>
+                <span style="color:#1a73e8;cursor:pointer;">www.wuhanjingce.com</span>
+                <span style="background:#e6f7ff;color:#1a73e8;border-radius:3px;padding:1px 6px;font-size:13px;margin-left:4px;">公众号</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">地址：</span>
+                <span>洪山区书城路48#（北港工业园）1栋11层</span>
+              </div>
+            </td>
+            <td style="width:25%;vertical-align:top;">
+              <div>
+                <span style="color:#888;">企查查行业：</span>
+                <span>电子制程产品制造</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">企业规模：</span>
+                <span style="background:#e6f7ff;color:#1a73e8;border-radius:3px;padding:1px 6px;font-size:13px;">L</span>
+                <span style="font-weight:500;margin-left:4px;">大型</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">员工人数：</span>
+                <span style="font-weight:500;">3364</span>
+                <span style="color:#888;font-size:13px;">（2024年）</span>
+              </div>
+              <div style="margin-top:8px;">
+                <span style="color:#888;">营业收入：</span>
+                <span style="font-weight:500;">25.65亿元</span>
+                <span style="color:#888;font-size:13px;">（2024年）</span>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td colspan="3" style="padding-top:12px;">
+              <div style="color:#888;">简介：</div>
+              <div style="color:#444;line-height:1.8;margin-top:2px;">
+                武汉精测电子技术股份有限公司创立于2006年4月，旗下拥有苏州精濑、武汉精讯、昆山精讯、中国台湾宏濑四家子公司并在韩国设立分公司，是一家专从事平板显示测试系统研发、生产、销售与服务的高科技上市企业（股票代码300567）。产品已在京东方、三星、夏普、华星光电、中电熊猫、富士康、友达光电等知名企业批量应用。"科技成就未来，品质赢得信任"是公司经营理念，公司坚持以"自主创新为核心，以联合研发为两翼"的发展战略，围绕光学检测、自动化控制以及信号检测（光、机、电）技术，开展了一系列的技术攻关和创新工作，拳头产品拥有自主知识产权，其整体技术水平达到国际先进水平。未来，公司将依托上市公司资本平台，以业界"光""机""电"一体化技术为基点，积极布局全球营销网络，整合全球研发资源，努力将公司打造成为世界光、机、电一体化系统提供商。<span style="color:#1a73e8;cursor:pointer;">收起</span>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+    <!-- 营业收入 -->
+    <div class="section" id="revenue">
+      <div class="section-title">营业收入</div>
+      <div class="card table-wrap">
+        <div class="filter-group">
+          <label class="filter-label">公司：</label>
+          <select id="filter-company" class="filter-select">
+            <option value="">全部</option>
+            <option value="精测集团">精测集团</option>
+            <option value="精测（单户）">精测（单户）</option>
+            <option value="精立">精立</option>
+            <option value="精毅通">精毅通</option>
+          </select>
+          <!-- 新增的开关 -->
+          <div class="toggle-switch-container" style="margin-left: 20px;">
+            <label class="toggle-switch-label" for="revenue-chart-toggle">折线图：</label>
+            <label class="toggle-switch">
+              <input type="checkbox" id="revenue-chart-toggle" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+        <table id="income-table" class="revenue-table">
+           <thead>
+             <tr>
+               <th rowspan="2" class="th-freeze">公司</th>
+               <th colspan="4">2021</th>
+               <th colspan="4">2022</th>
+               <th colspan="4">2023</th>
+             </tr>
+             <tr>
+               <th>总营收</th>
+               <th>软件收入</th>
+               <th>硬件收入</th>
+               <th>其他</th>
+               <th>总营收</th>
+               <th>软件收入</th>
+               <th>硬件收入</th>
+               <th>其他</th>
+               <th>总营收</th>
+               <th>软件收入</th>
+               <th>硬件收入</th>
+               <th>其他</th>
+             </tr>
+           </thead>
+           <tbody>
+             <tr>
+               <td>精测集团</td><td>240895.31</td><td></td><td></td><td></td><td>273057.18</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+             </tr>
+             <tr>
+               <td>精测（单户）</td><td>128894</td><td>22433</td><td>105323</td><td>1138</td><td>168053</td><td>26253</td><td>139573</td><td>2226</td><td>170763</td><td>26685</td><td>139046</td><td>5033</td>
+             </tr>
+             <tr>
+               <td>精立</td><td>29571</td><td>4934</td><td>24168</td><td>469</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+             </tr>
+             <tr>
+               <td>精毅通</td><td>14778</td><td></td><td>13498</td><td>1280</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+             </tr>
+           </tbody>
+         </table>
+      </div>
+      <style>
+      /* 表头居中，内容靠左，宽度不换行，前四列冻结，表头底色和文字色 */
+      .revenue-table th {
+        background: rgba(110,150,213,0.05) !important;
+        color: #003B87 !important;
+        font-weight: 600;
+        padding: 12px 16px;
+        font-size: 14px;
+        text-align: center !important;
+        border-bottom: 2px solid #e5e9f2;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        white-space: nowrap;
+      }
+      .revenue-table td {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #333;
+        border-bottom: 1px solid #eef0f5;
+        background: #fff;
+        text-align: left !important;
+        white-space: nowrap;
+      }
+      .revenue-table tbody tr:hover td {
+        background: #f5faff;
+      }
+      .revenue-table {
+        width: 100%;
+        min-width: 1500px;
+        border-radius: 8px;
+        overflow: hidden;
+        border-collapse: separate;
+        border-spacing: 0;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      }
+      /* 冻结前四列 */
+      .revenue-table .th-freeze, .revenue-table td:nth-child(-n+4) {
+        position: sticky;
+        left: 0;
+        z-index: 3;
+        background: #fff;
+        box-shadow: 2px 0 4px -2px #e5e9f2;
+      }
+      .revenue-table .th-freeze { background: rgba(110,150,213,0.05) !important; }
+      /* 滚动条美化 */
+      .table-wrap::-webkit-scrollbar {
+        height: 8px;
+      }
+      .table-wrap::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+      .table-wrap::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+      }
+      .table-wrap::-webkit-scrollbar-thumb:hover {
+        background: #999;
+      }
+      </style>
+    </div>
+    <!-- 财务状况 -->
+    <div class="section" id="main-staff">
+      <div class="section-title">财务状况</div>
+      <div class="card table-wrap">
+        <div class="filter-group">
+          <label class="filter-label">公司：</label>
+          <select id="filter-company-finance" class="filter-select">
+            <option value="">全部</option>
+            <option value="精测集团">精测集团</option>
+            <option value="精测（单户）">精测（单户）</option>
+            <option value="精立">精立</option>
+            <option value="精毅通">精毅通</option>
+            <option value="加特林">加特林</option>
+          </select>
+          <label class="filter-label">内容：</label>
+          <div class="multiselect-dropdown" id="content-multiselect" style="position:relative;width:200px;min-width:200px;max-width:200px;">
+  <div class="multiselect-selected" style="padding:8px 16px;border:1px solid #e0e4e9;border-radius:6px;background:#fff;cursor:pointer;min-height:36px;display:flex;align-items:center;flex-wrap:nowrap;gap:4px;width:375%;box-sizing:border-box;overflow-x:visible;overflow-y:hidden;"></div>
+  <div class="multiselect-options" style="display:none;position:absolute;top:110%;left:0;width:200px;min-width:200px;max-width:200px;background:#fff;border:1px solid #e0e4e9;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:10;max-height:260px;overflow:auto;padding:8px 0;">
+    <div style="display:flex;gap:16px;justify-content:center;align-items:center;padding:0 0 8px 0;">
+      <button type="button" id="select-all-content-finance" style="height:28px;line-height:28px;padding:0 18px;font-size:13px;background:#f5f6fa;color:#1a73e8;border:1px solid #e0e4e9;border-radius:5px;cursor:pointer;white-space:nowrap;">全选</button>
+      <button type="button" id="clear-content-finance" style="height:28px;line-height:28px;padding:0 18px;font-size:13px;background:#f5f6fa;color:#1a73e8;border:1px solid #e0e4e9;border-radius:5px;cursor:pointer;white-space:nowrap;">清除</button>
+    </div>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="企业所得税"> 企业所得税</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="资产总额"> 资产总额</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="净资产"> 净资产</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="净利润"> 净利润</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="利润总额"> 利润总额</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="纳税总额"> 纳税总额</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="应纳税所得额"> 应纳税所得额</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="研发投入"> 研发投入</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="资产负债率"> 资产负债率</label>
+    <label style="display:block;padding:4px 16px;"><input type="checkbox" value="固资"> 固资</label>
+  </div>
+</div>
+</div>
+        <div style="overflow-x:auto;">
+        <table class="revenue-table" id="finance-table">
+          <thead id="finance-thead">
+            <tr>
+              <th rowspan="2" class="th-freeze">公司</th>
+              <th colspan="3" class="th-group" data-group="企业所得税">企业所得税</th>
+              <th colspan="3" class="th-group" data-group="资产总额">资产总额</th>
+              <th colspan="3" class="th-group" data-group="净资产">净资产</th>
+              <th colspan="3" class="th-group" data-group="净利润">净利润</th>
+              <th colspan="3" class="th-group" data-group="利润总额">利润总额</th>
+              <th colspan="3" class="th-group" data-group="纳税总额">纳税总额</th>
+              <th colspan="3" class="th-group" data-group="应纳税所得额">应纳税所得额</th>
+              <th colspan="3" class="th-group" data-group="研发投入">研发投入</th>
+              <th colspan="3" class="th-group" data-group="资产负债率">资产负债率</th>
+              <th colspan="3" class="th-group" data-group="固资">固资</th>
+            </tr>
+            <tr>
+              <th class="th-sub" data-group="企业所得税">2021</th><th class="th-sub" data-group="企业所得税">2022</th><th class="th-sub" data-group="企业所得税">2023</th>
+              <th class="th-sub" data-group="资产总额">2021</th><th class="th-sub" data-group="资产总额">2022</th><th class="th-sub" data-group="资产总额">2023</th>
+              <th class="th-sub" data-group="净资产">2021</th><th class="th-sub" data-group="净资产">2022</th><th class="th-sub" data-group="净资产">2023</th>
+              <th class="th-sub" data-group="净利润">2021</th><th class="th-sub" data-group="净利润">2022</th><th class="th-sub" data-group="净利润">2023</th>
+              <th class="th-sub" data-group="利润总额">2021</th><th class="th-sub" data-group="利润总额">2022</th><th class="th-sub" data-group="利润总额">2023</th>
+              <th class="th-sub" data-group="纳税总额">2021</th><th class="th-sub" data-group="纳税总额">2022</th><th class="th-sub" data-group="纳税总额">2023</th>
+              <th class="th-sub" data-group="应纳税所得额">2021</th><th class="th-sub" data-group="应纳税所得额">2022</th><th class="th-sub" data-group="应纳税所得额">2023</th>
+              <th class="th-sub" data-group="研发投入">2021</th><th class="th-sub" data-group="研发投入">2022</th><th class="th-sub" data-group="研发投入">2023</th>
+              <th class="th-sub" data-group="资产负债率">2021</th><th class="th-sub" data-group="资产负债率">2022</th><th class="th-sub" data-group="资产负债率">2023</th>
+              <th class="th-sub" data-group="固资">2021</th><th class="th-sub" data-group="固资">2022</th><th class="th-sub" data-group="固资">2023</th>
+            </tr>
+          </thead>
+          <tbody id="finance-tbody">
+            <tr>
+              <td class="td-freeze">精测集团</td><td></td><td></td><td></td><td>604734.1</td><td>747692.55</td><td>354230.67</td><td></td><td></td><td>352634.5</td><td>13984.77</td><td>20825.16</td><td></td><td>17236.47</td><td>24414.8</td><td></td><td>10996.98</td><td>15958.29</td><td></td><td>45435.55</td><td>58930.43</td><td></td><td>0.4142</td><td>0.5284</td><td></td><td>66237.93</td><td>153783.97</td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+              <td class="td-freeze">精测（单户）</td><td>2390</td><td>3873</td><td>1645</td><td>474338</td><td>548819</td><td>721673</td><td>283107</td><td>284916</td><td>334902</td><td>17157</td><td>28345</td><td>20547</td><td>19369</td><td>31829</td><td>23901</td><td>3025</td><td>8661</td><td>9077</td><td>15930</td><td>25822</td><td>10969</td><td>0.4032</td><td>0.4809</td><td>0.5359</td><td>5666</td><td>4662</td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+              <td class="td-freeze">精立</td><td></td><td></td><td></td><td>72156</td><td></td><td>77282</td><td></td><td></td><td></td><td>615</td><td></td><td>603</td><td></td><td></td><td></td><td>1604</td><td></td><td>4065</td><td></td><td>4983</td><td></td><td>0.36</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+          <tr>
+              <td class="td-freeze">精毅通</td><td>145</td><td></td><td></td><td>17387</td><td></td><td></td><td>6538</td><td></td><td></td><td>1762</td><td></td><td>1899</td><td></td><td></td><td></td><td>737</td><td></td><td>965</td><td></td><td>1061</td><td></td><td>0.62</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+          <tr>
+              <td class="td-freeze">加特林</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+          </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+      <script>
+      // 公司筛选
+      document.getElementById('filter-company-finance').onchange = function() {
+        const val = this.value;
+        const rows = document.querySelectorAll('#finance-tbody tr');
+        rows.forEach(row => {
+          if (!val || row.children[0].textContent === val) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      };
+      // 内容多选checkbox筛选
+      const financeTable = document.getElementById('finance-table');
+      const financeThead = document.getElementById('finance-thead');
+      const contentCheckboxes = document.querySelectorAll('#filter-content-finance-checkboxes input[type="checkbox"]');
+      function updateFinanceTableCols() {
+        const selected = Array.from(contentCheckboxes).filter(cb=>cb.checked).map(cb=>cb.value);
+        // 先全部显示
+        document.querySelectorAll('.th-group,.th-sub').forEach(th=>th.style.display='');
+        for(const idx of Array.from(financeTable.rows[0].cells).keys()) {
+          if(idx<1) continue;
+          financeTable.rows[0].cells[idx].style.display = '';
+        }
+        for(const idx of Array.from(financeTable.rows[1].cells).keys()) {
+          if(idx<1) continue;
+          financeTable.rows[1].cells[idx].style.display = '';
+        }
+        for(const row of financeTable.tBodies[0].rows) {
+          for(let i=1;i<row.cells.length;i++) row.cells[i].style.display = '';
+        }
+        if(selected.length>0) {
+          // 隐藏未选内容
+          document.querySelectorAll('.th-group').forEach((th,idx) => {
+            if(!selected.includes(th.dataset.group)) {
+              for(let i=0;i<3;i++) {
+                th.style.display = 'none';
+                financeTable.rows[1].cells[idx*3+1+i].style.display = 'none';
+                for(const row of financeTable.tBodies[0].rows) row.cells[idx*3+1+i].style.display = 'none';
+              }
+            }
+          });
+        }
+      }
+      contentCheckboxes.forEach(cb=>cb.onchange = updateFinanceTableCols);
+      // 清除按钮
+      document.getElementById('clear-content-finance').onclick = function() {
+        contentCheckboxes.forEach(cb=>cb.checked=false);
+        updateFinanceTableCols();
+      };
+      // 冻结公司列
+      const freezeStyle = document.createElement('style');
+      freezeStyle.innerHTML = `.revenue-table .th-freeze, .revenue-table .td-freeze {position: sticky; left: 0; z-index: 3; background: #fff; box-shadow: 2px 0 4px -2px #e5e9f2;}`;
+      document.head.appendChild(freezeStyle);
+      </script>
+    </div>
+    <!-- 资质总览 -->
+    <div class="section" id="invest">
+      <div class="section-title">资质总览</div>
+      <div class="card table-wrap">
+        <div class="filter-group">
+          <label class="filter-label">公司：</label>
+          <select id="filter-company-qualification" class="filter-select">
+            <option value="">全部</option>
+            <option value="精测集团">精测集团</option>
+            <option value="精测（单户）">精测（单户）</option>
+            <option value="精立">精立</option>
+            <option value="精毅通">精毅通</option>
+            <option value="加特林">加特林</option>
+            <option value="精一微">精一微</option>
+            <option value="深圳精测">深圳精测</option>
+            <option value="苏州精测">苏州精测</option>
+            <option value="上海精测">上海精测</option>
+            <option value="台湾宏濑">台湾宏濑</option>
+            <option value="精能">精能</option>
+            <option value="常州精测">常州精测</option>
+            <option value="精鸿">精鸿</option>
+            <option value="昆山精讯">昆山精讯</option>
+          </select>
+        </div>
+        <table class="revenue-table">
+          <thead>
+            <tr>
+              <th rowspan="2" class="th-freeze">公司</th>
+              <th colspan="2">进出口</th>
+              <th colspan="2">企业主要资质</th>
+              <th rowspan="2">管理体系</th>
+              <th rowspan="2">企业所得税优惠资质</th>
+              <th rowspan="2">土地竞拍</th>
+            </tr>
+            <tr>
+              <th>进口额</th>
+              <th>出口额</th>
+              <th>高新技术企业</th>
+              <th>专精特新</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-freeze">精测集团</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+              <td class="td-freeze">精测（单户）</td><td></td><td></td><td>0</td><td>0</td><td></td><td></td><td></td>
+            </tr>
+            <tr>
+              <td class="td-freeze">精立</td><td></td><td></td><td>0</td><td>1</td><td></td><td>高企15%</td><td></td>
+            </tr>
+            <tr>
+              <td class="td-freeze">精毅通</td><td></td><td></td><td>0</td><td>0</td><td></td><td>高企15%</td><td></td>
+          </tr>
+          <tr>
+              <td class="td-freeze">加特林</td><td></td><td></td><td>0</td><td>0</td><td></td><td></td><td></td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 项目市场 -->
+    <div class="section" id="branch">
+      <div class="section-title">项目市场</div>
+      <div class="card table-wrap">
+        <div class="filter-group">
+          <label class="filter-label">公司：</label>
+          <select id="filter-company-market" class="filter-select">
+            <option value="">全部</option>
+            <option value="精测集团">精测集团</option>
+            <option value="精测（单户）">精测（单户）</option>
+            <option value="精立">精立</option>
+            <option value="精毅通">精毅通</option>
+            <option value="加特林">加特林</option>
+            <option value="精一微">精一微</option>
+            <option value="深圳精测">深圳精测</option>
+            <option value="苏州精测">苏州精测</option>
+            <option value="上海精测">上海精测</option>
+            <option value="台湾宏濑">台湾宏濑</option>
+            <option value="精能">精能</option>
+            <option value="常州精测">常州精测</option>
+            <option value="精鸿">精鸿</option>
+            <option value="昆山精讯">昆山精讯</option>
+          </select>
+          <label class="filter-label">奖项：</label>
+          <div class="multiselect-dropdown" id="market-multiselect" style="position:relative;width:200px;min-width:200px;max-width:200px;">
+            <div class="multiselect-selected" style="padding:8px 16px;border:1px solid #e0e4e9;border-radius:6px;background:#fff;cursor:pointer;min-height:36px;display:flex;align-items:center;flex-wrap:nowrap;gap:4px;width:185%;box-sizing:border-box;overflow-x:visible;overflow-y:hidden;"></div>
+            <div class="multiselect-options" style="display:none;position:absolute;top:110%;left:0;width:200px;min-width:200px;max-width:200px;background:#fff;border:1px solid #e0e4e9;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:10;max-height:260px;overflow:auto;padding:8px 0;">
+              <div style="display:flex;gap:16px;justify-content:center;align-items:center;padding:0 0 8px 0;">
+                <button type="button" id="select-all-market" style="height:28px;line-height:28px;padding:0 18px;font-size:13px;background:#f5f6fa;color:#1a73e8;border:1px solid #e0e4e9;border-radius:5px;cursor:pointer;white-space:nowrap;">全选</button>
+                <button type="button" id="clear-market" style="height:28px;line-height:28px;padding:0 18px;font-size:13px;background:#f5f6fa;color:#1a73e8;border:1px solid #e0e4e9;border-radius:5px;cursor:pointer;white-space:nowrap;">清除</button>
+              </div>
+              <label style="display:block;padding:4px 16px;"><input type="checkbox" value="国家级"> 国家级</label>
+              <label style="display:block;padding:4px 16px;"><input type="checkbox" value="省级"> 省级</label>
+              <label style="display:block;padding:4px 16px;"><input type="checkbox" value="主要产品"> 主要产品</label>
+              <label style="display:block;padding:4px 16px;"><input type="checkbox" value="主要客户"> 主要客户</label>
+              <label style="display:block;padding:4px 16px;"><input type="checkbox" value="主要供应商"> 主要供应商</label>
+            </div>
+          </div>
+        </div>
+        <table class="revenue-table" id="market-table" style="min-width:2200px;table-layout:auto;word-break:break-all;">
+          <thead>
+            <tr>
+              <th class="th-freeze">公司</th>
+              <th class="th-group" data-group="国家级">国家级</th>
+              <th class="th-group" data-group="省级">省级</th>
+              <th class="th-group" data-group="主要产品">主要产品</th>
+              <th class="th-group" data-group="主要客户">主要客户</th>
+              <th class="th-group" data-group="主要供应商">主要供应商</th>
+          </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-freeze">精测集团</td><td></td><td></td><td>显示、半导体检测系统的研发、生产与销售</td><td>京东方、华星光电、天马微电子、惠科股份等</td><td></td></tr>
+            <tr><td class="td-freeze">精测（单户）</td><td>1、2022年国家重点研发计划国家智能传感器专项"高精度连续光谱共焦传感器研制"，1300万<br>2、2023年工信部高质量发展专项"2023年超精密零部件尺寸与形位测量系统"，3600万</td><td>1、2024年湖北省重点研发计划"MicroLED晶圆级缺陷检测系统研发及产业化"，100万<br>2、2021年湖北省重点研发计划"面向显示面板和车载的检测关键技术研究"，200万</td><td>显示、半导体检测系统的研发、生产与销售</td><td>京东方、华星光电、天马微电子、惠科股份等</td><td>MegaSen Co.，Ltd.</td></tr>
+            <tr><td class="td-freeze">精立</td><td>1、国家发改委重大装备专项"高端显微高谱检测系统及产业化"，5000万<br>2、科技创新2030——"新一代人工智能"重大项目"面向高端工业制造的智能光学成像与检测关键技术及应用"，200万</td><td>1、2022年湖北省制造质量提升专项（晶剖分析），490万<br>2、湖北省技术创新项目（青年人才），100万</td><td>测试系统生产、销售、研发及技术服务</td><td>京东方、华星光电、天马微电子、惠科股份、合肥埃科光电科技</td><td>合肥埃科光电科技</td></tr>
+            <tr><td class="td-freeze">精毅通</td><td></td><td>2025年湖北省预算内资金"半导体探针针卡核心技术攻关及产业化项目"，800万</td><td>JIG治具生产、销售</td><td>京东方、华星光电、天马微电子、惠科股份、深圳凯智微电子</td><td>深圳凯智微电子</td></tr>
+            <tr><td class="td-freeze">加特林</td><td></td><td></td><td>仪器仪表制造</td><td>京东方等</td><td>合肥埃科光电科技</td></tr>
+            <tr><td class="td-freeze">精一微</td><td></td><td></td><td>仪器仪表制造</td><td>京东方、华星光电、天马微电子、惠科股份、福州高意光学有限公司</td><td>福州高意光学有限公司</td></tr>
+            <tr><td class="td-freeze">深圳精测</td><td></td><td></td><td>仪器仪表制造销售</td><td>日益、鹰外客户</td><td></td></tr>
+            <tr><td class="td-freeze">苏州精测</td><td>国家发改委电子信息技术改造工程项目-高清显示智能化检测系统及产业化项目，5000万。</td><td>江苏省科技成果转化专项资金项目</td><td>光电子部件、显示检测、自动化设备的研发、生产、销售</td><td>京东方、华星光电、惠科股份、合肥埃科光电科技</td><td>苏州欧菱、苏州速米</td></tr>
+            <tr><td class="td-freeze">上海精测</td><td></td><td></td><td>软件开发、技术咨询</td><td>惠科股份、威阳股份等</td><td>苏州速米</td></tr>
+            <tr><td class="td-freeze">台湾宏濑</td><td></td><td></td><td>电器及视听电子零部件制造、电子零组件制造、电器批发、精密仪器制造、电子材料批发、非破坏检测、产品设计</td><td>京东方、华星光电、天马微电子、惠科股份、合肥埃科光电科技</td><td></td></tr>
+            <tr><td class="td-freeze">精能</td><td></td><td></td><td>测试系统生产、销售</td><td>中创新航、汇川技术等</td><td></td></tr>
+            <tr><td class="td-freeze">常州精测</td><td>2024年工信部高质量发展专项</td><td>2024年江苏省战略新兴产业计划群项目</td><td>测试系统生产、销售</td><td>中创新航等</td><td>无锡新聚动力科技有限公司</td></tr>
+            <tr><td class="td-freeze">精鸿</td><td></td><td></td><td>半导体测试设备的研发、生产与销售、技术进出口与销售</td><td>长鑫存储、长江存储、华为等</td><td>MIRAE CORPORATI</td></tr>
+            <tr><td class="td-freeze">昆山精讯</td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- 图表示例 -->
+    <div class="section" id="equity">
+      <div class="section-title">人员结构图</div>
+      <div class="card chart">
+        <svg viewBox="0 0 160 160">
+          <circle cx="80" cy="80" r="70" fill="#e3eafc"/>
+          <path d="M80,80 L80,10 A70,70 0 0,1 150,80 Z" fill="#1a73e8"/>
+          <path d="M80,80 L150,80 A70,70 0 1,1 80,10 Z" fill="#fbbc05"/>
+          <text x="80" y="90" text-anchor="middle" fill="#222" font-size="16">人员A/B</text>
+        </svg>
+      </div>
+    </div>
+    
+  </div>
+  <!-- 切换公司弹窗 -->
+<div id="company-modal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:999;background:rgba(0,0,0,0.18);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,0.12);padding:28px 36px;min-width:300px;">
+    <div style="font-size:16px;font-weight:700;margin-bottom:16px;color:#003B87;">切换公司</div>
+    <select id="company-select">
+      <option value="all">精测集团</option>
+      <option value="jingce">武汉精测电子集团股份有限公司</option>
+      <option value="jingli">武汉精立电子技术有限公司</option>
+      <option value="jingyitong">武汉精毅通电子技术有限公司</option>
+      <option value="jingyiwei">武汉精一微仪器有限公司</option>
+      <option value="jiatelin">武汉加特林光学仪器有限公司</option>
+      <option value="jingneng">武汉精能电子技术有限公司</option>
+      <option value="jinghong">武汉精鸿电子技术有限公司</option>
+      <option value="weien">伟恩测试技术（武汉）有限公司</option>
+      <option value="shanghaijinglai">上海精濑电子技术有限公司</option>
+      <option value="changzhoujingce">常州精测新能源技术有限公司</option>
+      <option value="taiwanhonglai">台湾宏濑光电有限公司</option>
+      <option value="kunshanjingxun">昆山精讯电子技术有限公司</option>
+      <option value="suzhoujinglai">苏州精濑光电有限公司</option>
+      <option value="jiangmenjingce">江门精测电子技术有限公司</option>
+      <option value="shenzhenjingce">深圳精测光电有限公司</option>
+    </select>
+    <div style="text-align:right;">
+      <button id="company-cancel" style="padding:6px 20px;font-size:14px;background:#f5f6fa;color:#222;border:none;border-radius:5px;cursor:pointer;margin-right:12px;">取消</button>
+      <button id="company-confirm" style="padding:6px 20px;font-size:14px;background:#1a73e8;color:#fff;border:none;border-radius:5px;cursor:pointer;">确定</button>
+    </div>
+  </div>
+</div>
+  <script>
+  // 侧边栏高亮
+  const links = document.querySelectorAll('.sidebar-link');
+  window.addEventListener('scroll', () => {
+    let fromTop = window.scrollY + 100;
+    links.forEach(link => {
+      let section = document.querySelector(link.getAttribute('href'));
+      if (section && section.offsetTop <= fromTop && section.offsetTop + section.offsetHeight > fromTop) {
+        link.classList.add('active');
+      } else {
+        link.classList.remove('active');
+      }
+    });
+  });
+
+  // 导航栏点击跳转
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href').substring(1);
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) {
+        const sectionTitle = targetSection.querySelector('.section-title');
+        if (sectionTitle) {
+          const offset = sectionTitle.offsetTop - 0; // 调整为0px的偏移量
+          window.scrollTo({
+            top: offset,
+            behavior: 'smooth'
+          });
+        }
+      }
+    });
+  });
+  </script>
+  <script>
+  // 切换公司弹窗逻辑
+  const switchBtn = document.getElementById('switch-company-btn');
+  const modal = document.getElementById('company-modal');
+  const select = document.getElementById('company-select');
+  const cancelBtn = document.getElementById('company-cancel');
+  const confirmBtn = document.getElementById('company-confirm');
+  const nameDiv = document.querySelector('.company-name');
+  const metaBlock = document.getElementById('company-meta-block');
+  const contactBlock = document.getElementById('company-contact-block');
+  const codeSpan = document.getElementById('company-code');
+  
+  // 设置默认显示精测集团
+  nameDiv.innerHTML = '精测集团 <span class="company-status">存续</span>';
+  
+  switchBtn.onclick = () => { modal.style.display = 'flex'; };
+  cancelBtn.onclick = () => { modal.style.display = 'none'; };
+  const companyMap = {
+    'jingce': '精测（单户）',
+    'jingli': '精立',
+    'jingyitong': '精毅通',
+    'jingyiwei': '精一微',
+    'jiatelin': '加特林',
+    'jingneng': '精能',
+    'jinghong': '精鸿',
+    'weien': '伟恩',
+    'shanghaijinglai': '上海精濑',
+    'changzhoujingce': '常州精测',
+    'taiwanhonglai': '台湾宏濑',
+    'kunshanjingxun': '昆山精讯',
+    'suzhoujinglai': '苏州精濑',
+    'jiangmenjingce': '江门精测',
+    'shenzhenjingce': '深圳精测'
+  };
+  confirmBtn.onclick = () => {
+    const val = select.value;
+    if(val === 'all') {
+      // 清空所有表格的公司筛选
+      document.querySelectorAll('.filter-select').forEach(sel => {
+        sel.value = '';
+        sel.dispatchEvent(new Event('change'));
+      });
+      nameDiv.innerHTML = '精测集团 <span class="company-status">存续</span>';
+      modal.style.display = 'none';
+      return;
+    }
+    
+    if(val === 'jingce') {
+      nameDiv.innerHTML = '武汉精测电子集团股份有限公司 <span class="company-status">存续</span>';
+      metaBlock.innerHTML = '<span>法定代表人：彭骞</span><span>注册资本：27346.62万元</span><span>成立日期：2006-04-20</span><span id="company-code">统一社会信用代码：91420111783183300C</span>';
+      contactBlock.innerHTML = '电话：027-8752****　邮箱：qiuyinyin@jdcz.cc　网址：www.wuhanjingce.com';
+    } else if(val === 'jingyitong') {
+      nameDiv.innerHTML = '武汉精毅通电子技术有限公司 <span class="company-status">存续</span>';
+      metaBlock.innerHTML = '<span>法定代表人：彭骞</span><span>注册资本：5000万元</span><span>成立日期：2013-06-24</span><span id="company-code">统一社会信用代码：91420111783183300X</span>';
+      contactBlock.innerHTML = '电话：027-8888****　邮箱：liming@jingyitong.com　网址：www.jingyitong.com';
+    } else {
+      nameDiv.innerHTML = '武汉精立电子技术有限公司 <span class="company-status">存续</span>';
+      metaBlock.innerHTML = '<span>法定代表人：彭骞</span><span>注册资本：5000万元</span><span>成立日期：2013-06-24</span><span id="company-code">统一社会信用代码：91420111783183300X</span>';
+      contactBlock.innerHTML = '电话：027-8888****　邮箱：liming@jingli.com　网址：www.jingli.com';
+    }
+    // 联动所有公司筛选框
+    const target = companyMap[val];
+    if (target) {
+      // 只联动营业收入、资质总览的公司筛选框
+      const ids = ['filter-company', 'filter-company-qualification'];
+      ids.forEach(id => {
+        const sel = document.getElementById(id);
+        if (sel && Array.from(sel.options).some(opt => opt.value === target)) {
+          sel.value = target;
+          sel.dispatchEvent(new Event('change'));
+        }
+      });
+      // 其他公司筛选框（如财务状况、项目市场）保持原有联动逻辑
+      document.querySelectorAll('.filter-select').forEach(sel => {
+        if (!ids.includes(sel.id) && sel.options && Array.from(sel.options).some(opt => opt.value === target)) {
+          sel.value = target;
+          sel.dispatchEvent(new Event('change'));
+        }
+      });
+    }
+    modal.style.display = 'none';
+  };
+  </script>
+  <!-- 多选下拉逻辑 -->
+<script>
+(function(){
+  const dropdown = document.getElementById('content-multiselect');
+  const selectedDiv = dropdown.querySelector('.multiselect-selected');
+  const optionsDiv = dropdown.querySelector('.multiselect-options');
+  const checkboxes = optionsDiv.querySelectorAll('input[type="checkbox"]');
+  const clearBtn = document.getElementById('clear-content-finance');
+  const selectAllBtn = document.getElementById('select-all-content-finance');
+  function updateSelected() {
+    const checked = Array.from(checkboxes).filter(cb=>cb.checked);
+    selectedDiv.innerHTML = checked.length
+      ? checked.map(cb=>`<span style="background:#eaf2fd;color:#1a73e8;border-radius:3px;padding:2px 8px;font-size:13px;white-space:nowrap;">${cb.value}</span>`).join('')
+      : '';
+    updateFinanceTableCols && updateFinanceTableCols();
+  }
+  selectedDiv.onclick = function(e) {
+    optionsDiv.style.display = optionsDiv.style.display==='block' ? 'none' : 'block';
+    e.stopPropagation();
+  };
+  // 阻止下拉内容区的点击冒泡，避免被body事件关闭
+  optionsDiv.onclick = function(e) {
+    e.stopPropagation();
+  };
+  checkboxes.forEach(cb=>cb.onchange = updateSelected);
+  document.body.addEventListener('click', ()=>{optionsDiv.style.display='none';});
+  // 清除按钮
+  clearBtn.onclick = function(e) {
+    checkboxes.forEach(cb=>cb.checked=false);
+    updateSelected();
+    e.stopPropagation();
+  };
+  // 全选按钮
+  selectAllBtn.onclick = function(e) {
+    checkboxes.forEach(cb=>cb.checked=true);
+    updateSelected();
+    e.stopPropagation();
+  };
+  // 初始化全部选中
+  checkboxes.forEach(cb=>cb.checked=true);
+  updateSelected();
+})();
+
+// 动态联动表头和数据列
+function updateFinanceTableCols() {
+  const financeTable = document.getElementById('finance-table');
+  const checkboxes = document.querySelectorAll('#content-multiselect input[type="checkbox"]');
+  const selected = Array.from(checkboxes).filter(cb=>cb.checked).map(cb=>cb.value);
+
+  // 先全部隐藏
+  document.querySelectorAll('.th-group,.th-sub').forEach(th=>th.style.display='none');
+  for(const row of financeTable.tBodies[0].rows) {
+    for(let i=1;i<row.cells.length;i++) row.cells[i].style.display = 'none';
+  }
+
+  // 只显示选中的字段
+  if(selected.length>0) {
+    let col = 1;
+    document.querySelectorAll('.th-group').forEach((th,idx) => {
+      if(selected.includes(th.dataset.group)) {
+        th.style.display = '';
+        // 显示对应的3个子表头和数据列
+        for(let i=0;i<3;i++) {
+          financeTable.rows[1].cells[col+i].style.display = '';
+          for(const row of financeTable.tBodies[0].rows) {
+            row.cells[col+i].style.display = '';
+          }
+        }
+      }
+      col += 3;
+    });
+  }
+}
+</script>
+<script>
+// 项目市场筛选逻辑
+(function(){
+  // 公司筛选
+  document.getElementById('filter-company-market').onchange = function() {
+    const val = this.value;
+    const rows = document.querySelectorAll('#market-table tbody tr');
+    rows.forEach(row => {
+      if (!val || row.children[0].textContent === val) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  };
+  // 奖项多选下拉逻辑
+  const dropdown = document.getElementById('market-multiselect');
+  const selectedDiv = dropdown.querySelector('.multiselect-selected');
+  const optionsDiv = dropdown.querySelector('.multiselect-options');
+  const checkboxes = optionsDiv.querySelectorAll('input[type="checkbox"]');
+  const clearBtn = document.getElementById('clear-market');
+  const selectAllBtn = document.getElementById('select-all-market');
+  function updateSelected() {
+    const checked = Array.from(checkboxes).filter(cb=>cb.checked);
+    selectedDiv.innerHTML = checked.length
+      ? checked.map(cb=>`<span style=\"background:#eaf2fd;color:#1a73e8;border-radius:3px;padding:2px 8px;font-size:13px;white-space:nowrap;\">${cb.value}</span>`).join('')
+      : '';
+    updateMarketTableCols();
+  }
+  function updateMarketTableCols() {
+    const table = document.getElementById('market-table');
+    const headers = Array.from(table.querySelectorAll('thead th'));
+    const selected = Array.from(checkboxes).filter(cb=>cb.checked).map(cb=>cb.value);
+    // 先全部显示
+    headers.forEach(th => th.style.display = '');
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      Array.from(tr.cells).forEach(td => td.style.display = '');
+    });
+    // 隐藏未选中的列
+    if (selected.length > 0) {
+      headers.forEach((th, index) => {
+        if (index === 0) return; // 跳过第一列（公司名称）
+        const headerText = th.textContent.trim();
+        if (!selected.includes(headerText)) {
+          th.style.display = 'none';
+          table.querySelectorAll('tbody tr').forEach(tr => {
+            tr.cells[index].style.display = 'none';
+          });
+        }
+      });
+    }
+  }
+  selectedDiv.onclick = function(e) {
+    optionsDiv.style.display = optionsDiv.style.display==='block' ? 'none' : 'block';
+    e.stopPropagation();
+  };
+  optionsDiv.onclick = function(e) {
+    e.stopPropagation();
+  };
+  checkboxes.forEach(cb=>cb.onchange = updateSelected);
+  document.body.addEventListener('click', ()=>{optionsDiv.style.display='none';});
+  clearBtn.onclick = function(e) {
+    checkboxes.forEach(cb=>cb.checked=false);
+    updateSelected();
+    e.stopPropagation();
+  };
+  selectAllBtn.onclick = function(e) {
+    checkboxes.forEach(cb=>cb.checked=true);
+    updateSelected();
+    e.stopPropagation();
+  };
+  // 初始化全部选中
+  checkboxes.forEach(cb=>cb.checked=true);
+  updateSelected();
+})();
+</script>
+<script>
+// ... existing code ...
+// 营业收入表格公司筛选联动
+(function(){
+  const select = document.getElementById('filter-company');
+  if (select) {
+    select.onchange = function() {
+      const val = this.value;
+      const rows = document.querySelectorAll('#income-table tbody tr');
+      rows.forEach(row => {
+        if (!val || row.children[0].textContent === val) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    };
+  }
+})();
+// 资质总览表格公司筛选联动
+(function(){
+  const select = document.getElementById('filter-company-qualification');
+  if (select) {
+    select.onchange = function() {
+      const val = this.value;
+      const rows = document.querySelectorAll('#invest table tbody tr');
+      rows.forEach(row => {
+        if (!val || row.children[0].textContent === val) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    };
+  }
+})();
+// ... existing code ...
+</script>
+
+<!-- 添加图表容器 -->
+<div id="chart-tooltip" class="chart-tooltip" style="width: 500px; height: 350px;">
+    <canvas id="trend-chart"></canvas>
+  </div>
+
+<script>
+  // ... existing scripts ...
+  
+  // 营业收入表格悬停图表
+  (function() {
+    const incomeTable = document.getElementById('income-table');
+    const chartTooltip = document.getElementById('chart-tooltip');
+    const chartCanvas = document.getElementById('trend-chart');
+    let chart = null;
+    const chartToggleSwitch = document.getElementById('revenue-chart-toggle'); // 获取开关元素
+    
+    // 获取表格数据
+    function getTableData() {
+      const data = {
+        companies: [],
+        years: ['2021', '2022', '2023'],
+        metrics: ['总营收', '软件收入', '硬件收入', '其他']
+      };
+      
+      const rows = incomeTable.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const company = row.cells[0].textContent;
+        const values = {
+          company: company,
+          '总营收': [],
+          '软件收入': [],
+          '硬件收入': [],
+          '其他': []
+        };
+        
+        // 修正数据获取逻辑
+        // 总营收：第1、5、9列
+        values['总营收'] = [
+          parseFloat(row.cells[1].textContent) || 0,
+          parseFloat(row.cells[5].textContent) || 0,
+          parseFloat(row.cells[9].textContent) || 0
+        ];
+        
+        // 软件收入：第2、6、10列
+        values['软件收入'] = [
+          parseFloat(row.cells[2].textContent) || 0,
+          parseFloat(row.cells[6].textContent) || 0,
+          parseFloat(row.cells[10].textContent) || 0
+        ];
+        
+        // 硬件收入：第3、7、11列
+        values['硬件收入'] = [
+          parseFloat(row.cells[3].textContent) || 0,
+          parseFloat(row.cells[7].textContent) || 0,
+          parseFloat(row.cells[11].textContent) || 0
+        ];
+        
+        // 其他：第4、8、12列
+        values['其他'] = [
+          parseFloat(row.cells[4].textContent) || 0,
+          parseFloat(row.cells[8].textContent) || 0,
+          parseFloat(row.cells[12].textContent) || 0
+        ];
+        
+        data.companies.push(values);
+      });
+      
+      return data;
+    }
+    
+    // 创建图表
+    function createChart(metric, company) {
+      const data = getTableData();
+      const companyData = data.companies.find(c => c.company === company);
+
+      if(chart) {
+        chart.destroy();
+      }
+
+      const ctx = chartCanvas.getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.years,
+          datasets: [{
+            label: `${company}-${metric}`,
+            data: companyData[metric],
+            borderColor: 'rgba(26,115,232,0.8)',   // 蓝色线条
+            backgroundColor: 'rgba(26,115,232,0.0)', // 透明填充
+            tension: 0,                            // 取消贝塞尔曲线
+            fill: false,                           // 取消填充
+            pointBackgroundColor: '#fff',          // 白色填充点
+            pointBorderColor: 'rgba(26,115,232,0.8)', // 蓝色边框
+            pointBorderWidth: 2,
+            pointRadius: 4,                        // 减小点尺寸
+            pointHoverRadius: 6,
+            borderWidth: 2,                        // 加粗线条
+            borderDash: [5, 5]                     // 虚线效果
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 0 // 禁用动画，立即显示
+          },
+          plugins: {
+            legend: {
+              display: false  // 隐藏图例
+            },
+            tooltip: {
+              enabled: false  // 禁用默认tooltip
+            },
+            title: {
+              display: true,
+              text: `${company}-${metric}`,
+              font: {
+                size: 14,
+                weight: 'bold'
+              },
+              padding: {
+                top: 10,
+                bottom: 25 // 增加标题下边距，将标题抬高
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false  // 隐藏x轴网格线
+              },
+              ticks: {
+                font: {
+                  size: 12  // 调整x轴文字大小
+                }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(0,0,0,0.05)'  // 淡化y轴网格线
+              },
+              ticks: {
+                font: {
+                  size: 12  // 调整y轴文字大小
+                }
+              }
+            }
+          },
+          elements: {
+            line: {
+              tension: 0  // 确保直线连接
+            }
+          } // End of elements object
+        }, // End of options object, add a comma here
+        plugins: [{ // Plugins array is now a top-level property
+          id: 'customDataLabels', 
+          afterDraw: function(chartInstance) { 
+            // debugger; // If needed, uncomment to pause here
+            console.log('afterDraw called for chart:', chartInstance.canvas.id);
+            const ctx = chartInstance.ctx;
+            ctx.save();
+            ctx.font = 'bold 12px Arial';
+            ctx.fillStyle = '#666';
+            console.log('Datasets:', chartInstance.data.datasets);
+
+            chartInstance.data.datasets.forEach(function(dataset, datasetIndex) {
+              console.log(`Processing dataset ${datasetIndex}:`, dataset.label);
+              const meta = chartInstance.getDatasetMeta(datasetIndex);
+              console.log(`Meta for dataset ${datasetIndex}:`, meta);
+              if (!meta || !meta.data) {
+                console.warn(`Meta or meta.data is undefined for dataset ${datasetIndex}`);
+                return;
+              }
+              meta.data.forEach(function(element, pointIndex) {
+                const value = dataset.data[pointIndex];
+                console.log(`Point ${pointIndex} - Element:`, element, `Value: ${value}`);
+                if (element && typeof element.x === 'number' && typeof element.y === 'number' && !isNaN(element.x) && !isNaN(element.y)) {
+                  // 设置文本基线在点的正上方
+                  ctx.textBaseline = 'bottom';
+                  const text = value.toLocaleString();
+                  let xPosition = element.x;
+                  const yPosition = element.y - 10; // 在点上方10px处显示
+
+                  // 根据点的位置调整文本对齐方式
+                  if (pointIndex === 0) { // 第一个点
+                    ctx.textAlign = 'left'; // 文本左对齐，绘制时xPosition是文本的左边
+                    // xPosition = element.x; // 可以稍微向右偏移一点点，如果需要，例如 element.x + 3
+                  } else if (pointIndex === dataset.data.length - 1) { // 最后一个点
+                    ctx.textAlign = 'right'; // 文本右对齐，绘制时xPosition是文本的右边
+                    // xPosition = element.x; // 可以稍微向左偏移一点点，如果需要，例如 element.x - 3
+                  } else { // 中间的点
+                    ctx.textAlign = 'center'; // 文本居中对齐
+                  }
+                  console.log(`Drawing text "${text}" at x: ${xPosition}, y: ${yPosition}, textAlign: ${ctx.textAlign}`);
+                  ctx.fillText(text, xPosition, yPosition);
+                } else {
+                  console.warn(`Point ${pointIndex} - Invalid element or coordinates:`, element);
+                }
+              });
+            });
+            ctx.restore();
+          }
+        }]
+      });
+    }
+
+    // 处理鼠标悬停事件
+    incomeTable.addEventListener('mouseover', (e) => {
+      // 检查开关状态
+      if (chartToggleSwitch && !chartToggleSwitch.checked) {
+        chartTooltip.style.display = 'none'; // 如果开关关闭，确保提示框隐藏
+        return; // 退出，不显示图表
+      }
+      
+      const cell = e.target.closest('td');
+      if (!cell || cell.cellIndex === 0) return;
+      
+      const row = cell.closest('tr');
+      const company = row.cells[0].textContent;
+      
+      // 根据列索引确定指标类型
+      const colIndex = cell.cellIndex;
+      let metric;
+      if (colIndex === 1 || colIndex === 5 || colIndex === 9) metric = '总营收';
+      else if (colIndex === 2 || colIndex === 6 || colIndex === 10) metric = '软件收入';
+      else if (colIndex === 3 || colIndex === 7 || colIndex === 11) metric = '硬件收入';
+      else if (colIndex === 4 || colIndex === 8 || colIndex === 12) metric = '其他';
+      else return;
+      
+      // 显示图表
+      chartTooltip.style.display = 'block';
+
+      let left = e.pageX + 20;
+      let top = e.pageY + 20;
+      const tooltipRect = chartTooltip.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+
+      // Adjust if tooltip goes out of right edge
+      if (left + tooltipRect.width > scrollX + viewportWidth) {
+        left = e.pageX - tooltipRect.width - 20;
+      }
+      // Adjust if tooltip goes out of bottom edge
+      if (top + tooltipRect.height > scrollY + viewportHeight) {
+        top = e.pageY - tooltipRect.height - 20;
+      }
+      // Adjust if tooltip goes out of left edge (ensure it's not less than scrollX)
+      if (left < scrollX) {
+        left = scrollX + 5; 
+      }
+      // Adjust if tooltip goes out of top edge (ensure it's not less than scrollY)
+      if (top < scrollY) {
+        top = scrollY + 5;
+      }
+
+      chartTooltip.style.left = left + 'px';
+      chartTooltip.style.top = top + 'px';
+      
+      createChart(metric, company);
+    });
+    
+    // 处理鼠标移出事件
+    incomeTable.addEventListener('mouseout', (e) => {
+      const related = e.relatedTarget;
+      // If mouse moves to the tooltip itself or another part of the incomeTable, do not hide.
+      if (related && (chartTooltip.contains(related) || incomeTable.contains(related))) {
+        return;
+      }
+      chartTooltip.style.display = 'none';
+    });
+    
+    // 处理图表容器鼠标移出事件
+    chartTooltip.addEventListener('mouseout', (e) => {
+      const related = e.relatedTarget;
+      // If mouse moves to any part of the incomeTable, do not hide.
+      if (related && incomeTable.contains(related)) {
+        return;
+      }
+      chartTooltip.style.display = 'none';
+    });
+
+    // 为开关添加事件监听，如果关闭开关，则隐藏当前可能显示的提示框
+    if (chartToggleSwitch) {
+        chartToggleSwitch.addEventListener('change', function() {
+            if (!this.checked) {
+                chartTooltip.style.display = 'none';
+            }
+        });
+    }
+  })();
+</script>
+</body>
+</html>

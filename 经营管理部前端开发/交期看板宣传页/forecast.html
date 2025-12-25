@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目预测管理看板 - 设计说明书</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;500;700&family=Noto+Sans+SC:wght@300;400;700&display=swap');
+
+        :root {
+            --bg-deep: #02060b;
+            --bg-panel: rgba(6, 22, 40, 0.6); /* 调低透明度，增加通透感 */
+            --bg-card-hover: rgba(6, 30, 50, 0.8);
+            --border-outer: #113658;
+            --border-highlight: #00bcd4;
+            --text-primary: #e0f7fa;
+            --text-secondary: #81d4fa;
+            --text-muted: #546e7a;
+            --highlight-cyan: #00e5ff;
+            --highlight-gold: #ffd700;
+            --accent-gradient: linear-gradient(135deg, rgba(0, 229, 255, 0.2), transparent);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-primary);
+            font-family: 'Noto Sans SC', sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            /* 背景网格纹理优化 */
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(0, 229, 255, 0.05) 0%, transparent 60%),
+                linear-gradient(rgba(0, 229, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 229, 255, 0.02) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 1600px;
+            /* 移除实体边框，改用更有质感的阴影和微弱边框 */
+            background: rgba(2, 6, 11, 0.85);
+            backdrop-filter: blur(10px); /* 磨砂玻璃效果 */
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 80px rgba(0, 0, 0, 0.8);
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        /* 顶部标题栏 */
+        .header {
+            background: linear-gradient(90deg, rgba(0,20,40,0.9), rgba(0,40,70,0.4));
+            border-bottom: 1px solid var(--border-outer);
+            padding: 40px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 标题栏装饰线 */
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--highlight-cyan), transparent);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 48px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+            line-height: 1;
+        }
+        
+        .header h1 small {
+            display: block;
+            font-size: 14px;
+            color: var(--highlight-cyan);
+            letter-spacing: 2px;
+            margin-top: 10px;
+            font-weight: 300;
+            opacity: 0.8;
+        }
+
+        .header-meta {
+            text-align: right;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-family: 'Chakra Petch', sans-serif;
+            border: 1px solid var(--border-outer);
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        /* ================= 核心目标区域样式 ================= */
+        .purpose-section {
+            padding: 0 50px; /* 调整padding以适应底部位置 */
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .purpose-card {
+            background: linear-gradient(180deg, rgba(6, 22, 40, 0.4) 0%, rgba(6, 22, 40, 0.1) 100%);
+            border: 1px solid rgba(0, 229, 255, 0.1);
+            border-radius: 4px;
+            padding: 25px;
+            position: relative;
+            transition: all 0.4s ease;
+            overflow: hidden;
+        }
+
+        .purpose-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 229, 255, 0.4);
+            background: linear-gradient(180deg, rgba(6, 22, 40, 0.7) 0%, rgba(6, 22, 40, 0.2) 100%);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* 顶部高亮条 */
+        .purpose-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--highlight-cyan);
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+        .purpose-card:hover::before { opacity: 1; }
+
+        .p-icon {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 36px;
+            font-weight: bold;
+            color: rgba(255,255,255,0.05);
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            transition: color 0.3s;
+        }
+        .purpose-card:hover .p-icon { color: rgba(0, 229, 255, 0.2); }
+
+        .p-title {
+            color: var(--highlight-cyan);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            letter-spacing: 1px;
+        }
+        
+        /* 标题前的小方块装饰 */
+        .p-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--highlight-cyan);
+            margin-right: 10px;
+            box-shadow: 0 0 10px var(--highlight-cyan);
+        }
+
+        .p-desc {
+            font-size: 13px;
+            color: #cfd8dc;
+            line-height: 1.8;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        /* ================= 现有区域样式 ================= */
+
+        /* 区域标题 */
+        .zone-header {
+            margin: 40px 50px 20px 50px;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .zone-num {
+            font-family: 'Chakra Petch', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.05);
+            margin-right: -20px;
+            z-index: 0;
+            line-height: 1;
+        }
+
+        .zone-title {
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 20px;
+            color: #fff;
+            font-weight: 500;
+            z-index: 1;
+            padding-left: 30px;
+            border-left: 3px solid var(--highlight-cyan);
+            line-height: 1.2;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* 网格系统 */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 0 50px;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1.1fr 1.2fr 1.1fr;
+            gap: 20px;
+            padding: 0 50px;
+        }
+
+        .grid-full {
+            grid-column: 1 / -1;
+        }
+
+        /* 模块卡片 */
+        .module-card {
+            background: var(--bg-panel);
+            border: 1px solid rgba(255,255,255,0.08); /* 更细腻的边框 */
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+        }
+
+        .module-card:hover {
+            border-color: rgba(0, 229, 255, 0.5);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .module-header {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 15px 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-family: 'Chakra Petch', sans-serif;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* 装饰性的小图标 */
+        .module-header::after {
+            content: '+';
+            font-size: 18px;
+            color: rgba(255,255,255,0.1);
+        }
+
+        .module-content {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 图片容器 */
+        .img-box {
+            width: 100%;
+            height: 300px;
+            background: rgba(0,0,0,0.3);
+            border: 1px dashed rgba(255,255,255,0.1);
+            margin-bottom: 25px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .img-box-split {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .img-box-split img {
+            width: 50%;
+            height: 100%;
+            object-fit: contain;
+            border-right: 1px dashed rgba(255,255,255,0.1);
+        }
+        .img-box-split img:last-child { border-right: none; }
+
+        .img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* 字段列表样式 */
+        .field-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .field-table tr {
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: background 0.2s;
+        }
+        .field-table tr:last-child { border-bottom: none; }
+        .field-table tr:hover { background: rgba(255,255,255,0.02); }
+
+        .field-table td {
+            padding: 12px 10px;
+            vertical-align: top;
+        }
+
+        .td-name {
+            width: 30%;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .td-desc {
+            color: #b0bec5;
+            line-height: 1.6;
+        }
+
+        /* 标签 */
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 2px;
+            font-size: 10px;
+            margin-right: 8px;
+            font-weight: bold;
+            font-family: 'Chakra Petch', sans-serif;
+            text-transform: uppercase;
+        }
+        .tag.legend { color: #fff; background: rgba(255,255,255,0.1); }
+        .tag.axis { color: var(--text-secondary); background: rgba(33, 150, 243, 0.1); border: 1px solid rgba(33, 150, 243, 0.2); }
+        .tag.kpi { color: var(--highlight-cyan); background: rgba(0, 229, 255, 0.1); border: 1px solid rgba(0, 229, 255, 0.2); }
+
+        /* 底部 */
+        .footer {
+            margin-top: 60px;
+            padding: 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: linear-gradient(180deg, transparent, rgba(0,0,0,0.4));
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>
+            <small>DIGITAL OPERATION PROJECT</small>
+            项目预测管理看板
+        </h1>
+        <div class="header-meta">
+            使用手册
+        </div>
+    </div>
+
+    <!-- ================= ZONE 01 ================= -->
+    <div class="zone-header">
+        <div class="zone-num">01</div>
+        <div class="zone-title">趋势与核心漏斗</div>
+    </div>
+    
+    <div class="grid-2">
+        <!-- 模块 01 -->
+        <div class="module-card">
+            <div class="module-header">预测订单数</div>
+            <div class="module-content">
+                <div class="img-box">
+                    <img src="forecast-img/Image 1.png" alt="预测订单数趋势图" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 预测订单趋势</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag legend">1.</span> 项目数</td>
+                        <td class="td-desc">按月预计下单时间的项目数，计算公式为：各阶段项目数/总预测项目数*100% 。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag legend">2.</span> 项目台数</td>
+                        <td class="td-desc">项目包含的设备总台数。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模块 02 -->
+        <div class="module-card">
+            <div class="module-header">里程碑阶段数</div>
+            <div class="module-content">
+                <div class="img-box">
+                    <img src="forecast-img/Image 2.png" alt="里程碑阶段分布图" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 阶段分布</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag legend">1.</span> 验证机会点</td>
+                        <td class="td-desc">处于初期机会验证阶段的项目数。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag legend">2.</span> 提案书评审</td>
+                        <td class="td-desc">处于方案提交与评审阶段的项目数。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag legend">3.</span> 成本终版</td>
+                        <td class="td-desc">成本核算完成，处于最终定价阶段的项目数。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag legend">4.</span> PO或接单通知</td>
+                        <td class="td-desc">已接收到采购意向通知的项目数。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模块 03 -->
+        <div class="module-card grid-full">
+            <div class="module-header">核心业务漏斗</div>
+            <div class="module-content">
+                <div class="img-box" style="height: 250px;">
+                    <img src="forecast-img/Image 3.png" alt="业务漏斗KPI" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 业务漏斗</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag kpi">KPI</span> 线索 </td>
+                        <td class="td-desc">初步接触、尚未验证的潜在客户记录数。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag kpi">KPI</span> 商机 </td>
+                        <td class="td-desc">已立项、有明确需求的跟进中项目数。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag kpi">KPI</span> 待转单 </td>
+                        <td class="td-desc">处于报价、审批流程，等待转为正式订单的项目数。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag kpi">KPI</span> 已转单 </td>
+                        <td class="td-desc">已签订合同或收到PO的正式订单数。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= ZONE 02 ================= -->
+    <div class="zone-header">
+        <div class="zone-num">02</div>
+        <div class="zone-title">分布与核心预测</div>
+    </div>
+
+    <div class="grid-3">
+        <!-- 模块 04 & 05 -->
+        <div class="module-card">
+            <div class="module-header">区域与产品分布 </div>
+            <div class="module-content">
+                <div class="img-box" style="height: auto;">
+                    <div class="img-box-split">
+                        <img src="forecast-img/Image 4.png" alt="区域分布" onerror="this.parentElement.innerHTML='<span style=\'color:#555; padding:20px\'>Image: 区域</span>'">
+                    </div>
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag legend">1.</span> 战区分布</td>
+                        <td class="td-desc">一部、二部、三部各战区的项目数量占比，计算公式为：各区域项目数/总预测项目数*100% 。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag legend">2.</span> 产品分类</td>
+                        <td class="td-desc">展示各产品类型的项目占比，计算公式为：各目类项目数/总预测项目数*100% 。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模块 06 -->
+        <div class="module-card">
+            <div class="module-header">核心财务预测 </div>
+            <div class="module-content">
+                <div class="img-box" style="height: auto;">
+                    <img src="forecast-img/Image 5.png" alt="预测仪表盘" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 财务预测</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag kpi">1.</span> 商机总额</td>
+                        <td class="td-desc">在库商机预计销售总额。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag kpi">2.</span> 预测转单率</td>
+                        <td class="td-desc">基于模型计算的预计成交概率，计算公式为：80%接单概率/总预测数量*100% 。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模块 07 -->
+        <div class="module-card">
+            <div class="module-header">等级与风险 </div>
+            <div class="module-content">
+                <div class="img-box" style="height: auto;">
+                    <img src="forecast-img/Image 6.png" alt="风险环形图" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 风险等级</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag legend">1.</span> 项目等级</td>
+                        <td class="td-desc">L1~L3项目等级占比分布。</td>
+                    </tr>
+                    <tr>
+                        <td class="td-name"><span class="tag legend">2.</span> 风险</td>
+                        <td class="td-desc">已关风险和风险中项目数分布。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ZONE 03 ================= -->
+    <div class="zone-header">
+        <div class="zone-num">03</div>
+        <div class="zone-title">资源池分析</div>
+    </div>
+
+    <div class="grid-2">
+        <!-- 模块 08 -->
+        <div class="module-card grid-full">
+            <div class="module-header">制造资源池</div>
+            <div class="module-content">
+                <div class="img-box" style="height: 300px;">
+                    <img src="forecast-img/Image 8.png" alt="制造资源图" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 制造资源</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag legend">1.</span> 工时趋势</td>
+                        <td class="td-desc">武汉、苏州、常州三地制造部门的工时负荷趋势。</td>                   
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模块 09 -->
+        <div class="module-card">
+            <div class="module-header">研发资源池</div>
+            <div class="module-content">
+                <div class="img-box">
+                     <img src="forecast-img/Image 7.png" alt="研发资源图" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 研发资源</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag legend">1.</span> 工时趋势</td>
+                        <td class="td-desc">武汉、苏州、常州三地研发部门的工时负荷趋势。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 模块 10 -->
+        <div class="module-card">
+            <div class="module-header">供方资源池</div>
+            <div class="module-content">
+                <div class="img-box">
+                     <img src="forecast-img/Image 9.png" alt="供方资源图" onerror="this.parentElement.innerHTML='<span style=\'color:#555\'>Image: 供方资源</span>'">
+                </div>
+                <table class="field-table">
+                    <tr>
+                        <td class="td-name"><span class="tag axis">1.</span> 预计成本</td>
+                        <td class="td-desc">武汉、苏州、常州三地采购资金预测。</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ZONE 04 (移至此处) ================= -->
+    <div class="zone-header">
+        <div class="zone-num">04</div>
+        <div class="zone-title">设计核心目标</div>
+    </div>
+
+    <!-- 核心目的区域 -->
+    <div class="purpose-section">
+        <!-- 01 提升预测精度 -->
+        <div class="purpose-card">
+            <div class="p-icon">01</div>
+            <div class="p-title">提升预测精度</div>
+            <div class="p-desc">通过数据可视化实现项目进度、成本、风险的动态预测，将偏差率降低至可控范围，确保交付预期。</div>
+        </div>
+
+        <!-- 02 实时监控与预警 -->
+        <div class="purpose-card">
+            <div class="p-icon">02</div>
+            <div class="p-title">实时监控与预警</div>
+            <div class="p-desc">提前识别进度滞后、资源超耗、需求变更等异常情况，显著缩短问题响应时间，变被动为主动。</div>
+        </div>
+
+        <!-- 03 决策支持 -->
+        <div class="purpose-card">
+            <div class="p-icon">03</div>
+            <div class="p-title">决策支持</div>
+            <div class="p-desc">为管理层提供投入产出比、资源负载率等多维度核心数据，辅助优化资源调配策略与经营决策。</div>
+        </div>
+
+        <!-- 04 协同透明化 -->
+        <div class="purpose-card">
+            <div class="p-icon">04</div>
+            <div class="p-title">协同透明化</div>
+            <div class="p-desc">统一各相关方的信息口径，打破数据孤岛，大幅减少因信息不对称导致的沟通成本与协作摩擦。</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2025 数字化运营项目组 制作
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天眼查-公司查询</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', 'Microsoft YaHei', Arial, sans-serif;
+            background: #f5f6fa;
+            margin: 0;
+            padding: 0;
+            color: #222;
+        }
+        .navbar {
+            background: #fff;
+            border-bottom: 1px solid #e5e6eb;
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .logo {
+            width: 44px;
+            height: 44px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+        }
+        .logo svg {
+            width: 44px;
+            height: 44px;
+        }
+        .nav-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a73e8;
+            margin-right: 32px;
+        }
+        .nav-menu {
+            display: flex;
+            gap: 24px;
+            font-size: 16px;
+            color: #222;
+        }
+        .nav-menu .active {
+            color: #1a73e8;
+            border-bottom: 2px solid #1a73e8;
+            padding-bottom: 4px;
+        }
+        .nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+        .nav-btn {
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 18px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .nav-link {
+            color: #222;
+            text-decoration: none;
+            font-size: 15px;
+        }
+        .main {
+            max-width: 1200px;
+            margin: 28px auto 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            padding: 0 0 32px 0;
+        }
+        .search-bar-wrap {
+            padding: 32px 48px 0 48px;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            border: 1.5px solid #1a73e8;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fff;
+        }
+        .search-bar input[type="text"] {
+            flex: 1;
+            padding: 16px 18px;
+            font-size: 18px;
+            border: none;
+            outline: none;
+        }
+        .search-bar button {
+            background: #1a73e8;
+            color: #fff;
+            border: none;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 0 38px;
+            height: 48px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-bar button:hover {
+            background: #1760c4;
+        }
+        .filter-section {
+            margin: 24px 48px 0 48px;
+            background: #f7f8fa;
+            border-radius: 8px;
+            padding: 18px 24px 10px 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+        }
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            margin-bottom: 10px;
+        }
+        .filter-label {
+            font-size: 15px;
+            color: #666;
+            margin-right: 8px;
+        }
+        .filter-checkbox {
+            margin-right: 16px;
+            font-size: 15px;
+        }
+        .filter-checkbox input {
+            margin-right: 4px;
+        }
+        .filter-more {
+            color: #1a73e8;
+            cursor: pointer;
+            font-size: 15px;
+            margin-left: 8px;
+        }
+        .result-header {
+            display: flex;
+            align-items: center;
+            padding: 18px 48px 0 48px;
+            font-size: 16px;
+            color: #222;
+        }
+        .result-header .count {
+            color: #e94f4f;
+            font-weight: 700;
+            margin: 0 4px;
+        }
+        .result-header .tools {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .result-header .tools button, .result-header .tools select {
+            border: 1px solid #d0d4da;
+            background: #fff;
+            border-radius: 4px;
+            padding: 4px 14px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .result-list {
+            margin: 18px 48px 0 48px;
+        }
+        .company-card {
+            display: flex;
+            background: #fff;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 24px 0 18px 0;
+            align-items: flex-start;
+        }
+        .company-logo {
+            width: 64px;
+            height: 64px;
+            background: #f2f4f7;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 24px;
+        }
+        .company-logo svg {
+            width: 44px;
+            height: 44px;
+        }
+        .company-info {
+            flex: 1;
+        }
+        .company-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 6px;
+        }
+        .company-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .tag {
+            background: #f0f6ff;
+            color: #1a73e8;
+            border-radius: 3px;
+            font-size: 13px;
+            padding: 2px 8px;
+        }
+        .company-detail {
+            font-size: 15px;
+            color: #444;
+            margin-bottom: 4px;
+        }
+        .company-detail a {
+            color: #1a73e8;
+            text-decoration: none;
+        }
+        .company-meta {
+            font-size: 13px;
+            color: #888;
+            margin-top: 4px;
+        }
+        .company-meta .red {
+            color: #e94f4f;
+        }
+        .company-actions {
+            margin-left: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        .follow-btn {
+            background: #fff;
+            color: #1a73e8;
+            border: 1px solid #1a73e8;
+            border-radius: 4px;
+            padding: 4px 16px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        @media (max-width: 900px) {
+            .main, .search-bar-wrap, .filter-section, .result-header, .result-list {
+                margin-left: 0;
+                margin-right: 0;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        }
+        @media (max-width: 600px) {
+            .navbar, .main {
+                padding: 0 2px;
+            }
+            .search-bar-wrap, .filter-section, .result-header, .result-list {
+                padding-left: 2px;
+                padding-right: 2px;
+            }
+            .company-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .company-actions {
+                flex-direction: row;
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="logo">
+            <!-- SVG Logo -->
+            <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="22" fill="#1a73e8"/><text x="50%" y="55%" text-anchor="middle" fill="#fff" font-size="18" font-family="Arial" dy=".3em">天</text></svg>
+        </div>
+        <span class="nav-title">TianYanCha.com</span>
+        <div class="nav-menu">
+            <span class="active">公司</span>
+            <span>老板</span>
+            <span>风险</span>
+            <span>商标</span>
+            <span>专利</span>
+            <span>更多</span>
+        </div>
+        <div class="nav-right">
+            <a class="nav-link" href="#">应用</a>
+            <a class="nav-link" href="#">合作通道</a>
+            <button class="nav-btn">导出</button>
+        </div>
+    </div>
+    <div class="main">
+        <div class="search-bar-wrap">
+            <form class="search-bar">
+                <input type="text" placeholder="搜索公司/老板/品牌/产品等关键词" required>
+                <button type="submit">天眼一下</button>
+            </form>
+        </div>
+        <div class="filter-section">
+            <div class="filter-row">
+                <span class="filter-label">筛选条件：</span>
+                <span class="filter-checkbox"><input type="checkbox">企业名称</span>
+                <span class="filter-checkbox"><input type="checkbox">经营范围</span>
+                <span class="filter-checkbox"><input type="checkbox">企业简介</span>
+                <span class="filter-checkbox"><input type="checkbox">地址</span>
+                <span class="filter-checkbox"><input type="checkbox">品牌/产品</span>
+                <span class="filter-checkbox"><input type="checkbox">法定代表人</span>
+                <span class="filter-checkbox"><input type="checkbox">专利</span>
+                <span class="filter-checkbox"><input type="checkbox">商标</span>
+                <span class="filter-checkbox"><input type="checkbox">股东</span>
+                <span class="filter-checkbox"><input type="checkbox">主要人员</span>
+                <span class="filter-more">更多</span>
+            </div>
+            <div class="filter-row">
+                <span class="filter-checkbox"><input type="checkbox">北京市</span>
+                <span class="filter-checkbox"><input type="checkbox">广东省</span>
+                <span class="filter-checkbox"><input type="checkbox">浙江省</span>
+                <span class="filter-checkbox"><input type="checkbox">山东省</span>
+                <span class="filter-checkbox"><input type="checkbox">江苏省</span>
+                <span class="filter-checkbox"><input type="checkbox">四川省</span>
+                <span class="filter-checkbox"><input type="checkbox">重庆市</span>
+                <span class="filter-checkbox"><input type="checkbox">上海市</span>
+                <span class="filter-checkbox"><input type="checkbox">更多省份</span>
+            </div>
+        </div>
+        <div class="result-header">
+            天眼查为您找到 <span class="count">1,758</span> 条相关结果
+            <div class="tools">
+                <label><input type="checkbox"> 仅看公司</label>
+                <button>卡片</button>
+                <button>表格</button>
+                <select>
+                    <option>智能排序</option>
+                    <option>注册资本</option>
+                    <option>成立时间</option>
+                </select>
+                <button>批量操作</button>
+                <button>导出</button>
+            </div>
+        </div>
+        <div class="result-list">
+            <!-- 公司卡片1 -->
+            <div class="company-card">
+                <div class="company-logo">
+                    <svg viewBox="0 0 44 44"><rect width="44" height="44" rx="8" fill="#e3eafc"/><text x="50%" y="55%" text-anchor="middle" fill="#1a73e8" font-size="18" font-family="Arial" dy=".3em">精</text></svg>
+                </div>
+                <div class="company-info">
+                    <div class="company-title">武汉精测电子集团股份有限公司 <span class="tag" style="background:#e6f7e6;color:#3bb34a;">存续</span></div>
+                    <div class="company-tags">
+                        <span class="tag">投资机构</span>
+                        <span class="tag">AB(正在申报)</span>
+                        <span class="tag">高新技术企业</span>
+                        <span class="tag">制造业</span>
+                    </div>
+                    <div class="company-detail">法定代表人：邱银银 &nbsp; 注册资本：27346.6227万元人民币 &nbsp; 成立日期：2006-04-20</div>
+                    <div class="company-detail">电话：027-8752**** &nbsp; 邮箱：qiuyinyin@jdcz.cc &nbsp; 网址：<a href="#">www.wuhanjingce.com</a></div>
+                    <div class="company-detail">地址：洪山区书城路48# 世茂广场11层</div>
+                    <div class="company-meta">天眼风险 <span class="red">621</span> 条 | 关联企业 <span class="red">114</span> 条</div>
+                </div>
+                <div class="company-actions">
+                    <button class="follow-btn">关注</button>
+                </div>
+            </div>
+            <!-- 公司卡片2 -->
+            <div class="company-card">
+                <div class="company-logo">
+                    <svg viewBox="0 0 44 44"><rect width="44" height="44" rx="8" fill="#e3eafc"/><text x="50%" y="55%" text-anchor="middle" fill="#1a73e8" font-size="18" font-family="Arial" dy=".3em">半</text></svg>
+                </div>
+                <div class="company-info">
+                    <div class="company-title">上海精测半导体技术有限公司 <span class="tag" style="background:#e6f7e6;color:#3bb34a;">存续</span></div>
+                    <div class="company-tags">
+                        <span class="tag">高新技术企业</span>
+                        <span class="tag">制造业</span>
+                        <span class="tag">B轮</span>
+                    </div>
+                    <div class="company-detail">法定代表人：王芳 &nbsp; 注册资本：20765.2777万元人民币 &nbsp; 成立日期：2018-07-03</div>
+                    <div class="company-detail">电话：021-3177**** &nbsp; 邮箱：wang.fang@pmish-tech.com &nbsp; 网址：<a href="#">www.pmish-tech.com</a></div>
+                    <div class="company-detail">地址：上海市浦东新区张江高科技园区益江路2875号2幢</div>
+                    <div class="company-meta">天眼风险 <span class="red">632</span> 条 | 关联企业 <span class="red">99</span> 条</div>
+                </div>
+                <div class="company-actions">
+                    <button class="follow-btn">关注</button>
+                </div>
+            </div>
+            <!-- 公司卡片3 -->
+            <div class="company-card">
+                <div class="company-logo">
+                    <svg viewBox="0 0 44 44"><rect width="44" height="44" rx="8" fill="#e3eafc"/><text x="50%" y="55%" text-anchor="middle" fill="#1a73e8" font-size="18" font-family="Arial" dy=".3em">科</text></svg>
+                </div>
+                <div class="company-info">
+                    <div class="company-title">深圳市科创电子有限公司 <span class="tag" style="background:#e6f7e6;color:#3bb34a;">存续</span></div>
+                    <div class="company-tags">
+                        <span class="tag">创新型企业</span>
+                        <span class="tag">电子信息</span>
+                        <span class="tag">C轮</span>
+                    </div>
+                    <div class="company-detail">法定代表人：李明 &nbsp; 注册资本：5000万元人民币 &nbsp; 成立日期：2012-09-15</div>
+                    <div class="company-detail">电话：0755-1234**** &nbsp; 邮箱：liming@kechuang.com &nbsp; 网址：<a href="#">www.kechuang.com</a></div>
+                    <div class="company-detail">地址：深圳市南山区科技园南区1号楼</div>
+                    <div class="company-meta">天眼风险 <span class="red">210</span> 条 | 关联企业 <span class="red">45</span> 条</div>
+                </div>
+                <div class="company-actions">
+                    <button class="follow-btn">关注</button>
+                </div>
+            </div>
+            <!-- 公司卡片4 -->
+            <div class="company-card">
+                <div class="company-logo">
+                    <svg viewBox="0 0 44 44"><rect width="44" height="44" rx="8" fill="#e3eafc"/><text x="50%" y="55%" text-anchor="middle" fill="#1a73e8" font-size="18" font-family="Arial" dy=".3em">信</text></svg>
+                </div>
+                <div class="company-info">
+                    <div class="company-title">北京信达科技股份有限公司 <span class="tag" style="background:#e6f7e6;color:#3bb34a;">存续</span></div>
+                    <div class="company-tags">
+                        <span class="tag">高新技术企业</span>
+                        <span class="tag">IT服务</span>
+                        <span class="tag">A轮</span>
+                    </div>
+                    <div class="company-detail">法定代表人：张伟 &nbsp; 注册资本：8000万元人民币 &nbsp; 成立日期：2010-03-10</div>
+                    <div class="company-detail">电话：010-8888**** &nbsp; 邮箱：zhangwei@xinda.com &nbsp; 网址：<a href="#">www.xinda.com</a></div>
+                    <div class="company-detail">地址：北京市海淀区中关村软件园1号楼</div>
+                    <div class="company-meta">天眼风险 <span class="red">98</span> 条 | 关联企业 <span class="red">22</span> 条</div>
+                </div>
+                <div class="company-actions">
+                    <button class="follow-btn">关注</button>
+                </div>
+            </div>
+            <!-- 公司卡片5 -->
+            <div class="company-card">
+                <div class="company-logo">
+                    <svg viewBox="0 0 44 44"><rect width="44" height="44" rx="8" fill="#e3eafc"/><text x="50%" y="55%" text-anchor="middle" fill="#1a73e8" font-size="18" font-family="Arial" dy=".3em">云</text></svg>
+                </div>
+                <div class="company-info">
+                    <div class="company-title">杭州云启网络科技有限公司 <span class="tag" style="background:#e6f7e6;color:#3bb34a;">存续</span></div>
+                    <div class="company-tags">
+                        <span class="tag">互联网</span>
+                        <span class="tag">云计算</span>
+                        <span class="tag">B轮</span>
+                    </div>
+                    <div class="company-detail">法定代表人：王云 &nbsp; 注册资本：12000万元人民币 &nbsp; 成立日期：2015-06-18</div>
+                    <div class="company-detail">电话：0571-8888**** &nbsp; 邮箱：wangyun@yunqi.com &nbsp; 网址：<a href="#">www.yunqi.com</a></div>
+                    <div class="company-detail">地址：杭州市西湖区文三路199号</div>
+                    <div class="company-meta">天眼风险 <span class="red">56</span> 条 | 关联企业 <span class="red">12</span> 条</div>
+                </div>
+                <div class="company-actions">
+                    <button class="follow-btn">关注</button>
+                </div>
+            </div>
+        </div>
+        <!-- 主要信息表格（示例） -->
+        <div style="padding:24px 32px;">
+          <table class="info-table">
+            <tr>
+              <th>法定代表人</th>
+              <th>注册资本</th>
+              <th>成立日期</th>
+              <th>企业类型</th>
+              <th>行业</th>
+            </tr>
+            <tr>
+              <td>邱银银</td>
+              <td>27346.6227万元人民币</td>
+              <td>2006-04-20</td>
+              <td>中型</td>
+              <td>电子器件制造</td>
+            </tr>
+          </table>
+        </div>
+        <!-- 股东信息表格 -->
+        <div style="padding:0 32px 24px 32px;">
+          <div style="font-size:17px;font-weight:700;color:#1a73e8;margin-bottom:10px;">股东信息</div>
+          <div style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);padding:0 0 0 0;">
+            <table class="info-table">
+              <tr>
+                <th>股东</th>
+                <th>持股比例</th>
+                <th>认缴出资额</th>
+                <th>认缴出资日期</th>
+              </tr>
+              <tr>
+                <td>邱银银</td>
+                <td>40%</td>
+                <td>10938.65万元</td>
+                <td>2006-04-20</td>
+              </tr>
+              <tr>
+                <td>武汉精测科技有限公司</td>
+                <td>30%</td>
+                <td>8203.99万元</td>
+                <td>2006-04-20</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <!-- 主要人员表格 -->
+        <div style="padding:0 32px 24px 32px;">
+          <div style="font-size:17px;font-weight:700;color:#1a73e8;margin-bottom:10px;">主要人员</div>
+          <div style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);padding:0 0 0 0;">
+            <table class="info-table">
+              <tr>
+                <th>姓名</th>
+                <th>职位</th>
+              </tr>
+              <tr>
+                <td>邱银银</td>
+                <td>董事长, 总经理</td>
+              </tr>
+              <tr>
+                <td>王芳</td>
+                <td>董事</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <!-- 对外投资表格 -->
+        <div style="padding:0 32px 24px 32px;">
+          <div style="font-size:17px;font-weight:700;color:#1a73e8;margin-bottom:10px;">对外投资</div>
+          <div style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);padding:0 0 0 0;">
+            <table class="info-table">
+              <tr>
+                <th>被投资企业</th>
+                <th>法定代表人</th>
+                <th>注册资本</th>
+                <th>成立日期</th>
+                <th>状态</th>
+              </tr>
+              <tr>
+                <td>精测半导体技术有限公司</td>
+                <td>王芳</td>
+                <td>20765.28万元</td>
+                <td>2018-07-03</td>
+                <td>存续</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <!-- 分支机构表格 -->
+        <div style="padding:0 32px 24px 32px;">
+          <div style="font-size:17px;font-weight:700;color:#1a73e8;margin-bottom:10px;">分支机构</div>
+          <div style="background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.03);padding:0 0 0 0;">
+            <table class="info-table">
+              <tr>
+                <th>名称</th>
+                <th>负责人</th>
+                <th>成立日期</th>
+                <th>状态</th>
+              </tr>
+              <tr>
+                <td>武汉精测电子集团股份有限公司深圳分公司</td>
+                <td>李明</td>
+                <td>2017-05-10</td>
+                <td>存续</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+    </div>
+</body>
+</html>

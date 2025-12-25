@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天眼查</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #f8f9fa;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .navbar img {
+            height: 40px;
+        }
+        .navbar a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+        }
+        .navbar a:hover {
+            color: #007bff;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-radius: 4px;
+            padding: 0 10px;
+            width: 400px;
+        }
+        .search-bar input[type="text"] {
+            padding: 8px 12px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+        }
+        .search-bar button {
+            padding: 8px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .search-bar button:hover {
+            background-color: #0056b3;
+        }
+        .content {
+            padding: 20px;
+        }
+        .filter-section {
+            margin-bottom: 20px;
+        }
+        .filter-section label {
+            display: inline-block;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        .filter-section label input {
+            margin-right: 5px;
+        }
+        .results-section {
+            margin-top: 20px;
+        }
+        .result-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: white;
+        }
+        .result-item img {
+            height: 50px;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+        .result-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .result-item a:hover {
+            text-decoration: underline;
+        }
+        .result-item p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .result-item .tel {
+            color: #007bff;
+        }
+        .result-item .tel::before {
+            content: "📞 ";
+            margin-right: 5px;
+        }
+        .result-item .email {
+            color: #28a745;
+        }
+        .result-item .email::before {
+            content: "📧 ";
+            margin-right: 5px;
+        }
+        .result-item .website {
+            color: #6c757d;
+        }
+        .result-item .website::before {
+            content: "🌐 ";
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <img src="logo.png" alt="天眼查">
+    <div class="search-bar">
+        <input type="text" placeholder="查公司">
+        <button>天眼一下</button>
+    </div>
+    <div>
+        <a href="#">应用</a>
+        <a href="#">合作通道</a>
+        <a href="#">企业级产品</a>
+        <a href="#">开通会员</a>
+        <a href="#">登录注册</a>
+    </div>
+</div>
+
+<div class="content">
+    <div class="filter-section">
+        <label><input type="checkbox"> 企业名称</label>
+        <label><input type="checkbox"> 经营范围</label>
+        <label><input type="checkbox"> 企业简介</label>
+        <label><input type="checkbox"> 地址</label>
+        <label><input type="checkbox"> 品牌/产品</label>
+        <label><input type="checkbox"> 法定代表人</label>
+        <label><input type="checkbox"> 专利</label>
+        <label><input type="checkbox"> 商标</label>
+        <label><input type="checkbox"> 股东</label>
+        <label><input type="checkbox"> 主要人员</label>
+    </div>
+
+    <div class="results-section">
+        <h2>天眼查为您找到 1,758 条相关结果</h2>
+        <div class="result-item">
+            <img src="company1.png" alt="公司1">
+            <a href="#">武汉精测电子集团股份有限公司</a>
+            <p>法定代表人：彭骞</p>
+            <p>注册资本：27346.6227万人民币</p>
+            <p>成立日期：2006-04-20</p>
+            <p>统一社会信用代码：9142011178318308C</p>
+            <p class="tel">电话：027-8752****</p>
+            <p class="email">邮箱：qiuyinyin@jcdz.cc</p>
+            <p class="website">网址：www.wuhanjingce.com/gatlinginstrument.com</p>
+            <p>地址：洪山区书城路48#（北港工业园）1栋11层</p>
+        </div>
+        <div class="result-item">
+            <img src="company2.png" alt="公司2">
+            <a href="#">上海精测半导体技术有限公司</a>
+            <p>法定代表人：彭骞</p>
+            <p>注册资本：207265.2777万人民币</p>
+            <p>成立日期：2018-07-03</p>
+            <p>统一社会信用代码：91310118MA1JMJF11R</p>
+            <p class="tel">电话：021-3177****</p>
+            <p class="email">邮箱：wang.fang@pmish-tech.com</p>
+            <p class="website">网址：www.pmish-tech.com</p>
+            <p>地址：浦东新区张江高科技园区</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

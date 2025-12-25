@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAC决策评审计划表 - 决策平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- 核心UI风格 --- */
+        :root {
+            /* 调色板 */
+            --bg-body: #F5F5F7;        /* Apple 浅灰背景 */
+            --bg-card: #FFFFFF;        /* 纯白卡片 */
+            
+            --text-primary: #1D1D1F;   /* 深黑主色 */
+            --text-secondary: #86868B; /* 次级灰色 */
+            --text-tertiary: #B2B2B2;  /* 辅助灰色 */
+            
+            --accent-blue: #0066CC;    /* 交互蓝 */
+            --accent-green: #28CD41;   /* 成功绿 */
+            --accent-red: #FF3B30;     /* 警示红 */
+            --accent-orange: #FF9500;  /* 提示橙 */
+            --accent-purple: #AF52DE;  /* 强调紫 */
+
+            --border-light: rgba(0, 0, 0, 0.06); 
+            
+            /* 投影体系 - 弥散光感 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.1);
+
+            /* 圆角 */
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* 字体栈 */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+            
+            /* 表格专用变量 */
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --light-bg: var(--bg-body);
+            --dark-text: var(--text-primary);
+            --gray-text: var(--text-secondary);
+            --border: #d2d2d7; /* 保持旧border */
+            --card-bg: var(--bg-card);
+            --card-shadow: var(--shadow-sm);
+            --th-bg: var(--bg-body);
+            --th-text: var(--text-secondary);
+            --sticky-shadow: 2px 0 5px rgba(0,0,0,0.03);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-stack);
+            -webkit-font-smoothing: antialiased; 
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            display: flex;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+        
+        /* --- 侧边栏 (Sidebar) - 保持一致性 --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 1px 0 0 var(--border-light); /* 极细分割线 */
+            flex-shrink: 0;
+        }
+        
+        .logo {
+            padding: 0 16px 32px;
+            margin-bottom: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, #434344 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover { background-color: rgba(0, 0, 0, 0.03); color: var(--text-primary); }
+        .nav-item.active { background-color: rgba(0, 102, 204, 0.08); color: var(--accent-blue); }
+        
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        /* --- 主内容区 --- */
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        /* 头部区域 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+        }
+        
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+
+        /* 工具栏 */
+        .filter-bar {
+            padding: 10px 24px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        
+        .form-input {
+            padding: 6px 10px;
+            border: 1px solid #d2d2d7;
+            border-radius: 6px;
+            font-size: 13px;
+            width: 240px;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-primary:hover { background-color: #0060df; }
+        
+        .btn-success { background-color: #28a745; color: white; }
+        
+        /* --- 表格容器 --- */
+        .table-wrapper {
+            flex: 1;
+            overflow: auto; /* 允许滚动 */
+            margin: 0;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        
+        /* 美化滚动条 */
+        .table-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-wrapper::-webkit-scrollbar-track { background: #f1f1f1; }
+        .table-wrapper::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .table-wrapper::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        table {
+            border-collapse: separate; 
+            border-spacing: 0;
+            width: 100%; /* 关键：强制占满容器宽度，实现自适应 */
+            min-width: 1000px; /* 设置最小宽度防止过度挤压 */
+            font-size: 12px; /* 稍微调小字体以容纳更多内容 */
+            table-layout: fixed; /* 固定布局算法，让列宽控制更精准 */
+        }
+        
+        /* 表头样式 */
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            background-color: var(--th-bg);
+            color: var(--th-text);
+            font-weight: 600;
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid #e5e5e5;
+            white-space: normal; /* 允许表头换行 */
+            line-height: 1.2;
+            height: 44px;
+        }
+
+        tbody td {
+            padding: 12px 8px; /* 减小内边距 */
+            border-bottom: 1px solid #f0f0f0;
+            border-right: 1px solid #f0f0f0;
+            vertical-align: top;
+            line-height: 1.5;
+            color: var(--dark-text);
+            background-color: #fff;
+            white-space: normal; /* 关键：允许内容自动换行 */
+            word-wrap: break-word; /* 关键：长单词强制换行 */
+            word-break: break-all;
+        }
+        
+        tbody tr:hover td {
+            background-color: #eef4ff !important;
+        }
+
+        /* --- 紧凑版冻结列设置 --- */
+        /* 列宽定义 - 总和应适配常见屏幕 */
+        .w-id { width: 45px; }
+        .w-time { width: 95px; }
+        .w-code { width: 110px; }
+        .w-name { width: 12%; min-width: 120px; } /* 百分比宽度 */
+        .w-pm { width: 70px; }
+        .w-content { width: 25%; } /* 自适应宽度 */
+        .w-meeting { width: 50px; }
+        .w-result { width: 25%; } /* 自适应宽度 */
+        .w-note { width: 60px; }
+
+        /* 第1列：序号 (Fixed 45px) */
+        th.col-fixed-1, td.col-fixed-1 {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            border-right: 1px solid var(--border);
+            text-align: center;
+        }
+        /* 第2列：评审时间 (Fixed 95px) */
+        th.col-fixed-2, td.col-fixed-2 {
+            position: sticky;
+            left: 45px;
+            z-index: 20;
+            border-right: 1px solid var(--border);
+            text-align: center;
+        }
+        /* 第3列：项目编号 (Fixed 110px) */
+        th.col-fixed-3, td.col-fixed-3 {
+            position: sticky;
+            left: 140px; /* 45 + 95 */
+            z-index: 20;
+            border-right: 1px solid var(--border);
+            box-shadow: var(--sticky-shadow);
+        }
+        
+        thead th.col-fixed-1, thead th.col-fixed-2, thead th.col-fixed-3 { z-index: 40; }
+
+        /* 内容样式增强 */
+        .text-date { font-weight: 600; color: var(--dark-text); display: block; }
+        .text-time { color: var(--gray-text); font-size: 11px; display: block; margin-top: 2px;}
+        .code-font { font-family: "Menlo", "Consolas", monospace; font-size: 11px; color: #555; }
+        
+        .tag-blue { color: #007aff; font-weight: 600; font-size: 12px; }
+        .important-text { font-weight: 700; color: #333; }
+        .risk-text { color: #d63031; margin-top: 6px; display: block; font-style: italic;}
+        
+        .solution-block { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #e0e0e0; }
+        .meeting-yes { color: var(--success); font-weight: 700; }
+
+        /* User Profile Style from Decision-v1.html */
+        .user-profile { display: flex; align-items: center; gap: 12px; background: var(--bg-card); padding: 6px 12px 6px 6px; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s; }
+        .user-profile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00C6FB, #005BEA); border-radius: 50%; color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>决策平台</h1>
+            </div>
+            <nav>
+                <a href="Decision-v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
+                <a href="process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+                <a href="Statistics-v1.html" class="nav-item"><i class="fas fa-chart-pie"></i> 决策统计</a>
+                <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+                <a href="Doc-v1.html" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="Schedule-v1.html" class="nav-item active"><i class="fas fa-calendar-alt"></i> 评审计划</a>
+                <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h2 class="page-title">PAC决策评审计划表</h2>
+                <div class="user-profile">
+                    <div class="avatar">E</div>
+                    <span class="user-name">评审团成员E</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="filter-bar" style="padding: 0; border-bottom: none; margin-bottom: 24px;">
+                    <input type="text" class="form-input" placeholder="项目编号/名称/经理...">
+                    <button class="btn btn-primary"><i class="fas fa-search"></i> 搜索</button>
+                    <div style="flex: 1;"></div>
+                    <button class="btn btn-success"><i class="fas fa-file-excel"></i> 导出</button>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-fixed-1 w-id">序号</th>
+                                <th class="col-fixed-2 w-time">评审时间</th>
+                                <th class="col-fixed-3 w-code">项目编号</th>
+                                <th class="w-name">项目名称</th>
+                                <th class="w-pm">项目经理</th>
+                                <th class="w-content">需决策事项</th>
+                                <th class="w-meeting">召开</th>
+                                <th class="w-result">会议结论</th>
+                                <th class="w-note">备注</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 示例行 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id" style="color: var(--primary); font-weight: bold;">示例</td>
+                                <td class="col-fixed-2 w-time">
+                                    <span class="text-date">2023/8/18</span>
+                                    <span class="text-time">14:00~15:00</span>
+                                </td>
+                                <td class="col-fixed-3 w-code code-font">2304APIXN1340</td>
+                                <td class="w-name" style="color: var(--primary); font-weight: 500;">成都BADT车载POL ET AOI</td>
+                                <td class="w-pm" style="text-align: center;">王涛</td>
+                                <td class="w-content" style="color:#007aff">项目毛利不达，经升级讨论，还需再确认降本方案，客户需求10/30输入，整体日程紧张，影响项目启动。</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result" style="color:#007aff; font-weight:500">【8/18】项目可以启动。</td>
+                                <td class="w-note"></td>
+                            </tr>
+                            
+                            <!-- 1 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">1</td>
+                                <td class="col-fixed-2 w-time">
+                                    <span class="text-date">2023/11/17</span>
+                                    <span class="text-time">16:00~17:30</span>
+                                </td>
+                                <td class="col-fixed-3 w-code code-font">2306APIHD1776</td>
+                                <td class="w-name">合肥-ENG-AJU-5</td>
+                                <td class="w-pm" style="text-align: center;">朱元喜</td>
+                                <td class="w-content">因加特林仪器交期不满足出货要求，设备出机功能不完全</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result important-text">【11/17】同意让步放行出机，持续追踪仪器到厂进度及软件开发进程</td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 2 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">2</td>
+                                <td class="col-fixed-2 w-time">-</td>
+                                <td class="col-fixed-3 w-code code-font">2310DEMHN3553</td>
+                                <td class="w-name">上海-demura-1</td>
+                                <td class="w-pm" style="text-align: center;">EPM无<br><span style="color:#999">(PM:曹雷)</span></td>
+                                <td class="w-content"><span class="important-text">2310DEMHN3553使用的Itek151M彩色相机，在导入未完成情况下，需要筛选出货客户方风险原因：</span><br>
+    1) OQC小工具和供应商评价工具计算方法差异<br>
+    2) 增强图有分别线目视可见<br>
+    <span class="important-text" style="display:block;margin-top:6px;">项目组会议沟通建议出货方案：</span>
+    2310DEMHN3553用1台相机，目前暂无合适导入标准，项目需求12-8发货苏州（项目搬入时间12-30）。从供应商处按照目前标准，选别1台相机出货。<br>
+    <span class="risk-text">风险：选别后相机降成后以分别线目视不可见的状态相机出货，如果无法选别出无分别线相机，使用分别线轻微相机出货...后续需要厂内使用导入完成后相机模组进行替代更换。</span></td>
+                                <td class="w-meeting"></td>
+                                <td class="w-result"></td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 3 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">3</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">6月23日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2408APIXN3257</td>
+                                <td class="w-name">B16\B12\B7集中交付</td>
+                                <td class="w-pm" style="text-align: center;">潘双</td>
+                                <td class="w-content">对于批量及重点订单的资源投入决策</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result">1、对B16\B12\B7集中交付的15台设备，采用赶工的方式应对，紧急增加资源80人，成本预估增加46.95万，确保项目交付。<br>
+    2、基于B16/B8 现场交付的异常复盘，厂内的应对方案做汇报及说明，并通过专项管理，确保订单交付质量受控。<br>
+    <span class="important-text">特别说明：对比现有资源，预计人力成本上浮12%。</span></td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 4 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">4</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">7月11日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2408APIXN3257</td>
+                                <td class="w-name">成都-AET 自动光学检查机-18</td>
+                                <td class="w-pm" style="text-align: center;">史鹏程</td>
+                                <td class="w-content">增加赶工成本，应对交付</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result">按6/23 PAC决策内容，计划增加80人赶工，6/28缺口45人，7/3 缺口21人，人力未补足，结合目前可达成状态：
+    <div class="solution-block">
+    <span class="tag-blue">方案1</span> 正常出货 - <span class="important-text">延后8天</span><br>
+    <span class="tag-blue">方案2</span> 让步风险出货 - <span class="important-text">维持原计划搬入</span>
+    </div></td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 5 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">5</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">5月28日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2502DEMHZ0774</td>
+                                <td class="w-name">武汉-模组测试科 多工位demura-2</td>
+                                <td class="w-pm" style="text-align: center;">毕雪松</td>
+                                <td class="w-content">方案1：让步放行，按客户需求第1台6/3搬入，第2台6/9搬入。未完成事项客户端进行；<br>
+    方案2：让步放行，延期搬入，完成自动化物流调试，两台分别在6/9、6/17搬入；<br>
+    方案3：延期搬入，完成双侧首尾工位功能-T位一致性，两台分别在6/19、6/25搬入；</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result important-text">按方案1执行，第1台6/3搬入，第2台6/9搬入</td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 6 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">6</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">1月22日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2409WAIH03041</td>
+                                <td class="w-name">新余 生产 DEMO 线路AOI-1</td>
+                                <td class="w-pm" style="text-align: center;">毕雪松</td>
+                                <td class="w-content">方案1：让步放行，按客户需求2/19出货，完成带片物流<br>
+    方案2：延期到2/28搬入，完成全功能出货</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result important-text">完成物理带片，主检功能取图</td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 7 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">7</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">7月7日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2504DEMHZ1764</td>
+                                <td class="w-name">武汉 模组 半自动彩色demura-1</td>
+                                <td class="w-pm" style="text-align: center;">赵磊</td>
+                                <td class="w-content">核心功能Demura流程测试概率性烧录NG，烧录成功率仅68%，无法完成客户Demura一次成功率≥99%的指标。<br>
+    设备出货计划7/6，搬入计划7/8，截至到7/6中午12:00还未验证完成，时间上无法再继续厂内调试验证。</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result">经项目组决议：出机风险低，设备全流程已跑通，烧录切机已验证完成，<span style="color:var(--success);font-weight:700">让步放行流程出机。</span>
+    <div class="solution-block">
+    <span style="font-weight:700">针对烧录不良对策：</span><br>
+    1、电源收缩产品和治具后，做压力测试，复现烧录失败的现象 ---7/9前完成<br>
+    2、针对失败情况，增加延时字段，复测是否有改善---7/10完成<br>
+    3、如第2条无法改善，将异常反馈划客户及芯片厂，邀请共同分析 ---7/14输入结论
+    </div></td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                             <!-- 8 -->
+                             <tr>
+                                <td class="col-fixed-1 w-id">8</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">1月3日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2404APIH01250<br><span style="color:#999">(首批搬入)</span></td>
+                                <td class="w-name">芜湖 中尺寸ETI自动点灯检查机</td>
+                                <td class="w-pm" style="text-align: center;">曹磊</td>
+                                <td class="w-content">本项目已经完成带片物流调试，一切机/联调/调节功能通过。
+    AOI手动测试，阻抗测试完成，带片全功能验证未完成，原因如下：<br>
+    1、项目日程短 制作周期2.5个月，且客户要求在春节前投产，无法延期搬入<br>
+    2、客供端机物料不齐<br>
+    <span class="tag-blue">计划</span> 两个机台（15.6+12.3）全功能联调，完成一切切机；<br>
+    <span class="tag-blue">实际</span> 15.6产品客户未提供压接及点灯物料，只能物理物流；12.3产品客户无法提供信号PG。<br>
+    <span class="important-text">需要PAC决策：本项目走特采流程，维持1/7出机。</span></td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result">业务、项目管理、交付团队已达成共识，并和罗总报备，第一台机按照<span class="important-text">让步放行1-7搬入</span></td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 9 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">9</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">3月10日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2406AVTH22486</td>
+                                <td class="w-name">武汉-模组测试-MOD1_Crack AOI连线-11</td>
+                                <td class="w-pm" style="text-align: center;">毕雪松</td>
+                                <td class="w-content">方案1：让步放行，按客户需求3/21搬入，完成单片物流，BP功能客户端调试<br>
+    方案2：延期搬入，完成3台机全功能出货</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result important-text">完成1台机BP调试，其他线体客户端水平展片</td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 10 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">10</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">9月3日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2412APIH25057</td>
+                                <td class="w-name">武汉-模组测试-大尺寸PCBI-2 F线</td>
+                                <td class="w-pm" style="text-align: center;">毕雪松</td>
+                                <td class="w-content">方案1：让步放行，按客户需求9/8搬入，实现单工位API联动测试，遗留功能客户端调试<br>
+    方案2：延期搬入，完成全功能出货</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result important-text">方案1执行，剩余功能在Q线验证OK后展开至P线</td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 11 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">11</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">10月21日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2410GAMH24096</td>
+                                <td class="w-name">t3印刷OLED-模组-TTCS-1</td>
+                                <td class="w-pm" style="text-align: center;">毕雪松</td>
+                                <td class="w-content">方案1：让步放行，按客户需求10/27搬入，完成空跑<br>
+    方案2：延期搬入，完成自动化带片物流出货</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result important-text">延期出货，完成自动化带片物流</td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                             <!-- 12 -->
+                             <tr>
+                                <td class="col-fixed-1 w-id"></td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">6月6日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2503DEMHD1382</td>
+                                <td class="w-name">M3模组厂-合肥-ENG-INLINE DEMURA 改造-4</td>
+                                <td class="w-pm" style="text-align: center;">展晓通</td>
+                                <td class="w-content"><span class="tag-blue">方案一（借用）</span> 需拆借在6/7 先出10套相机模组/加工件...一周后需将现场的加工件退回公司重新组装后出货客户<br>
+    <span class="tag-blue">方案二（正常）</span> 6月10日出10套相机模组+5套PC，次日达，6月15日安装调试完成</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result important-text">按照方案二执行：6月10日出10套相机模组+5套PC，次日达，6月15日安装调试完成，正常发货清单形式出货</td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 13 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id"></td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">6月6日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2503APIHD1474</td>
+                                <td class="w-name">合肥-FI AOI大相机升级-13</td>
+                                <td class="w-pm" style="text-align: center;">展晓通</td>
+                                <td class="w-content">正常出货方案：物料预计7/20齐套，出货时间7月底；<br>
+    折中方案：寻A9 12代的PC，请购4台（成本 5W+）后续等PC验证OK 后更换；<br>
+    出货时间：6/6 下单，6/23 齐料，6/27 出货</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result">按照折中方案执行：寻 i9 12 代的 PC...<br>
+    <span class="important-text">物料下單后需供应商重点提控，按照最快交期确认回复，PM 排定计划后输出给铁三角和客户沟通交期。</span></td>
+                                <td class="w-note"></td>
+                            </tr>
+
+                            <!-- 14 -->
+                            <tr>
+                                <td class="col-fixed-1 w-id">12</td>
+                                <td class="col-fixed-2 w-time"><span class="text-date">6月6日</span></td>
+                                <td class="col-fixed-3 w-code code-font">2505APIHD2119</td>
+                                <td class="w-name">合肥-ink涂覆测试设备-1</td>
+                                <td class="w-pm" style="text-align: center;">姜娟</td>
+                                <td class="w-content"><span class="tag-blue">方案一</span> 正常出机。时间7/7 M/I<br>
+    <span class="tag-blue">方案二</span> 6/20 带病出机，存在风险：<br>
+    1. 6/20 机械手，钢架型材等齐料（风险极高）<br>
+    2. 光机物料导入需要2-3周时间（风险极高）<br>
+    3. 组装调试时间只预留13天...</td>
+                                <td class="w-meeting" style="text-align: center;"><span class="meeting-yes">是</span></td>
+                                <td class="w-result">按照 <span class="important-text">7/7 M.I</span> 的目标去推进，研发图纸输出时间，采购时间，组装调试时间均需管控；
+    <span class="important-text">图纸输出后 PM 组织各单位评审输出项目计划给铁三角和客户沟通交期。</span></td>
+                                <td class="w-note"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

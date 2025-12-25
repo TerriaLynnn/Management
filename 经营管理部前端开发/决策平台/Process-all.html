@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>所有决策流程 - 决策平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* 调色板 */
+            --bg-body: #F5F5F7;        /* Apple 浅灰背景 */
+            --bg-card: #FFFFFF;        /* 纯白卡片 */
+            
+            --text-primary: #1D1D1F;   /* 深黑主色 */
+            --text-secondary: #86868B; /* 次级灰色 */
+            --text-tertiary: #B2B2B2;  /* 辅助灰色 */
+            
+            --accent-blue: #0066CC;    /* 交互蓝 */
+            --accent-green: #28CD41;   /* 成功绿 */
+            --accent-red: #FF3B30;     /* 警示红 */
+            --accent-orange: #FF9500;  /* 提示橙 */
+            --accent-purple: #AF52DE;  /* 强调紫 */
+
+            --border-light: rgba(0, 0, 0, 0.06); 
+            
+            /* 投影体系 - 弥散光感 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.1);
+
+            /* 圆角 */
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* 字体栈 */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+            
+            /* 新增决议追踪专用样式变量 */
+            --primary: var(--accent-blue);
+            --success: var(--accent-green);
+            --warning: var(--accent-orange);
+            --danger: var(--accent-red);
+            --sales-color: var(--accent-blue);
+            --rd-color: var(--accent-red);
+            --manage-color: var(--accent-purple);
+            --temporary-color: var(--accent-green);
+            --business-color: var(--accent-orange);
+            --light-bg: var(--bg-body);
+            --dark-text: var(--text-primary);
+            --gray-text: var(--text-secondary);
+            --border: #dcdfe6; /* 保持旧样式 */
+            --card-bg: var(--bg-card);
+            --card-shadow: var(--shadow-sm);
+            --status-done-bg: #e6f9ec; --status-done-text: #22c55e;
+            --status-pending-bg: #f3f4f6; --status-pending-text: #6b7280;
+            --status-process-bg: #e6f2ff; --status-process-text: #007aff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-stack); -webkit-font-smoothing: antialiased; }
+        body { background-color: var(--bg-body); color: var(--text-primary); }
+        .container { display: flex; height: 100vh; }
+        /* --- 侧边栏 (Sidebar) - 保持一致性 --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 1px 0 0 var(--border-light); /* 极细分割线 */
+        }
+        .logo { padding: 0 16px 32px; margin-bottom: 10px; }
+        .logo h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--text-primary) 0%, #434344 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; margin-bottom: 4px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: var(--radius-md); transition: all 0.2s ease; }
+        .nav-item i { width: 24px; margin-right: 12px; font-size: 16px; text-align: center; }
+        .nav-item:hover { background-color: rgba(0, 0, 0, 0.03); color: var(--text-primary); }
+        .nav-item.active { background-color: rgba(0, 102, 204, 0.08); color: var(--accent-blue); }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .page-title { font-size: 2rem; font-weight: 700; }
+        .user-info { display: flex; align-items: center; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: bold; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 24px;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .card-title { font-size: 18px; font-weight: 600; flex-shrink: 0; }
+        .filters { display: flex; gap: 10px; }
+        .filter-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: white; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .filter-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
+        
+        /* Dropdown Filter Styles */
+        .dropdown-filter {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dropdown-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--card-bg);
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 100;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            padding: 6px;
+        }
+        .dropdown-content label {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .dropdown-content label:hover { background-color: #f0f0f0; }
+        .dropdown-content input { margin-right: 8px; }
+
+        /* Process List Styles */
+        .process-list { display: flex; flex-direction: column; gap: 20px; min-height: 620px; /* 保持容器最小高度以防跳动 */ }
+        .process-item { padding: 25px; border-radius: 8px; transition: all 0.2s ease-in-out; border: 1px solid #f0f0f0; height: 190px; /* 固定高度保证布局一致 */ display: flex; flex-direction: column; }
+        .process-item:hover { box-shadow: 0 6px 15px rgba(0, 0, 0, 0.07); transform: translateY(-2px); border-color: var(--border); }
+        
+        /* 占位符样式 */
+        .process-item-placeholder {
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px dashed transparent;
+            height: 190px;
+            visibility: hidden; /* 占位但不可见 */
+        }
+
+        .process-details { flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .process-info { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;}
+        .process-title-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .process-name { font-weight: 600; font-size: 18px; }
+        .process-tag { font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 6px; }
+        .tag-business { background-color: rgba(255, 149, 0, 0.1); color: var(--business-color); }
+        .tag-sales { background-color: rgba(0, 122, 255, 0.1); color: var(--sales-color); }
+        .tag-rd { background-color: rgba(255, 59, 48, 0.1); color: var(--rd-color); }
+        .tag-management { background-color: rgba(88, 86, 214, 0.1); color: var(--manage-color); }
+        .tag-temporary { background-color: rgba(52, 199, 89, 0.1); color: var(--temporary-color); }
+        .process-meta { display: flex; justify-content: space-between; font-size: 15px; color: var(--gray-text); margin-bottom: 20px;}
+        .process-status { display: flex; align-items: center; font-weight: 500; font-size: 15px; text-align: right; white-space: nowrap;}
+        .status-dot { width: 9px; height: 9px; border-radius: 50%; margin-right: 8px; }
+        .progress-tracker { margin-top: auto; padding-top: 10px; }
+        .steps-container { display: flex; justify-content: space-between; position: relative; }
+        .steps-container::before { content: ''; position: absolute; top: 6px; left: 0; right: 0; height: 2px; background-color: var(--border); z-index: 1; }
+        .progress-line { position: absolute; top: 6px; left: 0; height: 2px; z-index: 2; transition: width 0.3s ease; }
+        .progress-step { position: relative; z-index: 3; text-align: center; flex: 1; }
+        .step-dot { width: 14px; height: 14px; border-radius: 50%; background-color: var(--card-bg); border: 2px solid var(--border); margin: 0 auto; transition: all 0.3s ease; }
+        .step-label { margin-top: 10px; font-size: 14px; color: var(--gray-text); }
+        .progress-step.completed .step-label { color: var(--dark-text); font-weight: 500; }
+        .progress-step.active .step-dot { transform: scale(1.2); }
+        .progress-step.active .step-label { font-weight: 600; }
+        
+        /* Process Item Colors */
+        .process-item.sales .progress-line { background-color: var(--sales-color); }
+        .process-item.sales .progress-step.completed .step-dot { background-color: var(--sales-color); border-color: var(--sales-color); }
+        .process-item.sales .progress-step.active .step-dot { border-color: var(--sales-color); }
+        .process-item.sales .progress-step.active .step-label { color: var(--sales-color); }
+        /* (Other process colors simplified for brevity but present in logic) */
+        .process-item.rd .progress-line { background-color: var(--rd-color); }
+        .process-item.rd .progress-step.completed .step-dot { background-color: var(--rd-color); border-color: var(--rd-color); }
+        .process-item.rd .progress-step.active .step-dot { border-color: var(--rd-color); }
+        .process-item.rd .progress-step.active .step-label { color: var(--rd-color); }
+        .process-item.management .progress-line { background-color: var(--manage-color); }
+        .process-item.management .progress-step.completed .step-dot { background-color: var(--manage-color); border-color: var(--manage-color); }
+        .process-item.management .progress-step.active .step-dot { border-color: var(--manage-color); }
+        .process-item.management .progress-step.active .step-label { color: var(--manage-color); }
+        .process-item.temporary .progress-line { background-color: var(--temporary-color); }
+        .process-item.temporary .progress-step.completed .step-dot { background-color: var(--temporary-color); border-color: var(--temporary-color); }
+        .process-item.temporary .progress-step.active .step-dot { border-color: var(--temporary-color); }
+        .process-item.temporary .progress-step.active .step-label { color: var(--temporary-color); }
+        .process-item.business .progress-line { background-color: var(--business-color); }
+        .process-item.business .progress-step.completed .step-dot { background-color: var(--business-color); border-color: var(--business-color); }
+        .process-item.business .progress-step.active .step-dot { border-color: var(--business-color); }
+        .process-item.business .progress-step.active .step-label { color: var(--business-color); }
+
+        /* ================= 决议追踪模块样式 ================= */
+        .track-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .track-table th {
+            text-align: left;
+            padding: 12px 16px; /* 增加左右内边距 */
+            color: var(--gray-text);
+            font-weight: 500;
+            border-bottom: 1px solid var(--border);
+        }
+        .track-table td {
+            padding: 12px 16px; /* 增加左右内边距 */
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            color: var(--dark-text);
+            word-break: break-word; /* 优化长单词换行 */
+        }
+        .track-table tr:hover {
+            background-color: #f9fafb;
+        }
+        .track-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+        .track-title-cell {
+            display: flex;
+            align-items: center;
+        }
+        .track-toggle-btn {
+            cursor: pointer;
+            color: var(--gray-text);
+            width: 20px;
+            text-align: center;
+            margin-right: 4px;
+            transition: transform 0.2s;
+        }
+        .track-toggle-btn.no-children {
+            cursor: default;
+            transition: transform 0.2s;
+        }
+        .track-toggle-btn.expanded {
+            transform: rotate(90deg);
+        }
+        .track-id {
+            color: var(--gray-text);
+            margin-right: 8px;
+            min-width: 30px;
+            display: inline-block;
+        }
+        .track-title-text {
+            font-weight: 500;
+        }
+        /* 子任务缩进 */
+        .child-row .track-title-cell {
+            padding-left: 24px;
+        }
+        .child-row td {
+            background-color: #fafafa; /* 轻微背景区分 */
+        }
+        .hidden-row {
+            display: none;
+        }
+        .track-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #e5e7eb;
+            color: #6b7280;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        .track-user {
+            display: flex;
+            align-items: center;
+        }
+        .track-parent-task {
+            color: var(--gray-text);
+            font-size: 13px;
+            /* 允许内容自动换行 */
+            white-space: normal;
+            word-break: break-word;
+        }
+        
+        /* 状态标签样式 */
+        .track-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            border: 1px solid transparent;
+            gap: 4px;
+        }
+        .status-box-pending {
+            border-color: #d1d5db;
+            color: var(--status-pending-text);
+            background-color: white;
+        }
+        .status-box-done {
+            border-color: #bbf7d0;
+            background-color: var(--status-done-bg);
+            color: var(--status-done-text);
+        }
+        .status-box-process {
+            border-color: #bfdbfe;
+            background-color: var(--status-process-bg);
+            color: var(--status-process-text);
+        }
+        
+        .track-date {
+            font-size: 13px;
+        }
+        .date-red {
+            color: #ef4444;
+        }
+        
+        .track-header-actions {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        .track-add-btn {
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* 分页样式 */
+        .pagination { display: flex; justify-content: flex-end; margin-top: 20px; gap: 8px; padding-top: 15px; border-top: 1px solid #f0f0f0;}
+        .page-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; color: var(--gray-text); font-size: 13px; background-color: white; transition: all 0.2s; }
+        .page-btn.active { background-color: var(--primary); color: white; border-color: var(--primary); }
+        .page-btn:hover:not(.active) { background-color: #f0f0f0; }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* User Profile Style from Decision-v1.html */
+        .user-profile { display: flex; align-items: center; gap: 12px; background: var(--bg-card); padding: 6px 12px 6px 6px; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s; }
+        .user-profile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00C6FB, #005BEA); border-radius: 50%; color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    </style>
+    <style>
+        /* --- 新增：用于列宽度调整的样式 --- */
+        .track-table th {
+            position: relative; /* 为拖拽手柄提供定位上下文 */
+        }
+        .resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px; /* 拖拽区域宽度 */
+            cursor: col-resize; /* 调整列宽的鼠标指针样式 */
+            user-select: none; /* 防止拖拽时选中文本 */
+            height: 100%;
+        }
+        .resizer:hover {
+            border-right: 2px solid var(--primary); /* 悬停时显示蓝色指示线 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>决策平台</h1>
+            </div>
+            <nav>
+                <a href="Decision-v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
+                <a href="process-all.html" class="nav-item active"><i class="fas fa-project-diagram"></i> 决策流程</a>
+                <a href="Statistics-v1.html" class="nav-item"><i class="fas fa-chart-pie"></i> 决策统计</a>
+                <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+                <a href="Doc-v1.html" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="Schedule-v1.html" class="nav-item"><i class="fas fa-calendar-alt"></i> 评审计划</a>
+                <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h2 class="page-title">所有决策流程</h2>
+                <div class="user-profile">
+                    <div class="avatar">E</div>
+                    <span class="user-name">评审团成员E</span>
+                </div>
+            </div>
+            
+            <!-- 原有模块：进行中的流程 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">进行中的流程</div>
+                    
+                    <div class="dropdown-filter">
+                        <button id="statusDropdownBtn" class="dropdown-btn">
+                            <span>全部状态</span> <i class="fas fa-chevron-down fa-xs"></i>
+                        </button>
+                        <div id="statusDropdownContent" class="dropdown-content">
+                            <label><input type="checkbox" value="进行中"> 进行中</label>
+                            <label><input type="checkbox" value="资料审核中"> 资料审核中</label>
+                            <label><input type="checkbox" value="已超期"> 已超期</label>
+                            <label><input type="checkbox" value="已完成"> 已完成</label>
+                        </div>
+                    </div>
+
+                    <div class="filters" id="typeFilters" style="margin-left: auto;">
+                        <button class="filter-btn active" data-type="all">全部类型</button>
+                        <button class="filter-btn" data-type="business">经营决策</button>
+                        <button class="filter-btn" data-type="project">项目决策</button>
+                    </div>
+                </div>
+                
+                <!-- 修复点：将数据源从展示容器中移出，防止被清空 -->
+                <div id="processDataStore" style="display: none;">
+                    <a href="progress-v1.html?id=budget-2025" data-type="business" data-status="进行中" style="text-decoration: none; color: inherit;"><div class="process-item business">
+                        <div class="process-details">
+                            <div class="process-info">
+                                <div class="process-title-group">
+                                    <span class="process-name">2025年度全面预算评审</span>
+                                    <span class="process-tag tag-business">经营管理决策</span>
+                                </div>
+                                <div class="process-status"><span class="status-dot" style="background-color: var(--business-color);"></span><span>进行中</span></div>
+                            </div>
+                            <div class="process-meta"><span>模块负责人: 张三</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-02 09:30</span></div>
+                            <div class="progress-tracker">
+                                <div class="steps-container">
+                                    <div class="progress-line" style="width: 25%;"></div>
+                                    <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                    <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div></a>
+
+                    <a href="progress-v1.html?id=oled-purchase" data-type="project" data-status="进行中" style="text-decoration: none; color: inherit;"><div class="process-item sales">
+                        <div class="process-details">
+                            <div class="process-info">
+                                <div class="process-title-group">
+                                    <span class="process-name">OLED生产线采购项目</span>
+                                    <span class="process-tag tag-sales">销售订单类</span>
+                                    </div>
+                                <div class="process-status"><span class="status-dot" style="background-color: var(--primary);"></span><span>进行中</span></div>
+                            </div>
+                            <div class="process-meta"><span>项目经理: 张明</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-08 10:15</span></div>
+                            <div class="progress-tracker">
+                                <div class="steps-container">
+                                    <div class="progress-line" style="width: 25%;"></div>
+                                    <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                    <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div></a>
+
+                    <a href="progress-v1.html?id=new-display-tech" data-type="project" data-status="资料审核中" style="text-decoration: none; color: inherit;"><div class="process-item rd">
+                        <div class="process-details">
+                            <div class="process-info">
+                                <div class="process-title-group">
+                                    <span class="process-name">新一代显示技术研发</span>
+                                    <span class="process-tag tag-rd">研发立项类</span>
+                                    </div>
+                                <div class="process-status"><span class="status-dot" style="background-color: var(--warning);"></span><span>资料审核中</span></div>
+                            </div>
+                            <div class="process-meta"><span>项目经理: 李华</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-05 16:45</span></div>
+                            <div class="progress-tracker">
+                                <div class="steps-container">
+                                    <div class="progress-line" style="width: 25%;"></div>
+                                    <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                    <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div></a>
+                    
+                    <a href="progress-v1.html?id=itr-online" data-type="project" data-status="已超期" style="text-decoration: none; color: inherit;"><div class="process-item management">
+                        <div class="process-details">
+                            <div class="process-info">
+                                <div class="process-title-group">
+                                    <span class="process-name">ITR全流程线上化项目</span>
+                                    <span class="process-tag tag-management">管理类项目</span>
+                                    </div>
+                                <div class="process-status"><span class="status-dot" style="background-color: var(--danger);"></span><span>已超期</span></div>
+                            </div>
+                            <div class="process-meta"><span>项目经理: 李四</span><span>当前审批人: 评审团成员A, B, C, D, E</span><span>创建于: 2025-09-09 11:00</span></div>
+                            <div class="progress-tracker">
+                                <div class="steps-container">
+                                    <div class="progress-line" style="width: 25%;"></div>
+                                    <div class="progress-step active"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                    <div class="progress-step"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div></a>
+
+                    <a href="progress-v1.html?id=supply-chain-emergency" data-type="business" data-status="已完成" style="text-decoration: none; color: inherit;"><div class="process-item temporary">
+                        <div class="process-details">
+                            <div class="process-info">
+                                    <div class="process-title-group">
+                                    <span class="process-name">供应链紧急调整方案</span>
+                                    <span class="process-tag tag-temporary">临时决策评审</span>
+                                    </div>
+                                <div class="process-status"><span class="status-dot" style="background-color: var(--success);"></span><span>已完成</span></div>
+                            </div>
+                            <div class="process-meta"><span>项目经理: 王五</span><span>当前审批人: 已完成</span><span>创建于: 2025-09-07 15:20</span></div>
+                            <div class="progress-tracker">
+                                <div class="steps-container">
+                                    <div class="progress-line" style="width: 100%;"></div>
+                                    <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">项目立项评审</div></div>
+                                    <div class="progress-step completed"><div class="step-dot"></div><div class="step-label">结项评审</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div></a>
+                </div>
+
+                <!-- 数据容器，注意：内容现由JS动态管理 -->
+                <div class="process-list" id="processListContainer">
+                    <!-- JS将填充内容到这里 -->
+                </div>
+                <!-- 新增分页控件容器 -->
+                <div class="pagination" id="processPagination"></div>
+            </div>
+
+            <!-- 新增模块：决议追踪 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">决议追踪</div>
+                    <div class="track-header-actions">
+                         <div class="filters" id="trackFilters">
+                            <button class="filter-btn active" data-filter="all">全部任务</button>
+                            <button class="filter-btn" data-filter="pending">待办任务</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="track-table" id="trackTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; min-width: 40px;"><input type="checkbox" class="track-checkbox" title="全选/反选"></th>
+                                <th style="width: 350px; min-width: 200px;">标题 <i class="fas fa-plus-circle track-add-btn" onclick="alert('功能演示：正在创建新任务...')" title="新增任务"></i><div class="resizer"></div></th>
+                                <th style="width: 120px; min-width: 80px;">执行者<div class="resizer"></div></th>
+                                <th style="width: 200px; min-width: 150px;">所属父任务<div class="resizer"></div></th>
+                                <th style="width: 110px; min-width: 100px;">任务状态<div class="resizer"></div></th>
+                                <th style="width: 180px; min-width: 150px;">截止时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 父任务行 13 -->
+                            <tr class="track-row" data-status="pending">
+                                <td><input type="checkbox" class="track-checkbox"></td>
+                                <td>
+                                    <div class="track-title-cell">
+                                        <div class="track-toggle-btn no-children"></div>
+                                        <span class="track-id">13</span>
+                                        <span class="track-title-text">2024年4月战略关键任务进展汇报会</span>
+                                    </div>
+                                </td>
+                                <td><div class="track-user"><div class="track-avatar">石</div><span>石珊</span></div></td>
+                                <td><span class="track-parent-task"></span></td>
+                                <td><span class="track-status status-box-pending"><i class="far fa-square"></i> 待处理</span></td>
+                                <td><span class="track-date date-red">2024年5月17日 16:00</span></td>
+                            </tr>
+
+                            <!-- 父任务行 14 (展开状态) -->
+                            <tr class="track-row" data-status="pending">
+                                <td><input type="checkbox" class="track-checkbox"></td>
+                                <td>
+                                    <div class="track-title-cell">
+                                        <div class="track-toggle-btn expanded" onclick="toggleRow('row-14')"><i class="fas fa-caret-right"></i></div>
+                                        <span class="track-id">14</span>
+                                        <span class="track-title-text">20231116-显示事业群2023年10月战略关键任务</span>
+                                        <span style="background:#f3f4f6; padding:2px 6px; border-radius:4px; font-size:12px; color:#6b7280; margin-left:8px;"><i class="fas fa-external-link-alt"></i> 详情</span>
+                                    </div>
+                                </td>
+                                <td><div class="track-user"><div class="track-avatar">官</div><span>官雄风</span></div></td>
+                                <td><span class="track-parent-task"></span></td>
+                                <td><span class="track-status status-box-pending"><i class="far fa-square"></i> 待处理</span></td>
+                                <td><span class="track-date date-red">2023年12月30日 18:00</span></td>
+                            </tr>
+
+                            <!-- 子任务 14.1 -->
+                            <tr class="child-row row-14 track-row" data-status="pending">
+                                <td><input type="checkbox" class="track-checkbox"></td>
+                                <td>
+                                    <div class="track-title-cell">
+                                        <span class="track-id">14.1</span>
+                                        <span class="track-title-text">加强天马、维信诺、除西南区外的BOE客户端铁三角能力建设，客户经理主导拉动其他两角及后端资源。同时技术服务中心物色一批能胜任每个客户端交付经理或售后主管的人员</span>
+                                    </div>
+                                </td>
+                                <td><div class="track-user"><div class="track-avatar">罗</div><span>罗超</span></div></td>
+                                <td><span class="track-parent-task">20231116-显示事业群2023年10月战略关键任务会议</span></td>
+                                <td><span class="track-status status-box-pending"><i class="far fa-square"></i> 待处理</span></td>
+                                <td><span class="track-date date-red">2024年12月30日 18:00</span></td>
+                            </tr>
+
+                            <!-- 子任务 14.2 -->
+                            <tr class="child-row row-14 track-row" data-status="pending">
+                                <td><input type="checkbox" class="track-checkbox"></td>
+                                <td>
+                                    <div class="track-title-cell">
+                                        <span class="track-id">14.2</span>
+                                        <span class="track-title-text">制定PCN需求变更问题的改善措施，建议分析根...</span>
+                                    </div>
+                                </td>
+                                <td><div class="track-user"><div class="track-avatar">雷</div><span>雷新军</span></div></td>
+                                <td><span class="track-parent-task">20231116-显示事业群2023年10月战略关键任务会议</span></td>
+                                <td><span class="track-status status-box-pending"><i class="far fa-square"></i> 待处理</span></td>
+                                <td><span class="track-date date-red">2023年12月29日 18:00</span></td>
+                            </tr>
+                            
+                            <!-- 子任务 14.6 (已完成) -->
+                            <tr class="child-row row-14 track-row" data-status="done">
+                                <td><input type="checkbox" class="track-checkbox" checked></td>
+                                <td>
+                                    <div class="track-title-cell">
+                                        <span class="track-id">14.6</span>
+                                        <span class="track-title-text">制定研发图纸及PLC程序、I/O、电路图一致性问...</span>
+                                    </div>
+                                </td>
+                                <td><div class="track-user"><div class="track-avatar">于</div><span>于威江</span></div></td>
+                                <td><span class="track-parent-task">20231116-显示事业群2023年10月战略关键任务会议</span></td>
+                                <td><span class="track-status status-box-done"><i class="fas fa-check-square"></i> 已完成</span></td>
+                                <td><span class="track-date">2023年12月29日 18:00</span></td>
+                            </tr>
+                             
+                             <!-- 父任务行 17 (进行中) -->
+                            <tr class="track-row" data-status="pending">
+                                <td><input type="checkbox" class="track-checkbox"></td>
+                                <td>
+                                    <div class="track-title-cell">
+                                        <div class="track-toggle-btn no-children"></div>
+                                        <span class="track-id">17</span>
+                                        <span class="track-title-text">20230517-显示事业群4月份战略关键任务会议</span>
+                                    </div>
+                                </td>
+                                <td><div class="track-user"><div class="track-avatar">樊</div><span>樊继霜</span></div></td>
+                                <td><span class="track-parent-task"></span></td>
+                                <td><span class="track-status status-box-process"><i class="far fa-square"></i> 进行中</span></td>
+                                <td><span class="track-date date-red">2023年5月17日 17:00</span></td>
+                            </tr>
+                             <!-- 父任务行 18 (已完成) -->
+                             <tr class="track-row" data-status="done">
+                                <td><input type="checkbox" class="track-checkbox" checked></td>
+                                <td>
+                                    <div class="track-title-cell">
+                                        <div class="track-toggle-btn no-children"></div>
+                                        <span class="track-id">18</span>
+                                        <span class="track-title-text">显示事业群2025年2月份经营管理会议&战略关键...</span>
+                                    </div>
+                                </td>
+                                <td><div class="track-user"><div class="track-avatar">熊</div><span>熊红艳</span></div></td>
+                                <td><span class="track-parent-task"></span></td>
+                                <td><span class="track-status status-box-done"><i class="fas fa-check-square"></i> 已完成</span></td>
+                                <td><span class="track-date">3月18日 18:00</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const itemsPerPage = 3;
+        let currentPage = 1;
+        // 保存当前筛选条件
+        let currentFilters = {
+            status: [], // 空数组表示全选
+            type: 'all' // 'all', 'business', 'project'
+        };
+        
+        // 初始化加载
+        document.addEventListener('DOMContentLoaded', function() {
+            initDropdowns();
+            initTypeFilters();
+            initTrackFilters();
+            
+            // 初始渲染流程列表
+            filterAndRenderProcesses();
+        });
+
+        // 初始化下拉菜单逻辑
+        function initDropdowns() {
+            const dropdownBtn = document.getElementById('statusDropdownBtn');
+            const dropdownContent = document.getElementById('statusDropdownContent');
+            const dropdownSpan = dropdownBtn.querySelector('span');
+            const checkboxes = dropdownContent.querySelectorAll('input[type="checkbox"]');
+
+            dropdownBtn.addEventListener('click', function(event) {
+                event.stopPropagation();
+                dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+            });
+
+            window.addEventListener('click', function(event) {
+                if (!dropdownBtn.contains(event.target)) {
+                    dropdownContent.style.display = 'none';
+                }
+            });
+
+            dropdownContent.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+
+            // 状态复选框变更事件
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const selected = Array.from(checkboxes).filter(i => i.checked).map(i => i.value);
+                    
+                    // 更新按钮文字
+                    if (selected.length === 0 || selected.length === checkboxes.length) {
+                        dropdownSpan.textContent = '全部状态';
+                        currentFilters.status = []; // 逻辑上视为全选
+                    } else {
+                        dropdownSpan.textContent = selected.join(', ');
+                        currentFilters.status = selected;
+                    }
+                    
+                    currentPage = 1; // 重置页码
+                    filterAndRenderProcesses();
+                });
+            });
+        }
+
+        // 初始化类型筛选按钮
+        function initTypeFilters() {
+            const typeBtns = document.querySelectorAll('#typeFilters .filter-btn');
+            typeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // UI切换
+                    typeBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // 逻辑更新
+                    currentFilters.type = btn.dataset.type;
+                    currentPage = 1;
+                    filterAndRenderProcesses();
+                });
+            });
+        }
+
+        // 初始化决议追踪筛选
+        function initTrackFilters() {
+            const trackBtns = document.querySelectorAll('#trackFilters .filter-btn');
+            const trackRows = document.querySelectorAll('.track-row');
+            
+            trackBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    trackBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const filter = btn.dataset.filter; // 'all' or 'pending'
+                    
+                    trackRows.forEach(row => {
+                        if (filter === 'all') {
+                            // 如果是全部，显示所有行（这里需要注意子任务的折叠状态，简单起见全部显示或保留逻辑）
+                            // 为简单起见，这里只根据状态显隐，不改变折叠逻辑
+                            row.style.display = '';
+                            // 恢复子行原有的状态逻辑比较复杂，这里简单处理：如果是子行，且父行是折叠的，应该隐藏
+                            if (row.classList.contains('child-row')) {
+                                // 查找父行ID，例如 row-14
+                                const parentClass = Array.from(row.classList).find(c => c.startsWith('row-'));
+                                if(parentClass) {
+                                    // 找到控制按钮
+                                    const toggleBtn = document.querySelector(`.track-toggle-btn[onclick="toggleRow('${parentClass}')"]`);
+                                    // 如果按钮没有expanded类，说明是折叠状态，子行应保持隐藏
+                                    if (toggleBtn && !toggleBtn.classList.contains('expanded')) {
+                                        row.style.display = 'none'; 
+                                    }
+                                }
+                            }
+                        } else if (filter === 'pending') {
+                            // 只显示待办，隐藏已完成
+                            if (row.dataset.status === 'done') {
+                                row.style.display = 'none';
+                            } else {
+                                row.style.display = '';
+                                // 同样的子行检查逻辑
+                                if (row.classList.contains('child-row')) {
+                                    const parentClass = Array.from(row.classList).find(c => c.startsWith('row-'));
+                                    if(parentClass) {
+                                        const toggleBtn = document.querySelector(`.track-toggle-btn[onclick="toggleRow('${parentClass}')"]`);
+                                        if (toggleBtn && !toggleBtn.classList.contains('expanded')) {
+                                            row.style.display = 'none'; 
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+        }
+
+        // 核心逻辑：过滤并渲染流程列表
+        function filterAndRenderProcesses() {
+            // 1. 从隐藏的数据源获取所有原始项
+            const sourceContainer = document.getElementById('processDataStore');
+            // Safety check
+            if (!sourceContainer) {
+                console.error("Data source 'processDataStore' not found!");
+                return;
+            }
+            const allLinks = Array.from(sourceContainer.children); // 获取所有 <a> 标签
+            
+            // 2. 过滤
+            const filteredItems = allLinks.filter(link => {
+                const dataType = link.dataset.type; // 'business', 'project'
+                const dataStatus = link.dataset.status;
+                
+                // 类型过滤
+                let typeMatch = true;
+                if (currentFilters.type === 'business') typeMatch = (dataType === 'business');
+                else if (currentFilters.type === 'project') typeMatch = (dataType === 'project');
+                
+                // 状态过滤
+                let statusMatch = true;
+                if (currentFilters.status.length > 0) {
+                    statusMatch = currentFilters.status.includes(dataStatus);
+                }
+                
+                return typeMatch && statusMatch;
+            });
+
+            // 3. 分页计算
+            const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+            if (currentPage > totalPages && totalPages > 0) currentPage = 1;
+            if (totalPages === 0) currentPage = 1; // 空状态
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageItems = filteredItems.slice(startIndex, endIndex);
+            
+            // 4. 渲染到显示容器
+            const displayContainer = document.getElementById('processListContainer');
+            displayContainer.innerHTML = ''; // 清空
+            
+            if (pageItems.length === 0) {
+                displayContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">暂无符合条件的流程</div>';
+            } else {
+                pageItems.forEach(item => {
+                    // 克隆节点以避免移动引用
+                    const clone = item.cloneNode(true);
+                    displayContainer.appendChild(clone);
+                });
+            }
+            
+            // 5. 填充占位符（关键步骤：保证高度一致）
+            const itemsToShow = pageItems.length;
+            if (itemsToShow > 0 && itemsToShow < itemsPerPage) {
+                const missingCount = itemsPerPage - itemsToShow;
+                for (let i = 0; i < missingCount; i++) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'process-item-placeholder'; // CSS中定义为不可见但占位
+                    displayContainer.appendChild(placeholder);
+                }
+            }
+            
+            // 6. 更新分页控件
+            renderPaginationControls(totalPages);
+        }
+
+        function renderPaginationControls(totalPages) {
+            const paginationContainer = document.getElementById('processPagination');
+            paginationContainer.innerHTML = '';
+            
+            // 始终显示分页条，保持布局稳定
+            
+            // 上一页
+            const prevBtn = document.createElement('div');
+            prevBtn.className = 'page-btn';
+            prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            if (currentPage === 1 || totalPages === 0) {
+                prevBtn.style.opacity = '0.5';
+                prevBtn.style.cursor = 'not-allowed';
+            } else {
+                prevBtn.onclick = () => { currentPage--; filterAndRenderProcesses(); };
+            }
+            paginationContainer.appendChild(prevBtn);
+            
+            // 页码
+            const displayPages = totalPages > 0 ? totalPages : 1;
+            for (let i = 1; i <= displayPages; i++) {
+                const btn = document.createElement('div');
+                btn.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+                btn.textContent = i;
+                if (totalPages > 0) {
+                    btn.onclick = () => { currentPage = i; filterAndRenderProcesses(); };
+                }
+                paginationContainer.appendChild(btn);
+            }
+            
+            // 下一页
+            const nextBtn = document.createElement('div');
+            nextBtn.className = 'page-btn';
+            nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            if (currentPage === totalPages || totalPages === 0) {
+                nextBtn.style.opacity = '0.5';
+                nextBtn.style.cursor = 'not-allowed';
+            } else {
+                nextBtn.onclick = () => { currentPage++; filterAndRenderProcesses(); };
+            }
+            paginationContainer.appendChild(nextBtn);
+        }
+
+        // 决议追踪表格折叠/展开逻辑
+        function toggleRow(rowClass) {
+            const rows = document.querySelectorAll('.' + rowClass);
+            const btn = document.querySelector(`.track-toggle-btn[onclick="toggleRow('${rowClass}')"]`);
+            
+            let isExpanding = false;
+            if (btn) {
+                isExpanding = !btn.classList.contains('expanded');
+                btn.classList.toggle('expanded');
+            }
+            
+            rows.forEach(row => {
+                // 只有当不是被过滤器隐藏的时候才操作显示
+                // 这里简单处理：直接切换 display
+                if (isExpanding) {
+                    row.style.display = ''; 
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // --- 新增：列宽度调整逻辑 ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const table = document.getElementById('trackTable');
+            const resizers = table.querySelectorAll('.resizer');
+
+            let th, startX, startWidth;
+
+            function onMouseMove(e) {
+                const dx = e.clientX - startX;
+                const newWidth = startWidth + dx;
+                // 确保宽度不小于最小宽度
+                const minWidth = parseInt(window.getComputedStyle(th).minWidth, 10);
+                if (newWidth > minWidth) {
+                    th.style.width = newWidth + 'px';
+                }
+            }
+
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                // 可选：移除悬停效果，如果需要的话
+                if(th) th.querySelector('.resizer').style.borderRight = '';
+            }
+
+            function onMouseDown(e) {
+                // 阻止默认行为，例如文本选择
+                e.preventDefault();
+
+                th = e.target.parentElement;
+                startX = e.clientX;
+                startWidth = th.offsetWidth;
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+
+                // 可选：添加视觉反馈
+                e.target.style.borderRight = '2px solid var(--primary)';
+            }
+
+            resizers.forEach(resizer => {
+                resizer.addEventListener('mousedown', onMouseDown);
+            });
+        });
+    </script>
+
+</body>
+</html>

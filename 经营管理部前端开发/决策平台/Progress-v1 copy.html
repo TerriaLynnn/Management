@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策工作台 - Enterprise Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- 核心设计系统 (Apple/Red Dot Aesthetic) --- */
+        :root {
+            /* 调色板 */
+            --bg-body: #F5F5F7;        /* Apple 浅灰背景 */
+            --bg-card: #FFFFFF;        /* 纯白卡片 */
+            
+            --text-primary: #1D1D1F;   /* 深黑主色 */
+            --text-secondary: #86868B; /* 次级灰色 */
+            --text-tertiary: #B2B2B2;  /* 辅助灰色 */
+            
+            --accent-blue: #0066CC;    /* 交互蓝 */
+            --accent-green: #28CD41;   /* 成功绿 */
+            --accent-red: #FF3B30;     /* 警示红 */
+            --accent-orange: #FF9500;  /* 提示橙 */
+            --accent-purple: #AF52DE;  /* 强调紫 */
+
+            --border-light: rgba(0, 0, 0, 0.06); 
+            
+            /* 投影体系 - 弥散光感 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.1);
+
+            /* 圆角 */
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* 字体栈 */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-stack);
+            -webkit-font-smoothing: antialiased; 
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* --- 侧边栏 (Sidebar) - 保持一致性 --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 1px 0 0 var(--border-light); /* 极细分割线 */
+        }
+
+        .logo {
+            padding: 0 16px 32px;
+            margin-bottom: 10px;
+        }
+
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, #434344 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item i { width: 24px; margin-right: 12px; font-size: 16px; text-align: center; }
+
+        .nav-item:hover { background-color: rgba(0, 0, 0, 0.03); color: var(--text-primary); }
+        .nav-item.active { background-color: rgba(0, 102, 204, 0.08); color: var(--accent-blue); }
+
+        /* --- 主内容区 (Main Content) --- */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* 顶部 Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .header-title h2 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+        .header-title p { color: var(--text-secondary); font-size: 14px; margin-top: 4px; }
+
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+
+        .search-bar {
+            position: relative;
+        }
+        .search-bar i {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--text-tertiary); font-size: 14px;
+        }
+        .search-bar input {
+            padding: 10px 10px 10px 36px;
+            border: 1px solid transparent;
+            background: #EAEAEA; /* 稍深一点的背景增加对比 */
+            border-radius: var(--radius-full);
+            width: 280px;
+            font-size: 14px;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .search-bar input:focus { background: white; box-shadow: 0 0 0 2px var(--accent-blue); }
+
+        .user-profile {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--bg-card); padding: 6px 12px 6px 6px;
+            border-radius: var(--radius-full);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .user-profile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .avatar {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #00C6FB, #005BEA);
+            border-radius: 50%;
+            color: white; font-weight: 600; font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+        /* --- 指标卡片 (Metrics) --- */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+
+        .metric-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .metric-icon { 
+            width: 40px; height: 40px; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .icon-blue { background: rgba(0, 102, 204, 0.1); color: var(--accent-blue); }
+        .icon-green { background: rgba(40, 205, 65, 0.1); color: var(--accent-green); }
+        .icon-purple { background: rgba(175, 82, 222, 0.1); color: var(--accent-purple); }
+        .icon-orange { background: rgba(255, 149, 0, 0.1); color: var(--accent-orange); }
+
+        .metric-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .metric-value { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 8px; color: var(--text-primary); }
+        
+        .metric-trend { font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 4px; }
+        .trend-up { color: var(--accent-green); }
+        .trend-down { color: var(--accent-red); }
+
+        /* --- 仪表盘布局 (Dashboard) --- */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr; /* 左侧宽，右侧窄 */
+            gap: 24px;
+        }
+
+        /* 通用卡片容器 */
+        .dashboard-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px;
+        }
+        .card-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+
+        /* 过滤器胶囊 */
+        .filter-group { background: #F2F2F7; padding: 4px; border-radius: var(--radius-full); display: flex; }
+        .filter-btn {
+            padding: 6px 16px; border: none; background: transparent;
+            font-size: 13px; font-weight: 600; color: var(--text-secondary);
+            border-radius: var(--radius-full); cursor: pointer; transition: all 0.2s;
+        }
+        .filter-btn.active { background: white; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+        /* --- 流程列表 (Process List) --- */
+        .process-list-container { min-height: 500px; display: flex; flex-direction: column; }
+        .process-list { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+        .process-item {
+            display: block; /* for anchor tag */
+            text-decoration: none;
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .process-item:hover {
+            border-color: transparent;
+            box-shadow: var(--shadow-md);
+            transform: scale(1.01);
+            z-index: 2;
+        }
+
+        .process-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .process-name { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        
+        .tag-badge {
+            display: inline-flex; align-items: center; padding: 4px 10px;
+            border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+        }
+        .tag-business { background: rgba(255, 149, 0, 0.1); color: var(--accent-orange); }
+        .tag-sales { background: rgba(0, 102, 204, 0.1); color: var(--accent-blue); }
+        .tag-rd { background: rgba(255, 59, 48, 0.1); color: var(--accent-red); }
+        .tag-management { background: rgba(175, 82, 222, 0.1); color: var(--accent-purple); }
+        .tag-temporary { background: rgba(40, 205, 65, 0.1); color: var(--accent-green); }
+
+        .process-status { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        
+        .process-meta { 
+            display: flex; gap: 24px; font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; 
+        }
+        .process-meta i { margin-right: 6px; }
+
+        /* 迷你进度条 */
+        .mini-progress { display: flex; align-items: center; gap: 4px; height: 4px; border-radius: 2px; overflow: hidden; background: #F2F2F7; margin-top: 8px; }
+        .bar-segment { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+        .bar-blue { background: var(--accent-blue); }
+        .bar-green { background: var(--accent-green); }
+        
+        /* 分页控件 */
+        .pagination {
+            display: flex; justify-content: center; align-items: center; gap: 12px;
+            margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light);
+        }
+        .page-btn {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border-light);
+            background: white; color: var(--text-secondary); cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 14px;
+            transition: all 0.2s;
+        }
+        .page-btn:hover:not(:disabled) { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .page-btn.active { background: var(--accent-blue); color: white; border-color: var(--accent-blue); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* --- 右侧面板 (Charts & Alerts) --- */
+        .right-panel { display: flex; flex-direction: column; gap: 24px; }
+
+        /* 风险预警列表 */
+        .alert-item {
+            display: flex; gap: 16px; padding: 16px;
+            background: #FAFAFA; border-radius: 16px;
+            margin-bottom: 12px; transition: all 0.2s;
+        }
+        .alert-item:hover { background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        .alert-icon-box {
+            width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+        }
+        .alert-danger { background: rgba(255, 59, 48, 0.1); color: var(--accent-red); }
+        .alert-warning { background: rgba(255, 149, 0, 0.1); color: var(--accent-orange); }
+
+        .alert-content h4 { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+        .alert-content p { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+
+        /* 图表容器 */
+        .chart-wrapper { position: relative; height: 220px; width: 100%; }
+
+        @media (max-width: 1200px) { 
+            .dashboard-layout { grid-template-columns: 1fr; } 
+            .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="logo">
+            <h1>决策平台</h1>
+        </div>
+        <nav>
+            <a href="Decision-v1.html" class="nav-item active"><i class="fas fa-home"></i> 主页</a>
+            <a href="process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+            <a href="Statistics-v1.html" class="nav-item"><i class="fas fa-chart-pie"></i> 决策统计</a>
+            <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+            <a href="Doc-v1.html" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+            <a href="Schedule-v1.html" class="nav-item"><i class="fas fa-calendar-alt"></i> 评审计划</a>
+            <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+            <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            <a href="#" class="nav-item"><i class="fas fa-cog"></i> 系统设置</a>
+        </nav>
+
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 头部 -->
+        <div class="header">
+            <div class="header-title">
+                <h2>工作台</h2>
+                <p>欢迎回来，这里是您今天的决策概览。</p>
+            </div>
+            <div class="header-actions">
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="搜索项目、流程或人员...">
+                </div>
+                <div class="user-profile">
+                    <div class="avatar">E</div>
+                    <span class="user-name">评审团成员E</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 关键指标 -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-blue"><i class="fas fa-clock"></i></div>
+                    <span class="metric-label">进行中</span>
+                </div>
+                <div class="metric-value">24</div>
+                <div class="metric-trend trend-up"><i class="fas fa-arrow-up"></i> 较上月 +4</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-green"><i class="fas fa-check-circle"></i></div>
+                    <span class="metric-label">本月完成</span>
+                </div>
+                <div class="metric-value">18</div>
+                <div class="metric-trend trend-up"><i class="fas fa-arrow-up"></i> 较上月 +3</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-purple"><i class="fas fa-tachometer-alt"></i></div>
+                    <span class="metric-label">平均时长</span>
+                </div>
+                <div class="metric-value">6.5天</div>
+                <div class="metric-trend trend-down"><i class="fas fa-arrow-down"></i> 效率提升 1.2天</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <div class="metric-icon icon-orange"><i class="fas fa-chart-line"></i></div>
+                    <span class="metric-label">通过率</span>
+                </div>
+                <div class="metric-value">87.5%</div>
+                <div class="metric-trend trend-up"><i class="fas fa-arrow-up"></i> 较上月 +2.3%</div>
+            </div>
+        </div>
+
+        <!-- 仪表盘主体 -->
+        <div class="dashboard-layout">
+            
+            <!-- 左侧：流程列表 (带分页) -->
+            <div class="dashboard-card process-list-container">
+                <div class="card-header">
+                    <div class="card-title">决策进展一览</div>
+                    <div class="filter-group">
+                        <button class="filter-btn active" onclick="filterList('all')">全部</button>
+                        <button class="filter-btn" onclick="filterList('business')">经营</button>
+                        <button class="filter-btn" onclick="filterList('project')">项目</button>
+                    </div>
+                </div>
+                
+                <div class="process-list" id="processList">
+                    <!-- JS 将动态填充此处 -->
+                </div>
+
+                <!-- 分页器 -->
+                <div class="pagination" id="paginationControls">
+                    <!-- JS 生成按钮 -->
+                </div>
+            </div>
+
+            <!-- 右侧：图表与预警 -->
+            <div class="right-panel">
+                
+                <div class="dashboard-card">
+                    <div class="card-header"><div class="card-title">决策类型分布</div></div>
+                    <div class="chart-wrapper">
+                        <canvas id="decisionTypeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header"><div class="card-title">风险预警</div></div>
+                    <div class="alert-list">
+                        <div class="alert-item">
+                            <div class="alert-icon-box alert-danger"><i class="fas fa-exclamation-circle"></i></div>
+                            <div class="alert-content">
+                                <h4>ITR全流程线上化项目已超期</h4>
+                                <p>已超过预定完成时间2天，请尽快处理。</p>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <div class="alert-icon-box alert-warning"><i class="fas fa-clock"></i></div>
+                            <div class="alert-content">
+                                <h4>OLED生产线采购即将到期</h4>
+                                <p>剩余时间不足3天，请关注进度。</p>
+                            </div>
+                        </div>
+                        <div class="alert-item">
+                            <div class="alert-icon-box alert-warning"><i class="fas fa-file-signature"></i></div>
+                            <div class="alert-content">
+                                <h4>新一代显示技术资料缺失</h4>
+                                <p>缺少技术可行性分析报告，请补充。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-header"><div class="card-title">决策效率趋势</div></div>
+                    <div class="chart-wrapper">
+                        <canvas id="efficiencyChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 模拟数据源 (扩充至12条以演示分页) ---
+        // 简化状态为：processing (进行中), completed (已完成), danger (已超期)
+        const processData = [
+            { id: 'budget-2025', name: '2025年度全面预算评审', type: 'business', typeName: '经营管理决策', status: 'processing', statusText: '进行中', manager: '张三', date: '2025-09-02 09:30', color: 'var(--accent-orange)', progress: 60, approver: '评审团成员A, B, C, D, E' },
+            { id: 'oled-purchase', name: 'OLED生产线采购项目', type: 'sales', typeName: '销售订单类', status: 'processing', statusText: '进行中', manager: '张明', date: '2025-09-08 10:15', color: 'var(--accent-blue)', progress: 40, approver: '评审团成员A, B, C, D, E' },
+            { id: 'new-display-tech', name: '新一代显示技术研发', type: 'rd', typeName: '研发立项类', status: 'processing', statusText: '进行中', manager: '李华', date: '2025-09-05 16:45', color: 'var(--accent-red)', progress: 20, approver: '评审团成员A, B, C, D, E' },
+            { id: 'itr-online', name: 'ITR全流程线上化项目', type: 'management', typeName: '管理类项目', status: 'danger', statusText: '已超期', manager: '李四', date: '2025-09-09 11:00', color: 'var(--accent-purple)', progress: 80, approver: '评审团成员A, B, C, D, E' },
+            { id: 'supply-chain', name: '供应链紧急调整方案', type: 'temporary', typeName: '临时决策评审', status: 'completed', statusText: '已完成', manager: '王五', date: '2025-09-07 15:20', color: 'var(--accent-green)', progress: 100, approver: '已完成' },
+            
+            // 模拟数据 page 2
+            { id: 'erp-upgrade', name: 'ERP系统升级二期', type: 'management', typeName: '管理类项目', status: 'processing', statusText: '进行中', manager: '赵六', date: '2025-09-10 09:00', color: 'var(--accent-purple)', progress: 50, approver: '评审团成员A, B' },
+            { id: 'marketing-q4', name: 'Q4市场推广专项', type: 'business', typeName: '经营管理决策', status: 'processing', statusText: '进行中', manager: '孙七', date: '2025-09-12 14:30', color: 'var(--accent-orange)', progress: 30, approver: '评审团成员C' },
+            { id: 'chip-research', name: '自研芯片预研项目', type: 'rd', typeName: '研发立项类', status: 'completed', statusText: '已完成', manager: '周八', date: '2025-09-01 08:45', color: 'var(--accent-red)', progress: 100, approver: '已完成' },
+            { id: 'logistics-partner', name: '物流合作伙伴招标', type: 'sales', typeName: '供应链决策', status: 'processing', statusText: '进行中', manager: '吴九', date: '2025-09-14 11:20', color: 'var(--accent-blue)', progress: 10, approver: '评审团成员A' },
+            { id: 'office-relocation', name: '总部办公区搬迁', type: 'management', typeName: '行政决策', status: 'processing', statusText: '进行中', manager: '郑十', date: '2025-09-15 16:00', color: 'var(--accent-purple)', progress: 15, approver: '评审团成员B' },
+
+            // 模拟数据 page 3
+            { id: 'campus-recruitment', name: '2026届校园招聘计划', type: 'management', typeName: '人力资源', status: 'completed', statusText: '已完成', manager: 'HR Team', date: '2025-08-20 10:00', color: 'var(--accent-purple)', progress: 100, approver: '已完成' },
+            { id: 'data-center', name: '数据中心扩容', type: 'project', typeName: '基础设施', status: 'processing', statusText: '进行中', manager: 'IT Dept', date: '2025-09-18 13:15', color: 'var(--accent-blue)', progress: 5, approver: '评审团成员A, B, C' }
+        ];
+
+        // --- 分页逻辑 ---
+        const itemsPerPage = 5;
+        let currentPage = 1;
+        let currentFilter = 'all';
+
+        function renderList() {
+            const listContainer = document.getElementById('processList');
+            const paginationContainer = document.getElementById('paginationControls');
+            
+            // 1. 过滤
+            let filteredData = processData;
+            if (currentFilter === 'business') {
+                filteredData = processData.filter(item => item.type === 'business');
+            } else if (currentFilter === 'project') {
+                filteredData = processData.filter(item => item.type !== 'business');
+            }
+
+            // 2. 分页计算
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            // 防止切页后超出范围
+            if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+            
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            // 3. 渲染列表 HTML
+            listContainer.innerHTML = '';
+            if (pageData.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">暂无数据</div>';
+            } else {
+                pageData.forEach(item => {
+                    // 状态点颜色映射
+                    let dotColor = item.color; // 默认跟随项目类型颜色
+                    
+                    // 根据状态覆盖颜色
+                    if (item.status === 'completed') {
+                        dotColor = 'var(--accent-green)';
+                    } else if (item.status === 'danger') {
+                        dotColor = 'var(--accent-red)';
+                    } else if (item.status === 'processing') {
+                        dotColor = 'var(--accent-blue)';
+                    }
+
+                    // 生成 HTML
+                    const html = `
+                        <a href="Progress-v1.html?id=${item.id}" class="process-item">
+                            <div class="process-top-row">
+                                <div>
+                                    <div class="process-name">${item.name}</div>
+                                    <span class="tag-badge tag-${item.type}">${item.typeName}</span>
+                                </div>
+                                <div class="process-status">
+                                    <span class="status-dot" style="background-color: ${dotColor}"></span>
+                                    <span style="color: ${dotColor}">${item.statusText}</span>
+                                </div>
+                            </div>
+                            <div class="process-meta">
+                                <span><i class="far fa-user"></i> 模块负责人: ${item.manager}</span>
+                                <span><i class="fas fa-users"></i> 当前审批人: ${item.approver}</span>
+                                <span><i class="far fa-calendar"></i> 创建于: ${item.date}</span>
+                            </div>
+                            <div class="mini-progress">
+                                <div class="bar-segment" style="width: ${item.progress}%; background-color: ${item.color}"></div>
+                            </div>
+                        </a>
+                    `;
+                    listContainer.insertAdjacentHTML('beforeend', html);
+                });
+            }
+
+            // 4. 渲染分页按钮
+            let paginationHTML = `
+                <button class="page-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+            for (let i = 1; i <= totalPages; i++) {
+                paginationHTML += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
+            }
+            paginationHTML += `
+                <button class="page-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            paginationContainer.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            renderList();
+        }
+
+        function filterList(type) {
+            currentFilter = type;
+            currentPage = 1; // 重置到第一页
+            // 按钮样式切换
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderList();
+        }
+
+        // 初始化
+        renderList();
+
+        // --- Chart.js 图表配置 (美化版) ---
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto';
+        Chart.defaults.color = '#86868B';
+
+        // 1. 饼图
+        const typeCtx = document.getElementById('decisionTypeChart').getContext('2d');
+        new Chart(typeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['经营管理', '销售订单', '研发立项', '管理类', '临时决策'],
+                datasets: [{
+                    data: [20, 25, 25, 15, 15],
+                    backgroundColor: ['#FF9500', '#0066CC', '#FF3B30', '#AF52DE', '#28CD41'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, padding: 20 } }
+                }
+            }
+        });
+        
+        // 2. 趋势图
+        const effCtx = document.getElementById('efficiencyChart').getContext('2d');
+        // 创建渐变
+        let gradient = effCtx.createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(0, 102, 204, 0.2)');
+        gradient.addColorStop(1, 'rgba(0, 102, 204, 0)');
+
+        new Chart(effCtx, {
+            type: 'line',
+            data: {
+                labels: ['1月', '2月', '3月', '4月', '5月', '6月', '7月'],
+                datasets: [{
+                    label: '平均决策时长(天)',
+                    data: [8.2, 7.8, 7.5, 7.3, 7.1, 6.8, 6.5],
+                    borderColor: '#0066CC',
+                    borderWidth: 3,
+                    backgroundColor: gradient,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#0066CC',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { 
+                        beginAtZero: false, min: 5, grid: { borderDash: [4, 4], color: '#E5E5EA', drawBorder: false } 
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

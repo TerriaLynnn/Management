@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>物料交期查询 使用手册</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 基础样式 --- */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #0B1A2F; /* 提取的深色背景 */
+            color: #E0E7FF; /* 柔和的白色文字 */
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden; /* 防止横向滚动条 */
+        }
+
+        /* --- 容器与布局 --- */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* --- 头部标题 --- */
+        .header {
+            text-align: center;
+            padding: 40px 20px 30px 20px;
+            border-bottom: 2px solid #5691F5; /* 亮蓝色强调线 */
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 2.8rem;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        /* --- 章节样式 --- */
+        .section {
+            background-color: #172A46; /* 提取的卡片背景色 */
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border: 1px solid #3A5A91;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 500;
+            color: #5691F5; /* 亮蓝色 */
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #3A5A91;
+            padding-bottom: 10px;
+        }
+
+        .section p {
+            font-size: 1.1rem;
+            color: #B0C4DE;
+            margin-bottom: 15px;
+        }
+
+        /* --- 图片样式 --- */
+        .instruction-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #3A5A91;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: block; /* 确保图片独占一行 */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- 步骤列表 --- */
+        ol {
+            list-style: none; /* 移除默认序号 */
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        ol li {
+            background-color: #0F1F38; /* 稍浅的背景色 */
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 5px solid #5691F5; /* 左侧强调条 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        ol li:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            background-color: #5691F5;
+            color: #FFFFFF;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-radius: 50%;
+            margin-right: 15px;
+            flex-shrink: 0; /* 防止数字被压缩 */
+        }
+
+        .step-content {
+            flex-grow: 1;
+        }
+
+        .step-content h3 {
+            font-size: 1.4rem;
+            color: #FFFFFF;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .step-content p {
+            font-size: 1rem;
+            color: #B0C4DE;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        /* --- 页脚 --- */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 50px;
+            border-top: 1px solid #3A5A91;
+            color: #8892B0; /* 较暗的文字 */
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <header class="header">
+            <h1>“物料交期查询” 使用手册</h1>
+        </header>
+        
+        <main>
+            <section class="section">
+                <h2>1. 访问入口</h2>
+                <p>登录门户系统，在系统主界面右下角“快捷入口”处，点击“项目作战地图”进入。在左侧导航栏中，点击“物料交期查询”，即可进入项目交期查询页面。</p>
+                <img src="material/Image 1.png" alt="系统主界面与项目交期查询入口" class="instruction-image">
+            </section>
+
+            <section class="section">
+                <h2>2. 功能详解</h2>
+                <p>“物料交期查询”看板页面中各个功能区域。</p>
+                <img src="material/Image 3.png" alt="带标注的物料交期查询页面" class="instruction-image">
+                <img src="material/Image 3-1.png" alt="物料交期查询页面表头展开" class="instruction-image">
+                <ol>
+                    <li>
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <h3>搜索框</h3>
+                            <p>在页面顶部的搜索框中，可输入项目编号、项目名称、物料编码、物料名称等关键字，快速筛选想查询的项目或物料。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <h3>表头隐藏</h3>
+                            <p>点击[+]可以展开表头所有列，便于数据查看。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <h3>签核追踪列</h3>
+                            <p>可视化当前签核流所在节点。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">4</span>
+                        <div class="step-content">
+                            <h3>需求物料</h3>
+                            <p>呈现需求物料数量。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">5</span>
+                        <div class="step-content">
+                            <h3>展开样式</h3>
+                            <p>点击[-]可重新折叠表头。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">6</span>
+                        <div class="step-content">
+                            <h3>需求物料</h3>
+                            <p>偏离计划的物料数目将填充红色。</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+        </main>
+        
+        <footer class="footer">
+            <p>JINGCE ELECTRONIC ｜ 内部操作指南</p>
+        </footer>
+
+    </div>
+    
+</body>
+</html>

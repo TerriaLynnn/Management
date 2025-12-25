@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>铁三角经营数据看板 · 全景解析</title>
+  <style>
+    /* 引入更具数字感和现代感的字体 */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :root {
+      /* 极致暗黑背景 */
+      --bg-core: #0a0a0a;
+      --bg-panel: #111111;
+      
+      /* 品牌色 */
+      --c-blue: #3b82f6;
+      --c-green: #10b981;
+      --c-orange: #f59e0b;
+
+      /* 文字系统 */
+      --t-primary: #ffffff;
+      --t-secondary: #888888;
+      --t-tertiary: #444444;
+
+      /* 分割线系统 */
+      --border-light: rgba(255, 255, 255, 0.08);
+      --border-heavy: rgba(255, 255, 255, 0.15);
+
+      /* 统一高度基准 - 仪表盘 & 全局功能 (第一行) */
+      --row1-img-height: 110px;
+      
+      /* 03模块图片专用高度 */
+      --list-img-height: 140px; 
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-core);
+      font-family: 'Inter', "PingFang SC", sans-serif;
+      color: var(--t-primary);
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+      background-image: 
+        linear-gradient(var(--border-light) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .canvas {
+      width: 100%;
+      max-width: 960px;
+      background: var(--bg-core);
+      border: 1px solid var(--border-heavy);
+      box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    .top-bar {
+      height: 4px;
+      width: 100%;
+      background: linear-gradient(90deg, var(--c-blue), var(--c-green), var(--c-orange));
+    }
+
+    header {
+      padding: 40px 60px 30px;
+      border-bottom: 1px solid var(--border-heavy);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-left h1 {
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .header-left .meta {
+      font-family: 'PingFang SC', sans-serif;
+      color: var(--t-secondary);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .header-right .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border: 2px solid var(--t-tertiary);
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--t-secondary);
+    }
+
+    /* 布局容器 */
+    .layout-row {
+      display: flex;
+      border-bottom: 1px solid var(--border-heavy);
+    }
+
+    .module-header {
+      padding: 15px 25px;
+      border-bottom: 1px solid var(--border-light);
+      background: rgba(255,255,255,0.01);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .module-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--t-primary);
+      white-space: nowrap; /* 防止标题换行 */
+    }
+
+    .module-desc {
+      font-size: 11px;
+      color: var(--t-tertiary);
+      white-space: nowrap; /* 防止描述换行 */
+    }
+
+    /* 新增：排序提示标签样式 */
+    .sort-badge {
+      font-size: 10px;
+      color: var(--c-orange);
+      background: rgba(245, 158, 11, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    /* 图片容器通用优化 - 移除垂直 Padding 以消除缝隙 */
+    .img-box {
+      width: 100%;
+      padding: 0 25px; 
+      background: rgba(0,0,0,0.2);
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    /* 01模块的图片框 */
+    .img-frame {
+      width: 100%;
+      border-left: 1px dashed var(--border-heavy);
+      border-right: 1px dashed var(--border-heavy);
+      background: rgba(255,255,255,0.02);
+      padding: 0; 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: var(--row1-img-height);
+      overflow: hidden;
+    }
+    
+    .img-frame > img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain; 
+      display: block;
+    }
+
+    /* 02模块：多图并排容器优化 */
+    .multi-img-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-left: 1px dashed var(--border-heavy);
+      border-right: 1px dashed var(--border-heavy);
+      background: rgba(255,255,255,0.02);
+      padding: 10px;
+      height: var(--row1-img-height);
+    }
+
+    .multi-img-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .multi-img-row img {
+      max-width: 100%;
+      height: 100%;
+      width: auto;
+      object-fit: contain;
+      display: block;
+      filter: brightness(0.9);
+    }
+
+    /* 视觉逻辑网格 */
+    .logic-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      padding: 20px 25px;
+      gap: 15px;
+    }
+
+    .logic-item {
+      padding: 5px;
+    }
+
+    .logic-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--t-primary);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .logic-text {
+      font-size: 12px;
+      color: var(--t-secondary);
+      line-height: 1.4;
+    }
+
+    /* 工具栏网格 */
+    .tools-grid {
+      display: flex;
+      flex-direction: column;
+      padding: 8px 25px;
+      gap: 4px;
+    }
+    
+    .tool-item {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-light);
+      padding: 4px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .tool-icon {
+      width: 24px;
+      height: 24px;
+      background: var(--border-light);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    /* --- 03 模块的垂直列表布局优化 --- */
+    .dict-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dict-row {
+      display: flex;
+      border-bottom: 1px solid var(--border-light);
+      align-items: stretch;
+      min-height: 160px;
+    }
+    .dict-row:last-child { border-bottom: none; }
+
+    /* 左侧：视觉区 (Header + Image) - 宽度增加至 65% */
+    .dict-visual {
+      width: 65%;
+      border-right: 1px solid var(--border-light);
+      background: rgba(255,255,255,0.01);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dict-header {
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      height: 35px;
+    }
+
+    .dict-img-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    /* 03模块专用图片框 */
+    .dict-img-frame {
+      width: 100%;
+      height: var(--list-img-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dict-img-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* 右侧：数据区 - 宽度减少至 35% */
+    .dict-data {
+      width: 35%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .dict-fields-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    /* 字段样式复用 */
+    .field-key {
+      font-family: 'PingFang SC', sans-serif;
+      font-size: 12px;
+      color: var(--t-primary);
+      margin-bottom: 2px;
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-heavy);
+      padding-bottom: 2px;
+    }
+
+    .field-val {
+      font-size: 11px;
+      color: var(--t-secondary);
+      line-height: 1.3;
+    }
+
+    /* 颜色定义 */
+    .header-blue { border-left: 3px solid var(--c-blue); color: var(--c-blue); background: rgba(59, 130, 246, 0.05); }
+    .header-green { border-left: 3px solid var(--c-green); color: var(--c-green); background: rgba(16, 185, 129, 0.05); }
+    .header-orange { border-left: 3px solid var(--c-orange); color: var(--c-orange); background: rgba(245, 158, 11, 0.05); }
+
+    footer {
+      padding: 20px;
+      border-top: 1px solid var(--border-heavy);
+      text-align: center;
+      font-size: 11px;
+      color: var(--t-tertiary);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="canvas">
+    <div class="top-bar"></div>
+    
+    <header>
+      <div class="header-left">
+        <div class="meta">项目作战地图</div>
+        <h1>铁三角看板 · 业务逻辑手册</h1>
+      </div>
+      <div class="header-right">
+        <span class="badge">使用手册</span>
+      </div>
+    </header>
+
+    <div class="layout-row">
+      <!-- 01. 仪表盘 (64% 宽度) -->
+      <section class="section-module" style="width: 65%; border-right: 1px solid var(--border-heavy);">
+        <div class="module-header">
+          <div class="module-title">01. 达成率仪表盘</div>
+          <div class="module-desc">整体达成概况</div>
+        </div>
+
+        <div class="img-box">
+          <div class="img-frame">
+            <img src="triangle-img/Image 1.png" alt="[核心仪表盘]">
+          </div>
+        </div>
+
+        <div class="logic-grid">
+          <div class="logic-item">
+            <span class="logic-label">● 圆环图</span>
+            <div class="logic-text">展示目标的累计达成百分比。</div>
+          </div>
+          <div class="logic-item">
+            <span class="logic-label">1. 月度达成</span>
+            <div class="logic-text"><strong>当月</strong>实际业绩与计划的百分比。</div>
+          </div>
+          <div class="logic-item">
+            <span class="logic-label">2. 季度达成</span>
+            <div class="logic-text"><strong>当季</strong>任务的累计完成进度。</div>
+          </div>
+          <div class="logic-item">
+            <span class="logic-label">3. 年度达成</span>
+            <div class="logic-text"><strong>当年</strong>业绩目标的总体达成进度。</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 02. 全局辅助功能 (36% 宽度) -->
+      <section class="section-module" style="width: 35%;">
+        <div class="module-header">
+          <div class="module-title">02. 战区&时间选择</div>
+          <div class="module-desc">查询自主选择</div>
+        </div>
+        
+        <div class="img-box" style="padding: 0;">
+          <div class="multi-img-container" style="padding: 0;">
+            <div class="multi-img-row">
+              <img src="triangle-img/Image 2-4.png" alt="战区年月动态" style="width: 100%; height: 100%;">
+            </div>
+          </div>
+        </div>
+
+        <div class="tools-grid">
+          <div class="tool-item">
+            <div class="tool-icon">🗺️</div>
+            <div>
+              <div class="field-key" style="border:none; margin-bottom: 0;">战区分布</div>
+              <div class="field-val">可按分部战区和总体查询。</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">📅</div>
+            <div>
+              <div class="field-key" style="border:none; margin-bottom: 0;">年月选择</div>
+              <div class="field-val">自选统计年份与对应月份。</div>
+            </div>
+          </div>
+          <div class="tool-item">
+            <div class="tool-icon">📈</div>
+            <div>
+              <div class="field-key" style="border:none; margin-bottom: 0;">动态时间</div>
+              <div class="field-val">相对现在时间间隔动态对比。</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- 03. 业务明细表数据字典 -->
+    <section class="section-module">
+      <div class="module-header">
+        <div class="module-title">03. 订单、收入、回款表单</div>
+        <div class="module-desc">表单字段定义</div>
+        
+        <!-- 使用 margin-left: auto 将这个标签推到最右侧，不影响前面的布局 -->
+        <div class="sort-badge" style="margin-left: auto;">
+          📉 列表均默认按金额降序排列
+        </div>
+      </div>
+
+      <div class="dict-container">
+        
+        <!-- 订单行 -->
+        <div class="dict-row">
+          <div class="dict-visual">
+            <div class="dict-header header-blue">订单 </div>
+            <div class="dict-img-area">
+              <div class="dict-img-frame">
+                <img src="triangle-img/Image 3.png" alt="订单表头" style="width: 100%; height: 100%;">
+              </div>
+            </div>
+          </div>
+          <div class="dict-data">
+            <div class="dict-fields-grid">
+              <div><div class="field-key" style="color:var(--c-blue)">★ 重点商机项目清单</div><div class="field-val">呈现当月潜在签约项目清单。</div></div>
+              <div><div class="field-key">拿单把握</div><div class="field-val">评估赢单概率及资源优先级。</div></div>
+              <div><div class="field-key">需求数量</div><div class="field-val">客户意向采购的设备台数。</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 收入行 -->
+        <div class="dict-row">
+          <div class="dict-visual">
+            <div class="dict-header header-green">收入 </div>
+            <div class="dict-img-area">
+              <div class="dict-img-frame">
+                <img src="triangle-img/Image 4.png" alt="收入表头" style="width: 100%; height: 100%;">
+              </div>
+            </div>
+          </div>
+          <div class="dict-data">
+            <div class="dict-fields-grid">
+              <div><div class="field-key" style="color:var(--c-green)">★ 结项风险项目预警</div><div class="field-val">呈现当月结项风险项目清单。</div></div>
+              <div><div class="field-key">风险类型</div><div class="field-val">标识导致风险的具体类别，分为商务原因/交付问题/合同问题/技术问题。</div></div>
+              <div><div class="field-key">风险描述</div><div class="field-val">记录项目当前的异常情况与卡点。</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 回款行 -->
+        <div class="dict-row">
+          <div class="dict-visual">
+            <div class="dict-header header-orange">回款 </div>
+            <div class="dict-img-area">
+              <div class="dict-img-frame">
+                <img src="triangle-img/Image 5.png" alt="回款表头" style="width: 100%; height: 100%;">
+              </div>
+            </div>
+          </div>
+          <div class="dict-data">
+            <div class="dict-fields-grid">
+              <div><div class="field-key" style="color:var(--c-orange)">★ 回款风险项目预警</div><div class="field-val">呈现当月回款风险项目清单。</div></div>
+              <div><div class="field-key">款项说明</div><div class="field-val">说明款项性质。分为预付款/货到款/验收款/质保款。</div></div>
+              <div><div class="field-key">风险类型</div><div class="field-val">标识逾期原因，分为商务/技术。</div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer>
+      <span>© 2025 数字化运营项目组 制作</span>
+    </footer>
+  </div>
+
+</body>
+</html>

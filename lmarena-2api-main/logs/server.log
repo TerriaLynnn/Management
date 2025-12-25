@@ -1,0 +1,52 @@
+17:26:15.131 - INFO - [lifespan:1173] - 服务器正在启动...
+17:26:15.133 - INFO - [lifespan:1178] - 🌐 Server access URLs:
+17:26:15.133 - INFO - [lifespan:1179] -   - Local: http://localhost:9080
+17:26:15.133 - INFO - [lifespan:1180] -   - Network: http://192.168.237.1:9080
+17:26:15.133 - INFO - [lifespan:1181] - 📱 Use the Network URL to access from your phone on the same WiFi
+17:26:15.133 - INFO - [lifespan:1184] - 
+📋 Available Endpoints:
+17:26:15.133 - INFO - [lifespan:1185] -   🖥️  Monitor Dashboard: http://192.168.237.1:9080/monitor
+17:26:15.134 - INFO - [lifespan:1186] -      实时监控面板，查看系统状态、请求日志、性能指标
+17:26:15.134 - INFO - [lifespan:1188] - 
+  📊 Metrics & Health:
+17:26:15.134 - INFO - [lifespan:1189] -      - Prometheus Metrics: http://192.168.237.1:9080/metrics
+17:26:15.134 - INFO - [lifespan:1190] -        Prometheus格式的性能指标，可接入Grafana
+17:26:15.134 - INFO - [lifespan:1191] -      - Health Check: http://192.168.237.1:9080/health
+17:26:15.134 - INFO - [lifespan:1192] -        基础健康检查
+17:26:15.135 - INFO - [lifespan:1193] -      - Detailed Health: http://192.168.237.1:9080/api/health/detailed
+17:26:15.135 - INFO - [lifespan:1194] -        详细健康状态，包含评分和建议
+17:26:15.135 - INFO - [lifespan:1196] - 
+  🤖 AI API:
+17:26:15.135 - INFO - [lifespan:1197] -      - Chat Completions: POST http://192.168.237.1:9080/v1/chat/completions
+17:26:15.135 - INFO - [lifespan:1198] -        OpenAI兼容的聊天API
+17:26:15.135 - INFO - [lifespan:1199] -      - List Models: GET http://192.168.237.1:9080/v1/models
+17:26:15.136 - INFO - [lifespan:1200] -        获取可用模型列表
+17:26:15.136 - INFO - [lifespan:1201] -      - Refresh Models: POST http://192.168.237.1:9080/v1/refresh-models
+17:26:15.136 - INFO - [lifespan:1202] -        刷新模型列表
+17:26:15.136 - INFO - [lifespan:1204] - 
+  📈 Statistics:
+17:26:15.136 - INFO - [lifespan:1205] -      - Stats Summary: http://192.168.237.1:9080/api/stats/summary
+17:26:15.136 - INFO - [lifespan:1206] -        24小时统计摘要
+17:26:15.143 - INFO - [lifespan:1207] -      - Request Logs: http://192.168.237.1:9080/api/logs/requests
+17:26:15.168 - INFO - [lifespan:1208] -        请求日志API
+17:26:15.168 - INFO - [lifespan:1209] -      - Error Logs: http://192.168.237.1:9080/api/logs/errors
+17:26:15.169 - INFO - [lifespan:1210] -        错误日志API
+17:26:15.169 - INFO - [lifespan:1211] -      - Alerts: http://192.168.237.1:9080/api/alerts
+17:26:15.169 - INFO - [lifespan:1212] -        系统告警历史
+17:26:15.170 - INFO - [lifespan:1214] - 
+  🛠️  OpenAI Client Config:
+17:26:15.170 - INFO - [lifespan:1215] -      base_url='http://192.168.237.1:9080/v1'
+17:26:15.170 - INFO - [lifespan:1216] -      api_key='sk-any-string-you-like'
+17:26:15.170 - INFO - [lifespan:1217] - 
+============================================================
+
+17:26:15.170 - INFO - [lifespan:1222] - 已加载 85 个备用模型
+17:26:15.171 - INFO - [lifespan:1231] - 服务器启动完成
+17:26:15.172 - INFO - [periodic_cleanup:708] - 清理任务执行完成. 活跃请求: 0
+17:31:15.186 - INFO - [periodic_cleanup:708] - 清理任务执行完成. 活跃请求: 0
+17:31:45.273 - WARNING - [send_alert:660] - 系统告警: 浏览器已断线 5 分钟
+17:32:15.279 - WARNING - [send_alert:660] - 系统告警: 浏览器已断线 5 分钟
+17:32:45.291 - WARNING - [send_alert:660] - 系统告警: 浏览器已断线 6 分钟
+17:33:15.303 - WARNING - [send_alert:660] - 系统告警: 浏览器已断线 6 分钟
+17:33:45.315 - WARNING - [send_alert:660] - 系统告警: 浏览器已断线 7 分钟
+17:34:15.322 - WARNING - [send_alert:660] - 系统告警: 浏览器已断线 7 分钟

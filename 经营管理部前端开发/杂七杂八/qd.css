@@ -1,0 +1,2187 @@
+@import url("https://fontsapi.zeoseven.com/707/main/result.css");
+
+ 
+
+/* === 全局字体自定义设置 === */
+
+/* 在这里添加您的自定义TTF字体 */
+
+@font-face {
+
+    font-family: 'MyCustomFont';
+
+    src: url('https://files.catbox.moe/z558o4.ttf') format('truetype');
+
+    font-weight: normal;
+
+    font-style: normal;
+
+    font-display: swap; /* 确保文字在字体加载期间始终可见 */
+
+}
+
+ 
+
+/* 应用自定义字体到全局元素 */
+
+body,
+
+:not([class*="fa-"]):not(.fas):not(.far):not(.fal):not(.fab):not(.fa),
+
+#send_textarea,
+
+.menu_button_icon.fa-repeat,
+
+.menu_button_icon.fa-bolt,
+
+.name_text,
+
+.mesIDDisplay, .mes_timer, .tokenCounterDisplay,
+
+.mes_text,
+
+button, input, select, textarea {
+
+    font-family: 'MyCustomFont', "Fusion Pixel 10px M zh_hans", sans-serif !important;
+
+    
+
+    /* 字间距调整 - 根据需要修改值 */
+
+    letter-spacing: 0.3px;
+
+    
+
+    /* 行高调整 - 根据需要修改值 */
+
+    line-height: 1.6;
+
+}
+
+ 
+
+/* 保留特定元素的原有字体 */
+
+.menu_button_icon.fa-repeat::before,
+
+.menu_button_icon.fa-bolt::before {
+
+    font-family: "Swei Sugar" !important;
+
+    font-weight: 900;
+
+}
+
+ 
+
+/* 代码块保持原有样式 */
+
+code {
+
+    font-family: 'Courier New', Courier, monospace !important;
+
+    letter-spacing: normal; /* 重置字间距 */
+
+    line-height: normal; /* 重置行高 */
+
+}
+
+ 
+
+/* 标题元素可以有不同的间距设置 */
+
+.name_text {
+
+    letter-spacing: 0.5px; /* 标题字间距可以稍大 */
+
+    line-height: 1.4; /* 标题行高可以稍小 */
+
+}
+
+ 
+
+/* 输入框和文本区域可以有不同的间距 */
+
+#send_textarea,
+
+#curEditTextarea,
+
+.reasoning_edit_textarea {
+
+    letter-spacing: 0.4px;
+
+    line-height: 1.5;
+
+}
+
+ 
+
+/* 统计信息可以紧凑一些 */
+
+.mesIDDisplay, .mes_timer, .tokenCounterDisplay {
+
+    letter-spacing: 0.2px;
+
+    line-height: 1.3;
+
+}
+
+/* 原代码的其余部分保持不变 */
+
+.mes {
+
+    --avatar-size: 70px;         /* 头像尺寸 */
+
+    --profile-header-top: 60px;  /* 个人资料头部距顶部的距离 */
+
+    --custom-text-top: 185px;    /* 自定义颜文字距顶部的距离 */
+
+    --button-block-top: 250px;   /* 按钮区域距顶部的距离 */
+
+    --button-height: 35px;       /* 按钮高度 */
+
+    --button-gap: 8px;           /* 按钮间距 */
+
+    --side-padding: 20px;        /* 左右内边距 */
+
+    --icon-button-width: 40px;   /* 图标按钮宽度 */
+
+    position: relative !important; /* 保持相对定位，作为所有内部固定元素的“锚点” */
+
+    padding-top: 320px !important;    /* 保持这个值，为您的自定义头部留出空间 */
+
+    border: 1px solid #b6b6b6;
+
+    padding-bottom: 20px !important; /* 底部距离 */
+
+    padding-left: 25px !important; /* 左侧距离 */
+
+    /* 
+
+     * (重要) 这是一个最佳实践，确保添加的内边距不会意外地撑大整个消息框的宽度。
+
+    */
+
+    box-sizing: border-box !important;
+
+ 
+
+    code {
+
+  color: #424242; /* 代码文字颜色 (例如: 深粉色) */
+
+  background-color: #f7f7f7; /* 代码块背景颜色 (例如: 浅粉色) */
+
+  padding: 3px 6px; /* 内边距 (让文字和边框有点距离) */
+
+  border-radius: 8px; /* 圆角大小 */
+
+  border: 1px solid #cecece; /* 边框颜色 */
+
+  font-family: 'Courier New', Courier, monospace; /* 使用等宽字体，更像代码 */
+
+}
+
+ 
+
+ 
+
+#curEditTextarea,
+
+.reasoning_edit_textarea {
+
+  background-color: #f1f1f1; /* 您想要的颜色 (例如: 浅灰色) */
+
+}
+
+ 
+
+.hljs-attr {
+
+  color: #616161; /* 将这里替换为您想要的颜色 */
+
+}
+
+.hljs-number {
+
+  color: #919191; /* 将这里替换为您想要的颜色 */
+
+}
+
+.hljs-string {
+
+  color: #838383; /* 将这里替换为您想要的颜色 */
+
+}
+
+ 
+
+}
+
+ 
+
+/* --- 主体和消息容器 --- */
+
+body {
+
+    background-color: white !important;
+
+}
+
+ 
+
+.mes_block {
+
+  transform: none !important;
+
+}
+
+ 
+
+.mes {
+
+    background-color: rgb(255, 255, 255) !important;
+
+    position: relative;
+
+    padding-top: 320px;
+
+    border: 1px solid #b6b6b6;
+
+}
+
+ 
+
+/* --- 用户名 --- */
+
+.name_text {
+
+    position: absolute;
+
+    top: 18px;
+
+    left: 20px;
+
+    font-size: 1.4em !important;
+
+    font-weight: 600;
+
+    color: #454545;
+
+    z-index: 5;
+
+    /* 前置图标 */
+
+    padding-left: 30px;
+
+    background-image: url('https://files.catbox.moe/oe13h0.png');
+
+    background-size: 25px;
+
+    background-repeat: no-repeat;
+
+    background-position: left center;
+
+    /* 让flexbox生效，便于对齐伪元素 */
+
+    display: inline-flex;
+
+    align-items: center;
+
+}
+
+ 
+
+/* --- 新增：后置装饰图标 --- */
+
+.name_text::after {
+
+    content: '';
+
+    display: inline-block; /* 允许设置尺寸 */
+
+    width: 20px;           /* 图标宽度 */
+
+    height: 20px;          /* 图标高度 */
+
+    background-image: url('https://files.catbox.moe/d99v5d.png');
+
+    background-size: contain; /* 保持图标比例 */
+
+    background-repeat: no-repeat;
+
+    background-position: center;
+
+    margin-left: 8px;      /* 与文字的间距 */
+
+}
+
+ 
+
+/* --- 个人资料头部 (头像和统计) --- */
+
+.mesAvatarWrapper {
+
+    position: absolute !important;
+
+    top: var(--profile-header-top);
+
+    left: var(--side-padding);
+
+    width: calc(100% - (var(--side-padding) * 2));
+
+    display: flex !important;
+
+    align-items: center;
+
+    justify-content: space-around;
+
+    border: none !important;
+
+    background: none !important;
+
+    padding: 0 !important;
+
+    transform: none !important;
+
+    z-index: 4;
+
+}
+
+ 
+
+/* 头像容器 */
+
+.mesAvatarWrapper .avatar {
+
+    flex: 1.3;
+
+    display: flex;
+
+    justify-content: center;
+
+}
+
+ 
+
+.mesAvatarWrapper .avatar img {
+
+    width: var(--avatar-size);
+
+    height: var(--avatar-size);
+
+    border-radius: 50%;
+
+    border: 1px solid #c2c2c2;
+
+}
+
+ 
+
+/* 统计信息项 */
+
+.mesIDDisplay, .mes_timer, .tokenCounterDisplay {
+
+    flex: 1;
+
+    text-align: center;
+
+    display: flex;
+
+    flex-direction: column;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    color: #000;
+
+}
+
+ 
+
+/* 顶部标签 */
+
+.mesIDDisplay::before, .mes_timer::before, .tokenCounterDisplay::before {
+
+    font-size: 10px;
+
+    font-weight: normal;
+
+    color: #1e1e1e;
+
+    order: 1;
+
+    margin-bottom: 2px;
+
+}
+
+ 
+
+/* 原始数字 */
+
+.mesIDDisplay, .mes_timer, .tokenCounterDisplay {
+
+    order: 2;
+
+}
+
+ 
+
+/* 底部标签 (Posts, etc.) */
+
+.mesIDDisplay::after, .mes_timer::after, .tokenCounterDisplay::after {
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    color: #000000;
+
+    order: 3;
+
+    margin-top: 5px;
+
+}
+
+.mesIDDisplay::after { content: 'Posts'; }
+
+.mes_timer::after { content: 'Followers'; }
+
+.tokenCounterDisplay::after { content: 'Following'; }
+
+ 
+
+ 
+
+/* --- 自定义颜文字 --- */
+
+.mesAvatarWrapper::before {
+
+    content: '自定义文字\A自定义文字\A自定义文字';
+
+    position: absolute;
+
+    top: 100px;
+
+    left: 20px;
+
+    white-space: pre-wrap;
+
+    line-height: 1.5;
+
+    color: #7d7d7d;
+
+    z-index: 3;
+
+}
+
+.mesAvatarWrapper::after {
+
+    content: '自定义文字';
+
+    position: absolute;
+
+    top: 160px;
+
+    left: 20px;
+
+    font-weight: bold;
+
+    color: #aab9b5;
+
+    z-index: 3;
+
+}
+
+ 
+
+/* --- 装饰性按钮 --- */
+
+.mes_block {
+
+    position: static !important;
+
+}
+
+.mes .mes_block::before,
+
+.mes .mes_block::after,
+
+.mes .mes_text::before {
+
+    content: '';
+
+    position: absolute;
+
+    top: var(--button-block-top);
+
+    height: var(--button-height);
+
+    background-color: #f0f0f0;
+
+    border-radius: 8px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 10px;
+
+    font-weight: 600;
+
+    color: #858585;
+
+    box-sizing: border-box;
+
+    z-index: 3;
+
+}
+
+ 
+
+.mes .mes_block::before {
+
+    content: 'Edit Profile';
+
+    left: var(--side-padding);
+
+    width: calc(50% - var(--side-padding) - (var(--button-gap) / 0.2));
+
+}
+
+ 
+
+.mes .mes_block::after {
+
+    content: 'Share Profile';
+
+    left: calc(47% + (var(--button-gap) / 10));
+
+    width: calc(50% - var(--side-padding) - var(--icon-button-width) - var(--button-gap));
+
+}
+
+ 
+
+.mes .mes_text::before {
+
+    left: calc(100% - var(--side-padding) - var(--icon-button-width));
+
+    width: var(--icon-button-width);
+
+    background-image: url('https://files.catbox.moe/umy5iu.png');
+
+    background-size: 50%;
+
+    background-position: center;
+
+    background-repeat: no-repeat;
+
+}
+
+  /* 代码来自羊了个羊 */
+
+.mes_text {
+
+  /* 添加两端对齐属性 */
+
+  text-align: justify;
+
+}
+
+body * {
+
+  box-shadow: none !important;
+
+  filter: none !important;
+
+}
+
+ 
+
+.mes {
+
+  border: none !important;
+
+}
+
+ 
+
+/* --- 正文内容调整 --- */
+
+.mes_text {
+
+    margin-top: 15px;
+
+}
+
+ 
+
+#chat .mes:last-of-type {
+
+  padding-bottom: 40px !important;
+
+}
+
+ 
+
+#top-bar,
+
+#top-settings-holder {
+
+  box-shadow: none !important; /* 强制移除所有阴影效果 */
+
+}
+
+ 
+
+/*
+
+  --- 统一修改指定的 OpenAI 设置元素样式 ---
+
+  这段代码会同时修改您列出的所有输入框、下拉菜单和文本区域。
+
+*/
+
+#settings_preset_openai,
+
+#openai_max_context_counter,
+
+#openai_max_tokens,
+
+#n_openai,
+
+#temp_counter_openai,
+
+#freq_pen_counter_openai,
+
+#pres_pen_counter_openai,
+
+#top_p_counter_openai,
+
+#seed_openai,
+
+#main_prompt_quick_edit_textarea,
+
+#nsfw_prompt_quick_edit_textarea,
+
+#impersonation_prompt_textarea,
+
+#openai_inline_image_quality,
+
+#openai_reasoning_effort,
+
+#openai_logit_bias_preset,
+
+#completion_prompt_manager_footer_append_prompt,
+
+#completion_prompt_manager_list {
+
+  background-color: #f5f5f5 !important; /* 深灰色背景 */
+
+  border: 1px solid #9c9c9c !important;     /* 一个颜色稍浅的边框 */
+
+  border-radius: 8px !important;        /* 柔和的圆角 */
+
+  padding: 8px !important;              /* 增加内部空间，让文字不贴边 */
+
+}
+
+ 
+
+/*
+
+  --- 统一修改指定的 API 连接设置元素样式 ---
+
+*/
+
+#connection_profiles,
+
+#main_api,
+
+#chat_completion_source,
+
+#api_key_custom,
+
+#custom_model_id,
+
+#model_custom_select, /* 已为您修正选择器 */
+
+#custom_prompt_post_processing,
+
+#custom_api_url_text {
+
+  background-color: #f5f5f5 !important; /* 深灰色背景 */
+
+  color: #9c9c9c !important;            /* 浅灰色文字，保证可读性 */
+
+  border: 1px solid #9c9c9c !important;     /* 一个颜色稍浅的边框 */
+
+  border-radius: 8px !important;        /* 柔和的圆角 */
+
+  padding: 8px !important;              /* 增加内部空间，让文字不贴边 */
+
+}
+
+ 
+
+/*
+
+  --- 统一修改指定的 "高级格式化" 面板元素样式 ---
+
+*/
+
+#context_presets,
+
+#context_story_string,
+
+#context_example_separator,
+
+#context_chat_start,
+
+#instruct_presets,
+
+#instruct_activation_regex,
+
+#instruct_names_behavior,
+
+#instruct_input_sequence,
+
+#instruct_input_suffix,
+
+#instruct_output_sequence,
+
+#instruct_output_suffix,
+
+#instruct_system_sequence,
+
+#instruct_system_suffix,
+
+#instruct_system_sequence_prefix,
+
+#instruct_system_sequence_suffix,
+
+#sysprompt_select,
+
+#sysprompt_content,
+
+#sysprompt_post_history,
+
+#custom_stopping_strings,
+
+#tokenizer,
+
+#token_padding,
+
+#reasoning_max_additions,
+
+#reasoning_select,
+
+#reasoning_prefix,
+
+#reasoning_suffix,
+
+#reasoning_separator,
+
+#markdown_escape_strings,
+
+#start_reply_with {
+
+  background-color: #f5f5f5 !important; /* 深灰色背景 */
+
+  color: #9c9c9c !important;            /* 浅灰色文字 */
+
+  border: 1px solid #9c9c9c !important;     /* 边框 */
+
+  border-radius: 8px !important;        /* 圆角 */
+
+  padding: 8px !important;              /* 内边距 */
+
+}
+
+ 
+
+/*
+
+  --- 统一修改指定的 "世界信息" (World Info) 面板元素样式 ---
+
+  这个规则包含了您提供的所有ID，并使用通用的类和标签选择器来确保覆盖所有相关元素。
+
+*/
+
+#select2-world_info-container,
+
+#world_editor_select,
+
+#world_info_search,
+
+#world_info_sort_order,
+
+#world_info_depth_counter,
+
+#world_info_budget_counter,
+
+#world_info_min_activations_counter,
+
+#world_info_budget_cap_counter,
+
+#world_info_min_activations_depth_max_counter,
+
+#world_info_max_recursion_steps_counter,
+
+#world_info_pagination,
+
+.text_pole, /* 这是一个非常有效的通用类选择器 */
+
+input[type="text"],
+
+input[type="number"],
+
+input[type="search"],
+
+select,
+
+textarea {
+
+  background-color: #ffffff !important; /* 深灰色背景 */
+
+  color: #5d5d5d !important;            /* 浅灰色文字 */
+
+  border: 1px solid #9c9c9c !important;     /* 边框 */
+
+  border-radius: 8px !important;        /* 圆角 */
+
+}
+
+ 
+
+/* --- 修改世界信息 (WI) 全局设置面板的背景颜色 --- */
+
+#wiTopBlock > div:nth-child(2) > div.inline-drawer.wide100p.flexFlowColumn > div.inline-drawer-content {
+
+  background-color: #f5f5f5 !important; /* 您想要的背景颜色 (例如: 深灰色) */
+
+  padding: 15px !important;            /* 增加一些内边距，让内容不贴边 */
+
+  border-radius: 8px !important;       /* 添加圆角，与整体风格统一 */
+
+  border: 1px solid #9c9c9c !important;    /* (可选) 添加一个细微的边框来界定范围 */
+
+}
+
+ 
+
+/* --- 全局自定义复选框样式 --- */
+
+ 
+
+/* 
+
+ * 在这里轻松修改您喜欢的颜色！
+
+ * 这是整个样式表的核心控制区域。
+
+*/
+
+:root {
+
+  --checkbox-unchecked-bg: #f4f4f4;          /* 未选中时框的背景色 */
+
+  --checkbox-unchecked-border: #666;         /* 未选中时框的边框色 */
+
+  --checkbox-checked-bg: #8fcac5;           /* 选中时框的背景色 (蓝色) */
+
+  --checkbox-checkmark-color: white;         /* 选中时✓的颜色 */
+
+}
+
+input[type="checkbox"] {
+
+  appearance: none;
+
+  -webkit-appearance: none;
+
+  -moz-appearance: none;
+
+  width: 18px;
+
+  height: 18px;
+
+  background-color: var(--checkbox-unchecked-bg);
+
+  border: 2px solid var(--checkbox-unchecked-border);
+
+  border-radius: 4px; /* 轻微的圆角 */
+
+  cursor: pointer;
+
+  position: relative;
+
+  vertical-align: middle; /* 确保和旁边的文字对齐 */
+
+  margin-right: 8px;      /* 和文字之间留出一些空隙 */
+
+  transition: background-color 0.2s, border-color 0.2s; /* 平滑的颜色过渡动画 */
+
+}
+
+input[type="checkbox"]:checked {
+
+  background-color: var(--checkbox-checked-bg);
+
+  border-color: var(--checkbox-checked-bg);
+
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3e%3cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3e%3c/svg%3e");
+
+  background-size: 10%;
+
+  background-position: center;
+
+  background-repeat: no-repeat;
+
+  color: var(--checkbox-checkmark-color); 
+
+}
+
+#extensionsMenuButton::before {
+
+  /* 1. 清空原始的FontAwesome图标字符 */
+
+  content: "";
+
+ 
+
+  /* 2. 设为块状元素以便应用尺寸 */
+
+  display: inline-block;
+
+ 
+
+  /* 3. 设置图片的宽度和高度 (您可以根据需要微调) */
+
+  width: 20px;
+
+  height: 20px;
+
+ 
+
+  /* 4. 应用您提供的图片链接作为背景 */
+
+  background-image: url("https://files.catbox.moe/bjaqi8.png");
+
+ 
+
+  /* 5. 确保图片等比缩放、不重复且居中显示 */
+
+  background-size: contain;
+
+  background-repeat: no-repeat;
+
+  background-position: center;
+
+  
+
+  /* (可选) 调整垂直对齐，确保图标和文字在一条线上 */
+
+  vertical-align: middle;
+
+}
+
+/* --- 单独替换 #options_button 的图标 --- */
+
+#options_button::before {
+
+  /* 1. 清空原始的FontAwesome图标字符 (三条横杠) */
+
+  content: "";
+
+ 
+
+  /* 2. 设定尺寸 (这是一个比较合适的尺寸，您可以微调) */
+
+  display: inline-block;
+
+  width: 20px;
+
+  height: 20px;
+
+ 
+
+  /* 3. 应用您提供的图片链接作为背景 */
+
+  background-image: url("https://files.catbox.moe/s5ipli.png");
+
+ 
+
+  /* 4. 确保图片正确显示 */
+
+  background-size: contain;
+
+  background-repeat: no-repeat;
+
+  background-position: center;
+
+}
+
+ 
+
+/* --- 单独替换 #send_but 的图标 --- */
+
+ 
+
+/* 1. 首先，我们必须隐藏原始的纸飞机 <i> 标签 */
+
+#send_but i {
+
+  display: none !important;
+
+}
+
+ 
+
+/* 2. 然后，使用 ::before 伪元素创建新图标 */
+
+#send_but::before {
+
+  /* 清空内容，为背景图做准备 */
+
+  content: "";
+
+ 
+
+  /* 设置尺寸和显示方式 */
+
+  display: inline-block;
+
+  width: 25px;  /* 发送按钮可以稍微大一点 */
+
+  height: 25px;
+
+ 
+
+  /* 应用您提供的图片链接 */
+
+  background-image: url("https://files.catbox.moe/7l20y0.png");
+
+ 
+
+  /* 确保图片正确显示 */
+
+  background-size: contain;
+
+  background-repeat: no-repeat;
+
+  background-position: center;
+
+  
+
+  /* (可选) 添加一个平滑的过渡效果 */
+
+  transition: transform 0.2s ease;
+
+}
+
+ 
+
+#send_textarea {
+
+  border: none !important;
+
+}
+
+ 
+
+/* --- (新增) 保留消息之间的上边框作为分割线 --- */
+
+ 
+
+/*
+
+  这个选择器 .mes + .mes 的意思是：
+
+  “只选择那些紧跟在另一个 .mes 元素后面的 .mes 元素”。
+
+  这样，聊天列表中的第一个 .mes 就不会被选中，完美避开了顶部分界线。
+
+*/
+
+#chat .mes + .mes {
+
+  /* 
+
+    我们只添加上边框，作为它与前一个消息的分割线。
+
+    您可以随意修改颜色(#e0e0e0)和粗细(1px)。
+
+  */
+
+  border-top: 1px solid #e0e0e0 !important;
+
+ 
+
+  /*
+
+    (可选但推荐) 增加一点上外边距，
+
+    让消息卡片之间留出一些空隙，这样分割线和阴影都不会显得拥挤。
+
+  */
+
+  margin-top: 15px !important;
+
+}
+
+.select2-selection__choice__display {
+
+  color: rgb(255, 255, 255) !important; /* 白色文字在蓝绿色背景上非常清晰 */
+
+  padding-left: 8px !important; /* (可选) 增加一点左内边距 */
+
+}
+
+ 
+
+/* --- 增加聊天输入栏区域的高度 --- */
+
+#nonQRFormItems {
+
+  /* 
+
+    1. 核心：在这里设置您想要的最小高度。
+
+    60px 是一个比较舒适的高度，您可以根据喜好调整。
+
+  */
+
+  min-height: 60px !important;
+
+ 
+
+  /* 2. (可选但推荐) 确保内部所有元素（图标、输入框）都能垂直居中 */
+
+  align-items: center !important;
+
+ 
+
+  /* 3. (可选但推荐) 为整个输入栏添加一个背景和顶部分割线，让它更有整体感 */
+
+  background-color: #ffffff !important; /* 与您的其他面板背景色统一 */
+
+  border-top: 1px solid #dcdcdc !important; /* 与上方聊天区域的分割线 */
+
+  
+
+  /* 4. (可选) 增加左右内边距，让两边的图标不会紧贴边缘 */
+
+  padding-left: 18px !important;
+
+  padding-right: 18px !important;
+
+}
+
+/* --- 以下为偷师学艺 --- */
+
+ 
+
+/* === 通用输入框提示词自定义 === */
+
+#nonQRFormItems { position: relative; }
+
+#send_textarea::placeholder { color: transparent !important; text-shadow: none !important; }
+
+#nonQRFormItems:has(#send_textarea:placeholder-shown)::before {
+
+    content: "✩⁺˚행복이 찾아오다‧˖˚��";
+
+    color: #8E8E8E;
+
+    left: 95px;
+
+    position: absolute;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    font-style: oblique;
+
+    font-size: 0.5em;
+
+    pointer-events: none;
+
+    z-index: 10;
+
+    white-space: nowrap; 
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    max-width: calc(100% - 30px);
+
+}
+
+ 
+
+/* 思维链等其他代码 */
+
+.mes_reasoning_details { margin-top: 0px; margin-left: 0px; }
+
+.mes_reasoning_header { margin-top: 5px; margin-left: 0px; background-color:#EFEFEF; }
+
+.mes_reasoning_actions { margin-top: 0px; margin-left: 0px; }
+
+.mes_reasoning { margin-top: 3px; margin-left: -11px; padding: 15px; background-color: #EFEFEF; border: 1px solid #EFEFEF; border-top: none; border-radius: 8px 8px 8px 8px; font-size: 1.0em; color: var(--text-primary); }
+
+.mes_reasoning_header_title::before { content: "♥︎:두근두근*✿^"; font-size: var(--mainFontSize); }
+
+.mes_reasoning_header_title { font-size: 0; }
+
+ 
+
+ 
+
+#form_sheld {
+
+    margin: 0 auto !important;
+
+}
+
+ 
+
+#sheld {
+
+    top: var(--bottomFormBlockSize);
+
+    height: calc(100dvh - var(--bottomFormBlockSize));
+
+    max-height: calc(100dvh - var(--bottomFormBlockSize));
+
+    min-height: calc(100dvh - var(--bottomFormBlockSize));
+
+} 
+
+ 
+
+/* Pp11+1.老师的代码 */
+
+/* 隐藏原始的箭头图标，并用图片替换 */
+
+.inline-drawer-header .inline-drawer-icon {
+
+  visibility: hidden !important;
+
+  position: relative !important;
+
+  width: 25px !important;
+
+  height: 25px !important;
+
+  margin-left: 8px !important;
+
+  /* 添加以下代码以去除阴影和滤镜 */
+
+  box-shadow: none !important;
+
+  filter: none !important;
+
+}
+
+.inline-drawer-header .inline-drawer-icon::before {
+
+  content: '' !important;
+
+  position: absolute !important;
+
+  top: 0 !important;
+
+  left: 0 !important;
+
+  width: 100% !important;
+
+  height: 100% !important;
+
+  background-image: url('https://files.catbox.moe/7kp8d5.png') !important;
+
+  background-size: contain !important;
+
+  background-repeat: no-repeat !important;
+
+  background-position: center !important;
+
+  visibility: visible !important;
+
+}
+
+ 
+
+/* Pp11+1.老师的代码 */
+
+/* 默认隐藏 QR 按钮容器，并设置平滑的过渡效果 */
+
+.qr--buttons {
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  max-height: 0;
+
+  transform: translateY(20px);
+
+  /* 关键改动：当元素隐藏时，让它不接受任何鼠标事件 */
+
+  pointer-events: none;
+
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out, max-height 0.5s ease, transform 0.5s ease;
+
+}
+
+ 
+
+/* 当输入表单获得焦点时，显示 QR 按钮容器 */
+
+#send_form:focus-within .qr--buttons {
+
+  opacity: 1;
+
+  visibility: visible;
+
+  max-height: 100px; 
+
+  transform: translateY(0);
+
+  /* 关键改动：当元素显示时，重新启用鼠标事件 */
+
+  pointer-events: auto;
+
+}
+
+/* 删除消息时的勾选框样式 */
+
+.mes.selected {
+
+    background-color: #dbdbdb /* 自行更改颜色 */!important; 
+
+}
+
+ 
+
+.mes.selected .mes_text {
+
+    background-color: var(--chiikawa-cream) !important; /* 保持消息文本区域颜色 */
+
+    color: var(--chiikawa-brown) !important; /* 保持文字颜色 */
+
+}
+
+ 
+
+/* 墨千尾老师的代码 */
+
+/* 导航栏背景 */
+
+#top-settings-holder {
+
+    background-size: 100% 100%;
+
+    background-position: center;
+
+    background-color: #ffffff; /* 背景底色 */
+
+    box-shadow: none;
+
+}
+
+ 
+
+/* 隐藏原有的FontAwesome图标 */
+
+.drawer-icon.fa-fw::before {
+
+    content: '' !important;
+
+    font-size: 0 !important;
+
+}
+
+ 
+
+/* 统一设置图标样式 */
+
+.drawer-icon.fa-fw {
+
+    width: 20px; /* 调整图标宽度 */
+
+    height: 20px; /* 调整图标高度 */
+
+    background-size: contain;
+
+    background-repeat: no-repeat;
+
+    background-position: center;
+
+    transition: transform 0.3s ease;
+
+}
+
+ 
+
+.drawer-icon.fa-fw:hover {
+
+    transform: scale(1.1);
+
+}
+
+ 
+
+/* 依次替换导航栏图标 ，带记忆表格（按顺序的，没记错的话大概是倒数第三个？需要自己再确认一下哦），这个调用方式不管有没有记忆表格都不会出错 */
+
+#ai-config-button .drawer-icon { background-image: url('https://files.catbox.moe/vic75g.png'); }
+
+#sys-settings-button .drawer-icon { background-image: url('https://files.catbox.moe/aso6lb.png'); }
+
+#advanced-formatting-button .drawer-icon { background-image: url('https://files.catbox.moe/rpaffo.png'); }
+
+#WI-SP-button .drawer-icon { background-image: url('https://files.catbox.moe/51bvlb.png'); }
+
+#user-settings-button .drawer-icon { background-image: url('https://files.catbox.moe/e5x0xm.png'); }
+
+#logo_block .drawer-icon { background-image: url('https://files.catbox.moe/lqup8s.png'); }
+
+#extensions-settings-button .drawer-icon { background-image: url('https://files.catbox.moe/fyxcmv.png'); }
+
+#table_database_settings_drawer .drawer-icon { background-image: url('https://files.catbox.moe/h1f40k.png'); }
+
+#persona-management-button .drawer-icon { background-image: url('https://files.catbox.moe/g29t3d.png'); }
+
+#rightNavHolder .drawer-icon { background-image: url('https://files.catbox.moe/6z27kj.png'); }
+
+ 
+
+ 
+
+/* 限制只在聊天消息区域内的头像显示头像框 代码来自hy（取个超级长的名字这样看起来就会很炫酷） */
+
+#chat .mes .avatar {
+
+    position: relative;
+
+    width: 50px;/* 头像宽度 */
+
+    height: 50px;/* 头像高度 */
+
+    border-radius: 50%;
+
+    overflow: visible; /* 改为visible允许内容溢出 */
+
+    flex-shrink: 0;
+
+    z-index: 1;
+
+}
+
+ 
+
+/* 添加头像框效果 - 只在聊天消息区域显示 */
+
+#chat .mes .avatar::after {
+
+    content: '';
+
+    position: absolute;
+
+    top: 66%;/* 头像框位置，数字越大越往下 */
+
+    left: 50%;/* 头像框位置，数字越大越往右 */
+
+    transform: translate(-50%, -50%);
+
+    width: 102px; /* 头像框尺寸，要比头像大 */
+
+    height: 102px; /* 头像框尺寸，要比头像大 */
+
+    background-image: url('https://files.catbox.moe/2qw5ya.png'); /* 替换为您的头像框图片URL */
+
+    background-size: contain;
+
+    background-repeat: no-repeat;
+
+    background-position: center;
+
+    z-index: 2; /* 确保头像框在头像之上 */
+
+    pointer-events: none;
+
+}
+
+ 
+
+/* 易碎蝶老师的代码*/
+
+#show_more_messages {
+
+    text-align: center;
+
+    margin: 28px auto;
+
+    font-weight: 500;
+
+    order: -1;
+
+    cursor: pointer;
+
+    padding: 0.5em 1em;
+
+    background: url('底色背景图') center/cover, #ffffff;
+
+    width: fit-content;
+
+    border-radius: 10px;
+
+    border: 2px solid #ffffff;
+
+    box-shadow: 2px 2px 5px rgba(195, 195, 195, 0.3),
+
+                inset 2px 2px 4px rgba(195, 195, 195, 0.3),
+
+                inset 2px 2px 4px rgba(255, 255, 255, 0.4);
+
+    color: transparent;
+
+    position: relative;
+
+    display: block; 
+
+    z-index: 10; 
+
+    min-height: 20px; 
+
+}
+
+ 
+
+#show_more_messages::after {
+
+    content: "加载更多消息 ﾟ ";
+
+    color: #8b8b8b;
+
+    position: absolute;
+
+    left: 0;
+
+    right: 0;
+
+    top: 0;
+
+    bottom: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    pointer-events: none; 
+
+}
+
+/* -来自玉元一_Shadow老师 */
+
+/* --- 1. 扩展面板/设置区的按钮和标题 (例如：快速提示词编辑, 实用提示词) --- */
+
+.inline-drawer-toggle,
+
+.standoutHeader,
+
+.extension_button,
+
+#user-settings-block h4,
+
+.inline-drawer-header {
+
+    /* 关键！强制移除默认的灰色渐变背景 */
+
+    background-image: none !important;
+
+ 
+
+    /* 在这里修改您想要的背景颜色 */
+
+    background-color: #ffffff !important;
+
+ 
+
+    /* 在这里修改您想要的边框颜色 */
+
+    border: 1px solid #dadada !important; /* 浅粉色边框 */
+
+ 
+
+    /* 在这里修改您想要的文字颜色 */
+
+    color: #5b4c53 !important; /* 深粉棕色文字 */
+
+ 
+
+    /* 其他美化样式 */
+
+    border-radius: 12px !important;
+
+    box-shadow: 0 2px 5px rgba(212, 212, 212, 0.3) !important;
+
+}
+
+ 
+
+/* 鼠标悬停时的样式 */
+
+.inline-drawer-toggle:hover,
+
+.extension_button:hover {
+
+    /* 在这里修改鼠标悬停时的边框颜色 */
+
+    border-color: #b6ded7 !important; /* 桃粉色边框 */
+
+ 
+
+    /* 在这里修改鼠标悬停时的阴影效果 */
+
+    box-shadow: 0 0 8px #d2d2d2 !important;
+
+}
+
+ 
+
+ 
+
+/* --- 2. 多选标签 (例如：世界书标签) --- */
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+
+    /* 关键！强制移除默认的灰色渐变背景 */
+
+    background-image: none !important;
+
+ 
+
+    /* 在这里修改您想要的背景颜色 */
+
+    background-color: #ffffff !important;
+
+ 
+
+    /* 在这里修改您想要的边框颜色 */
+
+    border: 1px solid #bcbcbc !important; /* 浅粉色边框 */
+
+ 
+
+    /* 在这里修改您想要的文字颜色 */
+
+    color: #d094b0 !important;
+
+ 
+
+    /* 其他美化样式 */
+
+    border-radius: 8px !important;
+
+}
+
+ 
+
+/* 整个多选框的容器样式 */
+
+.select2-container--default .select2-selection--multiple {
+
+    background-image: none !important;
+
+    background-color: #ffffff !important;
+
+    border: 1px solid #ffffff !important;
+
+    border-radius: 12px !important;
+
+}
+
+ 
+
+/* 当多选框被激活(点击)时的样式 */
+
+.select2-container--default.select2-container--open .select2-selection--multiple {
+
+    border-color: #b6ded7 !important;
+
+    box-shadow: 0 0 8px #d2d2d2 !important;
+
+}
+
+
+
+#left-nav-panel, 
+
+#right-nav-panel, 
+
+.drawer-content {
+
+    /* 
+
+     * 核心修复：
+
+     * 移除任何强制的高度或最大高度限制。
+
+     * `auto` 和 `none` 会告诉浏览器不要限制高度，
+
+     * 从而让SillyTavern的JS脚本可以自由地设置正确的高度。
+
+     */
+
+    height: auto !important;
+
+    max-height: none !important;
+
+ 
+
+    /*
+
+     * 辅助修复：
+
+     * 将定位方式重置为默认值。
+
+     * 除非您有特殊需求，否则不要修改抽屉的定位。
+
+     */
+
+    position: static !important;
+
+}
+
+ 
+
+/* 
+
+ * 确保抽屉的滚动容器也能正常工作
+
+*/
+
+#left-nav-panel .scrollableInner,
+
+#right-nav-panel .right_menu {
+
+    height: 100% !important;
+
+}
+
+ 
+
+/* 来自曹语涵老师 */
+
+::-webkit-scrollbar {
+
+  width: 滚动条粗细; /* 影响滚动条挤占空间的大头，单位：px */
+
+}
+
+ 
+
+::-webkit-scrollbar-thumb {
+
+  border: none !important;
+
+  box-shadow: none !important;
+
+  background-color: #b1b1b1 !important; /* 不设置也很好看 */
+
+}
+
+ 
+
+/* 针对可能的侧边栏容器 */
+
+.sidebar-left,
+
+.sidebar-left *,
+
+.nav-left,
+
+.nav-left *,
+
+.panel-left,
+
+.panel-left * {
+
+    color: #444444 !important;
+
+    text-shadow: none !important;
+
+}
+
+ 
+
+/* SillyTavern 左侧边栏预设条目精确黑色字体 CSS */
+
+ 
+
+/* 只针对左侧边栏区域的选择器 */
+
+#left-nav-panel,
+
+#left-nav-panel *,
+
+#leftNavPanel,
+
+#leftNavPanel *,
+
+.left-panel,
+
+.left-panel *,
+
+#nav-toggle-left ~ *,
+
+[id*="left-nav"],
+
+[id*="left-nav"] *,
+
+[class*="left-nav"],
+
+[class*="left-nav"] * {
+
+    color: #424242 !important;
+
+    text-shadow: none !important;
+
+}
+
+ 
+
+/* 针对左侧边栏的预设列表 */
+
+#left-nav-panel .preset_list,
+
+#left-nav-panel .preset_list *,
+
+#left-nav-panel .preset-list,
+
+#left-nav-panel .preset-list *,
+
+#leftNavPanel .preset_list,
+
+#leftNavPanel .preset_list *,
+
+.left-panel .preset_list,
+
+.left-panel .preset_list * {
+
+    color: #494949 !important;
+
+    text-shadow: none !important;
+
+}
+
+ 
+
+/* 左侧边栏的列表项背景 */
+
+#left-nav-panel .preset_list .preset_item,
+
+#left-nav-panel .preset-list .preset-item,
+
+#leftNavPanel .preset_list .preset_item,
+
+.left-panel .preset_list .preset_item {
+
+    background-color: rgba(255, 255, 255, 0.8) !important;
+
+    color: #404040 !important;
+
+    border: 1px solid #e0e0e0 !important;
+
+    margin: 1px 0 !important;
+
+    padding: 3px 8px !important;
+
+    text-shadow: none !important;
+
+}
+
+ 
+
+/* 左侧边栏列表项悬停状态 */
+
+#left-nav-panel .preset_list .preset_item:hover,
+
+#left-nav-panel .preset-list .preset-item:hover,
+
+#leftNavPanel .preset_list .preset_item:hover,
+
+.left-panel .preset_list .preset_item:hover {
+
+    background-color: rgba(255, 255, 255, 1) !important;
+
+    color: #363636 !important;
+
+}
+
+ 
+
+/* 左侧边栏列表项选中状态 */
+
+#left-nav-panel .preset_list .preset_item.selected,
+
+#left-nav-panel .preset_list .preset_item.active,
+
+#left-nav-panel .preset-list .preset-item:active,
+
+#leftNavPanel .preset_list .preset_item.selected,
+
+.left-panel .preset_list .preset_item.selected {
+
+    background-color: rgba(200, 255, 200, 1) !important;
+
+    color: #3b3b3b !important;
+
+    font-weight: bold !important;
+
+}
+
+ 
+
+/* 如果左侧边栏使用表格布局 */
+
+#left-nav-panel table,
+
+#left-nav-panel table *,
+
+#left-nav-panel tbody,
+
+#left-nav-panel tbody *,
+
+#leftNavPanel table,
+
+#leftNavPanel table *,
+
+.left-panel table,
+
+.left-panel table * {
+
+    color: #404040 !important;
+
+    text-shadow: none !important;
+
+}
+
+ 
+
+/* 左侧边栏的所有链接和按钮 */
+
+#left-nav-panel a,
+
+#left-nav-panel button,
+
+#left-nav-panel span,
+
+#left-nav-panel div,
+
+#leftNavPanel a,
+
+#leftNavPanel button,
+
+#leftNavPanel span,
+
+#leftNavPanel div,
+
+.left-panel a,
+
+.left-panel button,
+
+.left-panel span,
+
+.left-panel div {
+
+    color: #4b4b4b !important;
+
+    text-shadow: none !important;
+
+}
+
+/* 确保只影响左侧区域，不影响聊天区域和右侧 */
+
+.sidebar-left .preset-item,
+
+.nav-left .preset-item,
+
+#left-nav-panel .preset-item {
+
+    background-color: rgba(255, 255, 255, 0.85) !important;
+
+    color: #d7d7d7 !important;
+
+    border: 1px solid #ddd !important;
+
+    border-radius: 3px !important;
+
+    margin: 2px 0 !important;
+
+    padding: 4px 6px !important;
+
+}
+
+ 
+
+/* 代码来自墨千尾老师*/
+
+/* 1. 重置所有 <input type="range"> 的默认浏览器样式 */
+
+input[type="range"] {
+
+    -webkit-appearance: none;
+
+    appearance: none;
+
+    width: 100%;
+
+    background: transparent;
+
+    cursor: pointer;
+
+}
+
+/* 2. 设计滑块的“轨道” (Track) */
+
+input[type="range"]::-webkit-slider-runnable-track {
+
+    width: 100%;
+
+    height: 6px; /* 轨道的粗细 */
+
+    /* 轨道的背景现在是一个静态的、完整的渐变色，✨︎渐变颜色自调下边两个数值，调整原理和上边那个一样 ✨︎ */
+
+    background: linear-gradient(to right, #ebebeb, #d6d6d6); 
+
+    border-radius: 3px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+ 
+
+/* 3. 设计滑块的“手柄” (Thumb) - 使用自定义图标 */
+
+input[type="range"]::-webkit-slider-thumb {
+
+    -webkit-appearance: none;
+
+    appearance: none;    
+
+    margin-top: -20px; /* ✨︎图标（手柄）的上下距离，改了大小就要改这里哦，确保滑动的图标在滑动条上 ✨︎ */
+
+    height: 40px; /* 高度 */
+
+    width: 40px; /* 宽度 */
+
+    
+
+    /* ✨︎图标替换，自改✨︎ */
+
+    background-image: url('https://files.catbox.moe/7kp8d5.png');
+
+    background-size: contain; /* 确保图标完整显示，不被拉伸 */
+
+    background-repeat: no-repeat;
+
+    background-position: center;
+
+    
+
+    /* 移除所有可能导致“变淡”的默认样式 */
+
+    background-color: transparent; 
+
+    border: none;
+
+    border-radius: 0;
+
+    box-shadow: none;
+
+    transition: transform 0.2s ease; /* 保留悬停放大动画 */
+
+}
+
+ 
+
+/* (可选) 4. 当鼠标悬停或拖动时，让手柄稍微变大 */
+
+input[type="range"]:hover::-webkit-slider-thumb,
+
+input[type="range"]:active::-webkit-slider-thumb {
+
+    transform: scale(1.2);
+
+}
+
+ 
+
+/* 兼容Firefox浏览器 */
+
+input[type="range"]::-moz-range-track {
+
+    height: 6px; /* ✨︎图标（手柄）的上下距离✨︎ */
+
+    background: linear-gradient(to right, #ebebeb, #d6d6d6); /* 改色和上边一样 */
+
+    border-radius: 3px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+ 
+
+input[type="range"]::-moz-range-thumb {
+
+    height: 20px;
+
+    width: 20px; /* 大小自调  */
+
+    background-image: url('https://files.catbox.moe/7kp8d5.png');
+
+    background-size: contain;
+
+    background-repeat: no-repeat;
+
+    background-position: center;
+
+    background-color: transparent;
+
+    border: none;
+
+    border-radius: 0;
+
+}
+
+/* 代码来自LittleYE²  */
+
+@media screen and (max-width: 600px) {
+
+  ::-webkit-scrollbar {
+
+    display: none;
+
+  }
+
+}
+
+.wi-card-entry {
+
+  margin: 5px 5px; /* 条目外边距 */
+
+  padding: 2px 10px; /* 条目内边距 */
+
+}

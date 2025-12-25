@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目详情</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&amp;display=swap" rel="stylesheet">
+    <style>
+        /* 继承主页面的所有样式 */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a192f; /* 深蓝色背景 */
+            color: #e6f1ff;
+        }
+        .dashboard-header {
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 194, 255, 0.2);
+        }
+        .details-card {
+            background: rgba(17, 34, 64, 0.75);
+            border: 1px solid rgba(0, 194, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 194, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+        .status-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse-animation 2s infinite;
+        }
+        .status-light.normal {
+            background-color: #22c55e; /* green-500 */
+            --pulse-color: rgba(34, 197, 94, 0.5);
+        }
+        .status-light.warning {
+            background-color: #f97316; /* orange-500 */
+            --pulse-color: rgba(249, 115, 22, 0.5);
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 var(--pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+        @keyframes pop-in {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 物料表格样式 */
+        .material-table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+        }
+        .material-table thead { background-color: rgba(10, 25, 47, 0.8); }
+        .material-table th, .material-table td {
+            padding: 12px 10px;
+            text-align: center; /* Center align all columns */
+            word-wrap: break-word;
+        }
+        .material-table td:nth-child(3),
+        .material-table td:nth-child(13) {
+            text-align: left; /* Left align Name and Remark */
+        }
+
+        /* Column Widths */
+        .material-table th:nth-child(1) { width: 4%; } /* 序号 */
+        .material-table th:nth-child(2) { width: 10%; } /* 物料编码 */
+        .material-table th:nth-child(3) { width: 26%; } /* 名称 */
+        .material-table th:nth-child(4) { width: 8%; } /* 规格 */
+        .material-table th:nth-child(5) { width: 6%; } /* 单套用量 */
+        .material-table th:nth-child(6) { width: 4%; } /* 单位 */
+        .material-table th:nth-child(7) { width: 6%; } /* 总数量 */
+        .material-table th:nth-child(8) { width: 6%; } /* 实发数 */
+        .material-table th:nth-child(9) { width: 6%; } /* 产品线 */
+        .material-table th:nth-child(10) { width: 8%; } /* 属性码 */
+        .material-table th:nth-child(11) { width: 6%; } /* 优选等级 */
+        .material-table th:nth-child(12) { width: 5%; } /* 禁空运 */
+        .material-table th:nth-child(13) { width: auto; } /* 备注 */
+
+        .material-table tbody tr { border-bottom: 1px solid rgb(55 65 81); }
+        .material-table tbody tr:hover { background-color: rgb(30 41 59); } /* slate-800 */
+
+        /* 进度时间轴样式 */
+        #timeline-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            width: 100%;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        #timeline-container::before {
+            content: '';
+            position: absolute;
+            width: calc(100% - 4rem);
+            height: 4px;
+            background-color: #374151; /* gray-700 */
+            top: 8px;
+            left: 2rem;
+            z-index: 0;
+            border-radius: 2px;
+        }
+        #timeline-container::after {
+            content: '';
+            position: absolute;
+            width: var(--progress-width, 0%);
+            height: 4px;
+            background-image: linear-gradient(to right, #22c55e, #00c2ff);
+            top: 8px;
+            left: 2rem;
+            z-index: 1;
+            border-radius: 2px;
+            transition: width 0.5s ease-in-out;
+        }
+        .timeline-item {
+            flex: 1;
+            position: relative;
+            text-align: center;
+            padding: 2rem 0.5rem 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            background: #112240;
+        }
+        .timeline-dot-completed {
+            background-color: #22c55e;
+            border: 3px solid rgba(34, 197, 94, 0.3);
+            animation: pop-in 0.5s ease-in-out;
+        }
+        .timeline-dot-active { background-color: #00c2ff; border: 3px solid rgba(0, 194, 255, 0.3); animation: pulse-animation 2s infinite; --pulse-color: rgba(0, 194, 255, 0.5); }
+        .timeline-dot-pending { background-color: #4b5563; border: 3px solid #6b7280; }
+
+        .sort-asc .flex-col svg:first-child { color: #00c2ff; }
+        .sort-desc .flex-col svg:last-child { color: #00c2ff; }
+        
+        /* 成本分析模块样式 */
+        .cost-chart-container {
+            position: relative;
+            height: 140px;
+            width: 140px;
+            margin: 0 auto;
+        }
+        .cost-chart-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .progress-bar-container {
+            background-color: #374151; /* gray-700 */
+            border-radius: 9999px;
+            height: 8px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            border-radius: 9999px;
+            background-image: linear-gradient(to right, #7dd3fc, #00c2ff); /* sky-300 to cyan-500 */
+            transition: width 0.5s ease-in-out;
+        }
+        .progress-bar.over-budget {
+            background-image: linear-gradient(to right, #f97316, #ef4444);
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #94a3b8; /* slate-400 */
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-btn:hover {
+            color: #e2e8f0; /* slate-200 */
+        }
+        .tab-btn.active-tab {
+            color: #00c2ff; /* cyan-400 */
+            border-bottom-color: #00c2ff;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem 0;
+        }
+        .info-row + .info-row {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .info-label {
+            width: 7rem; /* 112px */
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* 12px */
+            padding-top: 0.25rem; /* 4px */
+        }
+        .info-content {
+            flex-grow: 1;
+            position: relative;
+            min-width: 0;
+        }
+        .info-meta {
+            width: 10rem; /* 160px */
+            text-align: right;
+            flex-shrink: 0;
+            padding-top: 0.25rem; /* 4px */
+        }
+
+        .risk-wrapper .risk-details {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            width: 100%;
+            background: #1e293b; /* slate-800 */
+            border: 1px solid #00c2ff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 20px rgba(0, 194, 255, 0.2);
+            z-index: 10;
+            user-select: text;
+            pointer-events: auto;
+        }
+        .risk-wrapper:hover .risk-details {
+            display: block;
+        }
+
+        .role-plate {
+            background-color: rgba(0, 194, 255, 0.15);
+            color: #38bdf8; /* sky-500 */
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem; /* 12px */
+            font-weight: 500;
+            border: 1px solid rgba(0, 194, 255, 0.2);
+        }
+
+        .name-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1; /* slate-300 */
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.875rem; /* 14px */
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .total-count { text-align: center !important; }
+
+        .inline-card {
+            position: absolute;
+            min-width: 300px;
+            max-width: 360px;
+            background: #0f1724;
+            border: 1px solid #00c2ff;
+            color: #e6f1ff;
+            padding: 10px 12px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            z-index: 60;
+            font-size: 13px;
+        }
+        .inline-card h4 {
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            color: #7dd3fc;
+            font-size: 13px;
+        }
+        .inline-card p { margin: 0; color: #cbd5e1; font-size: 13px; }
+        .inline-card .close-btn { position: absolute; top: 6px; right: 8px; cursor: pointer; color: #94a3b8; font-size: 12px; }
+
+        /* 齐套率滚动条模块样式 */
+        .ticker-row {
+            display: grid;
+            grid-template-columns: 170px 1fr 180px;
+            gap: 1.5rem;
+            align-items: center;            
+            padding: 0 1rem;
+            height: 4rem; /* 64px */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #kit-rate-scroll-container .ticker-row:last-child {
+            border-bottom: none;
+        }
+        
+        #kit-rate-scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #kit-rate-scroll-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+        #kit-rate-scroll-container::-webkit-scrollbar-thumb {
+            background-color: #475569; /* slate-600 */
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        #kit-rate-scroll-container::-webkit-scrollbar-thumb:hover {
+            background-color: #64748b; /* slate-500 */
+        }
+
+        /* 订单表：表头宽度均匀分布，所有单元格居中 */
+        .order-table {
+            table-layout: fixed; /* 强制固定表格布局，配合 colgroup 或百分比宽度实现等分 */
+            width: 100%;
+        }
+        .order-table th,
+        .order-table td {
+            text-align: center !important;
+            vertical-align: middle;
+            word-break: keep-all;
+        }
+        /* 明确每列占比，7 列等分 */
+        .order-table th {
+            width: 14.2857%;
+        }
+
+        /* 重点商机表：覆盖全局对第3列的 left 对齐规则，使需求数量居中 */
+        .opportunity-table th:nth-child(3),
+        .opportunity-table td:nth-child(3) {
+            text-align: center !important;
+        }
+
+        /* 交期不达警示标识 */
+        .delivery-missed td:first-child {
+            position: relative;
+            padding-left: 2.5rem; /* 为图标留出空间 */
+        }
+        .delivery-missed td:first-child::before {
+            content: "!";
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            background-color: #ef4444; /* red-500 */
+            width: 1.25rem; /* 20px */
+            height: 1.25rem; /* 20px */
+            border-radius: 50%;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        /* 无交期警示标识 */
+        .no-delivery-date td:first-child {
+            position: relative;
+            padding-left: 2.5rem;
+        }
+        .no-delivery-date td:first-child::before {
+            content: "?";
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            background-color: #f97316; /* orange-500 */
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        /* 筛选按钮样式 */
+        .filter-btn {
+            padding: 0.375rem 0.75rem; /* py-1.5 px-3 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 600; /* font-semibold */
+            border-radius: 0.375rem; /* rounded-md */
+            transition: all 0.2s ease-in-out;
+        }
+        .filter-btn.active {
+            background-color: #ef4444; /* red-500 */
+            color: white;
+        }
+
+        /* --- 新增：成本详情弹窗样式 --- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background: #0f1724;
+            border: 1px solid #00c2ff;
+            box-shadow: 0 0 30px rgba(0, 194, 255, 0.2);
+            border-radius: 8px;
+            width: 95%;
+            max-width: 1400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            position: relative;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        .close-modal-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 24px;
+            transition: color 0.2s;
+        }
+        .close-modal-btn:hover { color: #ef4444; }
+
+        /* 详情表格样式 */
+        .cost-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+        .cost-detail-table th {
+            background: rgba(10, 25, 47, 0.9);
+            color: #00c2ff;
+            padding: 12px 8px;
+            border-bottom: 2px solid rgba(0, 194, 255, 0.3);
+            position: sticky;
+            top: 0;
+        }
+        .cost-detail-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            text-align: right;
+        }
+        .cost-detail-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            color: #e2e8f0;
+            position: sticky;
+            left: 0;
+            background: #0f1724;
+            z-index: 1;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        .cost-detail-table tr:hover td {
+            background-color: rgba(0, 194, 255, 0.05);
+        }
+        /* 让可点击的卡片显示手型 */
+        .clickable-card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .clickable-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 194, 255, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="dashboard-header sticky top-0 z-50">
+        <div class="w-full px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="L1 - black-v1.html" class="flex items-center space-x-2 text-slate-400 hover:text-cyan-400 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 
+ 0 010-1.414l4-4a1 1 
+ 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span>返回看板</span>
+                </a>
+                <span class="font-bold text-xl tracking-wider text-slate-200">项目详情</span>
+            </div>
+            <div id="current-time" class="text-sm text-slate-400"></div>
+        </div>
+    </header>
+
+    <main class="w-full px-6 sm:px-8 lg:px-12 py-12 md:py-16">
+        
+        <div class="space-y-8">
+            
+            <section class="details-card">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="md:col-span-2">
+                        <div class="flex items-center gap-3 mb-2">
+                            <div id="project-status-light" class="status-light"></div>
+                            <h2 id="project-name" class="text-3xl font-bold text-slate-100"></h2>
+                        </div>
+                        <p id="project-id" class="text-lg text-slate-400 ml-9"></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-x-8 text-base">
+                        <div class="space-y-3">
+                            <p class="text-slate-400">项目经理: <span id="project-owner" class="font-semibold text-slate-200"></span></p>
+                            <p class="text-slate-400">总周期(天): <span id="project-cycle" class="font-semibold text-slate-200">30天</span></p>
+                            <p class="text-slate-400">项目初期目标: <span class="font-semibold text-slate-200 font-mono">2025-09-11</span></p>
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-slate-400">下单时间: <span class="font-semibold text-slate-200 font-mono">2025-08-11</span></p>
+                            <p class="text-slate-400">计划结束: <span class="font-semibold text-slate-200 font-mono">2025-09-02</span></p>
+                            <p class="text-slate-400">需求出货: <span class="font-semibold text-slate-200 font-mono">2025-09-05</span></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 border-t border-slate-700">
+                    <div class="info-row">
+                        <div class="info-label">
+                            <p class="text-slate-400 text-sm">项目状态</p>
+                            <div class="status-light normal"></div>
+                        </div>
+                        <div class="info-content">
+                            <div class="flex items-baseline gap-x-4">
+                                <span class="font-bold text-lg text-green-400 flex-shrink-0">正常进行</span>
+                                <p class="text-slate-300 text-sm truncate">【8-20】现场光学联调中，一致性本周输出测试结果给客户</p>
+                            </div>
+                        </div>
+                        <p class="info-meta text-xs text-slate-500">曹雷 更新于2025年8月21日</p>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">
+                            <p class="text-slate-400 text-sm">风险预警</p>
+                            <div class="status-light warning"></div>
+                        </div>
+                        <div class="info-content risk-wrapper">
+                            <p class="text-orange-400 truncate cursor-pointer pr-4">【日期】8-31 【客户】T4 【型号】GOT【风险描述】因外包商（纳思奇）原程序现场人员调试进度无法满足客户需求，经与客户沟通 同意安排精测人员重写PLC程序，确保该设备调试及功能满足客户需求</p>
+                            <div class="risk-details">
+                                <p><strong>【日期】</strong> 8-31</p>
+                                <p><strong>【客户】</strong> T4</p>
+                                <p><strong>【型号】</strong> GOT</p>
+                                <p><strong>【风险描述】</strong> 因外包商（纳思奇）原程序现场人员调试进度无法满足客户需求，经与客户沟通 同意安排精测人员重写PLC程序，确保该设备调试及功能满足客户需求</p>
+                                <p><strong>【影响】</strong> 预计17天</p>
+                                <p><strong>【诉求】</strong> 1、我司安排重写PLC主负责人（李文）全面接手，主导该项目PLC程序及调试---于威江 2、外包商原调试人员，机构和电工人员继续辅助精测主负责人 配合继续进行设备调试---纳思奇 3、供应链与外包商（纳思奇）对本项目PLC部分，取消外包，重新拟定合同</p>
+                            </div>
+                        </div>
+                        <p class="info-meta text-xs text-slate-500">周剑 更新于2024年11月7日</p>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="info-label">
+                            <p class="text-slate-400 text-sm">核心成员</p>
+                        </div>
+                        <div class="info-content">
+                            <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
+                                <div class="flex items-center gap-x-2">
+                                    <span class="role-plate">项目经理</span>
+                                    <span class="name-card">黄文强</span>
+                                </div>
+                                <div class="flex items-center gap-x-2">
+                                    <span class="role-plate">项目管理工程师</span>
+                                    <span class="name-card">郝正东</span>
+                                </div>
+                                <div class="flex items-center gap-x-2">
+                                    <span class="role-plate">子产品线项目代表</span>
+                                    <div class="flex items-center gap-x-2">
+                                        <span class="name-card">袁潮</span>
+                                        <span class="name-card">郝正东</span>
+                                        <span class="name-card">曹雷</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="details-card">
+                 <h3 class="text-lg font-bold text-cyan-400 mb-6">项目进度追踪</h3>
+                 <div id="timeline-container"></div>
+                 <p id="project-remark" class="text-slate-400 mt-6 text-sm"></p>
+            </section>
+            
+            <section class="details-card">
+                <div class="flex items-center gap-x-6">
+                    <div class="flex-shrink-0">
+                        <h3 class="text-lg font-bold text-cyan-400">项目齐套率</h3>
+                        <div id="kit-rate-time" class="text-xs text-slate-500 font-mono mt-1"></div>
+                    </div>
+                    <div class="bg-slate-900/50 rounded-md flex-grow">
+                        <div class="ticker-row">
+                            <div id="kit-rate-project-id" class="text-slate-400 font-mono text-sm"></div>
+                            <div id="kit-rate-project-name" class="text-slate-200 text-sm truncate"></div>
+                            <div class="w-full flex items-center gap-x-2">
+                                <div class="flex-grow bg-slate-700 rounded-full h-1.5">
+                                    <div class="bg-cyan-500 h-1.5 rounded-full" style="width: 50%"></div>
+                                </div>
+                                <span class="font-semibold text-cyan-300 text-sm w-10 text-right">50%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-slate-700">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-cyan-400">物料异常查询</h3>
+                        <div class="flex items-center gap-x-2">
+                            <div id="product-line-filters" class="flex items-center gap-x-2">
+                                <!-- 产品线筛选按钮将由JS动态生成于此 -->
+                            </div>
+                            <input type="text" id="anomaly-material-search" placeholder="输入物料编码或名称查询" class="bg-slate-800 border border-slate-600 rounded-md px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 w-56">
+                            <button id="anomaly-search-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-1.5 px-4 rounded-md text-sm">查询</button>
+                            <button id="anomaly-reset-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-1.5 px-4 rounded-md text-sm">重置</button>
+                            <button id="anomaly-export-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 px-4 rounded-md text-sm">导出</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="anomaly-material-table" class="material-table w-full text-sm">
+                            <thead class="text-sm text-slate-300 uppercase">
+                                 <tr>
+                                    <th class="px-4 py-3 text-center" style="width: 10%;">物料编码</th>
+                                    <th class="px-4 py-3 text-center" style="width: 20%;">名称</th>
+                                    <th class="px-4 py-3 text-center" style="width: 10%;">共计物料数</th>
+                                    <th class="px-4 py-3 text-center" style="width: 10%;">已到数</th>
+                                    <th class="px-4 py-3 text-center" style="width: 10%;">未到数</th>
+                                    <th class="px-4 py-3 text-center" style="width: 10%;">整体进度</th>
+                                    <th class="px-4 py-3 text-center" style="width: 15%;">需求计划</th>
+                                    <th class="px-4 py-3 text-center" style="width: 15%;">交付时间</th>
+                                    <th class="px-4 py-3 text-center" style="width: 15%;">当前状态</th>
+                                </tr>
+                            </thead>
+                            <tbody id="anomaly-material-tbody">
+                                <tr class="border-b border-slate-700 hover:bg-slate-800 delivery-missed" data-product-line="智能装备">
+                                    <td class="px-4 py-3 text-center">2030100097</td>
+                                    <td class="px-4 py-3 text-center font-medium text-white">大尺寸超高分辨率液晶模组讯号发生器GS033N-D(钣金，黑色细砂纹)</td>
+                                    <td class="px-4 py-3 text-center total-count">1000</td>
+                                    <td class="px-4 py-3 text-center arrived-count">700</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-cyan-400 hover:text-cyan-300 hover:underline unarrived-count cursor-pointer">300</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center progress-percent">70%</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-12</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-28</td>
+                                    <td class="px-4 py-3 text-center text-orange-400">采购中</td>
+                                </tr>
+                                <tr class="border-b border-slate-700 hover:bg-slate-800 no-delivery-date" data-product-line="电测">
+                                    <td class="px-4 py-3 text-center">2040100089</td>
+                                    <td class="px-4 py-3 text-center font-medium text-white">8K分体式讯号适配器GA033I主体（钣金黑色细砂纹）</td>
+                                    <td class="px-4 py-3 text-center total-count">2000</td>
+                                    <td class="px-4 py-3 text-center arrived-count">1500</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-cyan-400 hover:text-cyan-300 hover:underline unarrived-count cursor-pointer">500</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center progress-percent">75%</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-10</td>
+                                    <td class="px-4 py-3 text-center font-mono">-</td>
+                                    <td class="px-4 py-3 text-center text-cyan-400">制作中</td>
+                                </tr>
+                                <tr class="border-b border-slate-700 hover:bg-slate-800" data-product-line="电测">
+                                    <td class="px-4 py-3 text-center">2030100097</td>
+                                    <td class="px-4 py-3 text-center font-medium text-white">大尺寸超高分辨率液晶模组讯号发生器 GS033N-D (钣金，黑色细砂纹)</td>
+                                    <td class="px-4 py-3 text-center total-count">500</td>
+                                    <td class="px-4 py-3 text-center arrived-count">500</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-cyan-400 hover:text-cyan-300 hover:underline unarrived-count cursor-pointer">0</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center progress-percent">100%</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-15</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-14</td>
+                                    <td class="px-4 py-3 text-center text-green-400">已入库</td>
+                                </tr>
+                                <tr class="border-b border-slate-700 hover:bg-slate-800" data-product-line="加特林">
+                                    <td class="px-4 py-3 text-center">2040100089</td>
+                                    <td class="px-4 py-3 text-center font-medium text-white">8K 分体式讯号适配器 GA033I 主体（钣金黑色细砂纹）</td>
+                                    <td class="px-4 py-3 text-center total-count">600</td>
+                                    <td class="px-4 py-3 text-center arrived-count">600</td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="text-cyan-400 hover:text-cyan-300 hover:underline unarrived-count cursor-pointer">0</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-center progress-percent">100%</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-16</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-15</td>
+                                    <td class="px-4 py-3 text-center text-green-400">已入库</td>
+                                </tr>
+                                <tr class="border-b border-slate-700 hover:bg-slate-800" data-product-line="加特林">
+                                    <td class="px-4 py-3 text-center">2040100103</td>
+                                    <td class="px-4 py-3 text-center font-medium text-white">8K 分体式讯号适配器 GA033I LVDS 信号扩展套件（钣金，黑色细砂纹）</td>
+                                    <td class="px-4 py-3 text-center total-count">700</td>
+                                    <td class="px-4 py-3 text-center arrived-count">700</td>
+                                    <td class="px-4 py-3 text-center"><span class="text-cyan-400 hover:text-cyan-300 hover:underline unarrived-count cursor-pointer">0</span></td>
+                                    <td class="px-4 py-3 text-center progress-percent">100%</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-17</td>
+                                    <td class="px-4 py-3 text-center font-mono">2025-09-16</td>
+                                    <td class="px-4 py-3 text-center text-green-400">已入库</td>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section class="details-card">
+                <h3 class="text-lg font-bold text-cyan-400 mb-6">成本管理</h3>
+                <div class="mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700 grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                    <div>
+                        <p class="text-sm text-slate-400">预算总成本</p>
+                        <p class="text-xl font-bold text-slate-200 mt-1">¥3,000,000</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400">已请购额</p>
+                        <p class="text-xl font-bold text-slate-200 mt-1">¥2,500,000</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400">已领料额</p>
+                        <p class="text-xl font-bold text-slate-200 mt-1">¥2,000,000</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400">已支出费用</p>
+                        <p class="text-xl font-bold text-slate-200 mt-1">¥1,800,000</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400">结余</p>
+                        <p class="text-xl font-bold text-green-400 mt-1">¥1,200,000</p>
+                    </div>
+                </div>
+                <div id="cost-analysis-container" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    </div>
+            </section>
+
+            
+
+        </div>
+    </main>
+
+    <!-- 成本详情弹窗结构 -->
+    <div id="cost-details-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="close-modal-btn" onclick="closeCostModal()">&times;</div>
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span class="w-2 h-6 bg-cyan-500 rounded-sm"></span>
+                成本详细数据表
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="cost-detail-table">
+                    <thead>
+                        <tr>
+                            <th>产品线</th>
+                            <th>材料预算成本</th>
+                            <th>材料实际成本</th>
+                            <th>材料BOM实际成本</th>
+                            <th>制造费用预算</th>
+                            <th>制造费用成本</th>
+                            <th>研发费用预算</th>
+                            <th>研发费用成本</th>
+                            <th>售后用预算</th>
+                            <th>售后费用成本</th>
+                            <th>总预算</th>
+                            <th>总成本</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cost-detail-tbody">
+                        <!-- JS动态插入 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script>
+        // --- 静态数据源 START ---
+        const projectDataCSV = `
+序号,项目编号,项目名称,需求出货时间,节点,项目启动,研发BOM发布,生产程序释放,核心部件出货,设备MOVE IN,安装验收,调试验收,急单标识,开始,结束,总周期(天),状态,备注,项目经理
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,人员,佘黎,佘黎,,张琰,邓炜,韦柏杨,韦柏杨,是,,,,风险预警,经与销售协调一致，可从8/22调整至9/8号出货,
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,计划,2025-08-11,2025-08-12,,,2025-09-02,2025-09-15,2025-09-22,是,2025-08-11,2025-09-02,22,风险预警,,
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,实际,2025-08-14,,,,,,,是,,2025-09-17,,风险预警,,
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,人员,佘黎,佘黎,,杨蓉,,,,否,,,,正常进行,与2506DDEHZ2889 一同出货,
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,计划,2025-08-12,2025-08-13,,,,,,否,2025-08-12,2025-08-25,13,正常进行,,
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,实际,2025-08-12,2025-08-13,,,,,,否,,,,正常进行,,
+8,2508DDEHD3918,杭州-PG GS033-1 发货清单,2025-08-20,人员,张三,李四,,王五,,,,是,,,,正常进行,,张三
+8,2508DDEHD3918,杭州-PG GS033-1 发货清单,2025-08-20,计划,2025-08-10,2025-08-11,,,,,,是,2025-08-10,2025-08-20,10,正常进行,,
+8,2508DDEHD3918,杭州-PG GS033-1 发货清单,2025-08-20,实际,2025-08-10,2025-08-12,,,,,,是,,,,正常进行,,
+        `;
+        
+        const costData = {
+            '总未税成本': {
+                items: [
+                    { name: '材料&运输&备品备件成本', budget: 22627840.31, difference: 15271095.81 },
+                    { name: '制造费用成本', budget: 1147734.58, difference: 1147734.58 },
+                    { name: '研发费用', budget: 337704.00, difference: 239666.13 },
+                    { name: '售后&管理&其他费用', budget: 115171.20, difference: 112531.08 },
+                ]
+            },
+            'GET产品线未税成本': {
+                items: [
+                    { name: '材料&运输&备品备件成本', budget: 21388640.31, difference: 1067726.35 },
+                    { name: '制造费用成本', budget: 943009.58, difference: -734071.53 },
+                    { name: '研发费用', budget: 337704.00, difference: -231509.31 },
+                    { name: '售后&管理&其他费用', budget: 115171.20, difference: 0 },
+                ]
+            },
+            'JVT产品线未税成本': {
+                items: [
+                    { name: '材料&运输&备品备件成本', budget: 1239200.00, difference: 268000.00 },
+                    { name: '制造费用成本', budget: 204725.00, difference: -204725.00 },
+                    { name: '研发费用', budget: 0, difference: 0 },
+                    { name: '售后&管理&其他费用', budget: 0, difference: 0 },
+                ]
+            }
+        };
+
+        const detailedNodeKeys = ['项目启动', '研发BOM发布', '生产程序释放', '核心部件出货', '设备MOVE IN', '安装验收', '调试验收'];
+        // --- 静态数据源 END ---
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeProjectDetails(projectDataCSV);
+            renderCostAnalysis(costData);
+            initializeAnomalyMaterialSearch();
+            initializeTimers();
+            checkDeliveryStatus();
+            initializeAnomalyFilters();
+            generateProductLineFilters();
+            sortAnomalyTableByDefault();
+        });
+        
+        // ---- 渲染函数 ----
+
+        
+        function initializeProjectDetails(csv) {
+            const params = new URLSearchParams(window.location.search);
+            const projectId = params.get('id') || '2508DDEHD3918';
+            
+            const allProjectsData = parseCSV(csv);
+            const projectData = allProjectsData.find(p => p.overview['项目编号'] === projectId);
+
+            if (!projectData) {
+                document.querySelector('main').innerHTML = `<p class="text-center text-red-500">错误：项目编号 "${projectId}" 不存在。</p>`;
+                return;
+            }
+
+            document.getElementById('project-name').textContent = projectData.overview['项目名称'];
+            document.getElementById('project-id').textContent = projectData.overview['项目编号'];
+            document.getElementById('kit-rate-project-id').textContent = projectData.overview['项目编号'];
+            document.getElementById('kit-rate-project-name').textContent = projectData.overview['项目名称'];
+            document.getElementById('project-owner').textContent = projectData.overview['项目经理'] || 'N/A';
+            document.getElementById('project-remark').textContent = projectData.overview['备注'] ? '备注：' + projectData.overview['备注'] : '';
+            
+            const totalCycle = calculateDaysBetween(projectData.overview['开始'], projectData.overview['需求出货时间']);
+            document.getElementById('project-cycle').textContent = totalCycle ? `${totalCycle}天` : '-';
+            
+            const statusLight = document.getElementById('project-status-light');
+            statusLight.classList.toggle('warning', projectData.overview['状态'] === '风险预警');
+            statusLight.classList.toggle('normal', projectData.overview['状态'] !== '风险预警');
+
+            renderTimeline(projectData.nodes);
+        }
+
+        function renderTimeline(nodes) {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+            let activeNodeFound = false;
+            let completedCount = 0;
+
+            detailedNodeKeys.forEach((key) => {
+                const node = nodes[key];
+                let status = 'pending';
+                let dotClass = 'timeline-dot-pending';
+                let checkIcon = '';
+
+                if (node && node['实际']) {
+                    status = 'completed';
+                    dotClass = 'timeline-dot-completed';
+                    checkIcon = '<svg class="w-4 h-4 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>';
+                    completedCount++;
+                } else if (!activeNodeFound) {
+                    status = 'active';
+                    dotClass = 'timeline-dot-active';
+                    activeNodeFound = true;
+                }
+
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.innerHTML = `
+                    <div class="timeline-dot ${dotClass}">${checkIcon}</div>
+                    <div>
+                        <h4 class="font-bold text-base ${status === 'active' ? 'text-cyan-400' : 'text-slate-200'}">${key}</h4>
+                        <p class="text-sm text-slate-400 mt-1">负责人: ${node && node['人员'] ? node['人员'] : '待分配'}</p>
+                        <div class="text-sm mt-2 text-slate-400">
+                            <p>计划: <span class="text-slate-300">${node && node['计划'] ? node['计划'] : '-'}</span></p>
+                            ${status === 'completed' ? `<p class="mt-1">实际: <span class="font-semibold text-green-400">${node['实际']}</span></p>` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+
+            const progress = (completedCount / (detailedNodeKeys.length - 1)) * 100;
+            container.style.setProperty('--progress-width', `${progress}%`);
+        }
+
+        function renderCostAnalysis(data) {
+            const container = document.getElementById('cost-analysis-container');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            Object.entries(data).forEach(([title, categoryData], index) => {
+                const totalBudget = categoryData.items.reduce((sum, item) => sum + item.budget, 0);
+                const totalDifference = categoryData.items.reduce((sum, item) => sum + item.difference, 0);
+                const totalActual = totalBudget - totalDifference;
+                const usagePercent = totalBudget > 0 ? (totalActual / totalBudget) * 100 : 0;
+                
+                const card = document.createElement('div');
+                // 修改：添加 clickable-card 类和 onclick 事件
+                card.className = 'clickable-card bg-slate-800/50 p-5 rounded-lg border border-slate-700 relative';
+                card.onclick = () => openCostModal(data);
+                
+                // 修改：添加提示图标
+                const hoverHint = document.createElement('div');
+                hoverHint.className = 'absolute top-3 right-3 text-slate-500 opacity-50';
+                hoverHint.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>';
+                card.appendChild(hoverHint);
+
+                let breakdownHtml = '';
+                const materialItem = categoryData.items.find(item => item.name === '材料&运输&备品备件成本');
+                const otherItems = categoryData.items.filter(item => item.name !== '材料&运输&备品备件成本');
+
+                // 1. 处理“材料&运输&备品备件成本”分组
+                if (materialItem) {
+                    // 成本预算部分 (已请购)
+                    const budgetActual = materialItem.budget - materialItem.difference;
+                    const budgetPercent = materialItem.budget > 0 ? (budgetActual / materialItem.budget) * 100 : 0;
+                    const budgetIsOver = budgetActual > materialItem.budget;
+                    const budgetDiffColor = materialItem.difference >= 0 ? 'text-green-400' : 'text-red-500';
+                    const budgetDiffSign = materialItem.difference >= 0 ? '+' : '';
+
+                    // 成本领用部分 (已领料) - 假设领用是已请购的80%
+                    const usageActual = budgetActual * 0.8;
+                    const usagePercent = materialItem.budget > 0 ? (usageActual / materialItem.budget) * 100 : 0;
+                    const usageIsOver = usageActual > materialItem.budget;
+                    const usageDifference = materialItem.budget - usageActual;
+                    const usageDiffColor = usageDifference >= 0 ? 'text-green-400' : 'text-red-500';
+                    const usageDiffSign = usageDifference >= 0 ? '+' : '';
+
+                    breakdownHtml += `
+                        <div class="border border-slate-600 rounded-md p-3 space-y-3">
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center"><span class="text-slate-400 text-sm truncate">材料&运输&备品备件BOM成本</span><span class="text-xs ${budgetDiffColor} font-medium">差额: ${budgetDiffSign}${formatCurrency(materialItem.difference, true)}</span></div>
+                                <div class="progress-bar-container"><div class="progress-bar ${budgetIsOver ? 'over-budget' : ''}" style="width: ${Math.min(budgetPercent, 100)}%;"></div></div>
+                                <div class="text-xs text-right text-slate-500"><span>${formatCurrency(budgetActual, true)}</span> / <span class="opacity-70">${formatCurrency(materialItem.budget, true)}</span></div>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center"><span class="text-slate-400 text-sm truncate">材料&运输&备品备件成本领用</span><span class="text-xs ${usageDiffColor} font-medium">差额: ${usageDiffSign}${formatCurrency(usageDifference, true)}</span></div>
+                                <div class="progress-bar-container"><div class="progress-bar ${usageIsOver ? 'over-budget' : ''}" style="width: ${Math.min(usagePercent, 100)}%;"></div></div>
+                                <div class="text-xs text-right text-slate-500"><span>${formatCurrency(usageActual, true)}</span> / <span class="opacity-70">${formatCurrency(materialItem.budget, true)}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 2. 处理其他独立分组
+                otherItems.forEach(item => {
+                    const actual = item.budget - item.difference;
+                    const percent = item.budget > 0 ? (actual / item.budget) * 100 : 0;
+                    const isOverBudget = actual > item.budget;
+                    const diff_color = item.difference >= 0 ? 'text-green-400' : 'text-red-500';
+                    const diff_sign = item.difference >= 0 ? '+' : '';
+
+                    breakdownHtml += `
+                        <div class="border border-slate-600 rounded-md p-3">
+                            <div class="space-y-1">
+                                <div class="flex justify-between items-center"><span class="text-slate-400 text-sm truncate">${item.name}</span><span class="text-xs ${diff_color} font-medium">差额: ${diff_sign}${formatCurrency(item.difference, true)}</span></div>
+                                <div class="progress-bar-container"><div class="progress-bar ${isOverBudget ? 'over-budget' : ''}" style="width: ${Math.min(percent, 100)}%;"></div></div>
+                                <div class="text-xs text-right text-slate-500"><span>${formatCurrency(actual, true)}</span> / <span class="opacity-70">${formatCurrency(item.budget, true)}</span></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const total_diff_color = totalDifference >= 0 ? 'text-green-400' : 'text-red-500';
+                const total_diff_sign = totalDifference >= 0 ? '+' : '';
+
+                // 修改：给内容添加 pointer-events-none 以避免点击子元素触发多次事件（可选，但推荐）
+                card.innerHTML += `
+                    <h4 class="text-base font-bold text-slate-200 mb-4 text-center pointer-events-none">${title}</h4>
+                    <div class="cost-chart-container mb-4 pointer-events-none">
+                        <canvas id="costChart${index}"></canvas>
+                        <div class="cost-chart-center-text">
+                            <span class="text-slate-400 text-sm">预算使用</span>
+                            <p class="font-bold text-2xl" style="color: ${usagePercent >= 90 ? '#FF0000' : '#38bdf8'};">${usagePercent.toFixed(1)}%</p>
+                        </div>
+                    </div>
+                    <div class="text-center space-y-1 mb-6 pointer-events-none">
+                         <p class="text-sm text-slate-400">实际成本: <span class="font-semibold text-slate-200">${formatCurrency(totalActual, true)}</span></p>
+                         <p class="text-sm text-slate-400">预算成本: <span class="font-semibold text-slate-200 opacity-80">${formatCurrency(totalBudget, true)}</span></p>
+                         <p class="text-sm ${total_diff_color}">成本差额: <span class="font-semibold">${total_diff_sign}${formatCurrency(totalDifference, true)}</span></p>
+                    </div>
+                    <div class="space-y-4 border-t border-slate-700 pt-4 pointer-events-none">
+                        ${breakdownHtml}
+                    </div>
+                `;
+                container.appendChild(card);
+                
+                // 渲染图表
+                const ctx = document.getElementById(`costChart${index}`).getContext('2d');
+                
+                const gradient = ctx.createLinearGradient(0, 0, 0, 140);
+                gradient.addColorStop(0, '#7dd3fc'); // 浅天蓝 (sky-300)
+                gradient.addColorStop(1, '#00c2ff'); // 水蓝 (cyan-500)
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [usagePercent > 100 ? 100 : usagePercent, 100 - (usagePercent > 100 ? 100 : usagePercent)],
+                            backgroundColor: [gradient, '#374151'],
+                            borderWidth: 0,
+                            cutout: '80%',
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+                });
+            });
+        }
+        
+        // ---- 新增：弹窗控制逻辑 ----
+        
+        function openCostModal(data) {
+            const modal = document.getElementById('cost-details-modal');
+            const tbody = document.getElementById('cost-detail-tbody');
+            tbody.innerHTML = ''; // 清空旧数据
+
+            Object.entries(data).forEach(([key, value]) => {
+                // 清理产品线名称，去掉"未税成本"后缀
+                const lineName = key.replace('未税成本', '');
+                
+                // 辅助函数：根据名称查找 item
+                const findItem = (namePart) => value.items.find(i => i.name.includes(namePart));
+                const getVal = (item, type) => {
+                    if (!item) return 0;
+                    if (type === 'budget') return item.budget;
+                    if (type === 'actual') return item.budget - item.difference;
+                    return 0;
+                };
+
+                const matItem = findItem('材料');
+                const mfgItem = findItem('制造');
+                const rdItem = findItem('研发');
+                const afterSaleItem = findItem('售后');
+
+                // 计算各项数值
+                const matBudget = getVal(matItem, 'budget');
+                const matActual = getVal(matItem, 'actual');
+                // 逻辑：代码中材料领用是实际的 80% (与图表保持一致)
+                const matBomActual = matActual * 0.8; 
+
+                const mfgBudget = getVal(mfgItem, 'budget');
+                const mfgActual = getVal(mfgItem, 'actual');
+
+                const rdBudget = getVal(rdItem, 'budget');
+                const rdActual = getVal(rdItem, 'actual');
+
+                const asBudget = getVal(afterSaleItem, 'budget');
+                const asActual = getVal(afterSaleItem, 'actual');
+
+                const totalBudget = value.items.reduce((s, i) => s + i.budget, 0);
+                const totalActual = totalBudget - value.items.reduce((s, i) => s + i.difference, 0);
+
+                // 生成行 HTML
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${lineName}</td>
+                    <td>${formatCurrency(matBudget)}</td>
+                    <td class="text-cyan-400">${formatCurrency(matActual)}</td>
+                    <td class="text-green-400">${formatCurrency(matBomActual)}</td>
+                    <td>${formatCurrency(mfgBudget)}</td>
+                    <td>${formatCurrency(mfgActual)}</td>
+                    <td>${formatCurrency(rdBudget)}</td>
+                    <td>${formatCurrency(rdActual)}</td>
+                    <td>${formatCurrency(asBudget)}</td>
+                    <td>${formatCurrency(asActual)}</td>
+                    <td class="font-bold">${formatCurrency(totalBudget)}</td>
+                    <td class="font-bold text-cyan-300">${formatCurrency(totalActual)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            modal.style.display = 'flex';
+            // 强制重绘以触发 transition
+            setTimeout(() => modal.classList.add('show'), 10);
+            
+            // 点击遮罩层关闭
+            modal.onclick = (e) => {
+                if(e.target === modal) closeCostModal();
+            }
+        }
+
+        function closeCostModal() {
+            const modal = document.getElementById('cost-details-modal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300); // 等待动画结束
+        }
+
+        // ESC 键关闭支持
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeCostModal();
+        });
+
+        // ---- 初始化函数 ----
+        
+        function initializeTimers() {
+            const timeEl = document.getElementById('current-time');
+            function updateCurrentTime() {
+                timeEl.textContent = new Date().toLocaleString('zh-CN', { hour12: false });
+            }
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 1000);
+
+            const kitRateTimeEl = document.getElementById('kit-rate-time');
+            function updateKitRateTime() {
+                if (!kitRateTimeEl) return;
+                const now = new Date();
+                const formattedTime = now.getFullYear() + '-' +
+                                     ('0' + (now.getMonth() + 1)).slice(-2) + '-' +
+                                     ('0' + now.getDate()).slice(-2) + ' ' +
+                                     ('0' + now.getHours()).slice(-2) + ':' +
+                                     ('0' + now.getMinutes()).slice(-2);
+                kitRateTimeEl.textContent = `更新时间：${formattedTime}`;
+            }
+            updateKitRateTime();
+            setInterval(updateKitRateTime, 60000);
+        }
+
+        function initializeAnomalyMaterialSearch() {
+            const searchBtn = document.getElementById('anomaly-search-btn');
+            const searchInput = document.getElementById('anomaly-material-search');
+            const exportBtn = document.getElementById('anomaly-export-btn');
+            const tableBody = document.getElementById('anomaly-material-tbody');
+
+            if (!searchBtn || !searchInput || !tableBody || !exportBtn) return;
+
+            const performSearch = () => {
+                const searchTerm = searchInput.value.toLowerCase();
+                Array.from(tableBody.rows).forEach(row => {
+                    // 同时搜索物料编码（第1列）和名称（第2列）
+                    const codeText = row.cells[0]?.textContent.toLowerCase() || '';
+                    const nameText = row.cells[1]?.textContent.toLowerCase() || '';
+                    row.style.display = (codeText.includes(searchTerm) || nameText.includes(searchTerm)) ? '' : 'none';
+                });
+            };
+
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            exportBtn.addEventListener('click', () => {
+                let csvContent = "data:text/csv;charset=utf-8,";
+                const headers = Array.from(document.querySelectorAll('#anomaly-material-table thead th')).map(th => th.textContent).join(',');
+                csvContent += headers + "\r\n";
+
+                Array.from(tableBody.rows).forEach(row => {
+                    if (row.style.display !== 'none') { // 只导出可见行
+                        const rowData = Array.from(row.cells).map(cell => `"${cell.textContent.trim()}"`).join(',');
+                        csvContent += rowData + "\r\n";
+                    }
+                });
+
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "物料异常查询.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
+
+        function initializeTabs() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => btn.classList.remove('active-tab'));
+                    button.classList.add('active-tab');
+
+                    const tab = button.dataset.tab;
+                    tabContents.forEach(content => {
+                        if (content.id === `${tab}-content`) {
+                            content.style.display = 'block';
+                        } else {
+                            content.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        }
+
+        function checkDeliveryStatus() {
+            const anomalyTableBody = document.getElementById('anomaly-material-tbody');
+            if (!anomalyTableBody) return;
+
+            const rows = anomalyTableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const unarrivedCell = row.querySelector('.unarrived-count');
+                const deliveryDateCell = row.cells[7];
+
+                row.classList.remove('delivery-missed');
+                row.classList.remove('no-delivery-date');
+
+                const hasNoDeliveryDate = deliveryDateCell && (deliveryDateCell.textContent.trim() === '' || deliveryDateCell.textContent.trim() === '-');
+                if (hasNoDeliveryDate) {
+                    row.classList.add('no-delivery-date');
+                }
+
+                if (unarrivedCell) {
+                    const unarrivedCount = parseInt(unarrivedCell.textContent, 10);
+                    if (unarrivedCount > 0 && !hasNoDeliveryDate) { // 如果已经标记为无交期，则不再标记为交期不达
+                        row.classList.add('delivery-missed');
+                    }
+                }
+            });
+        }
+
+        function sortAnomalyTableByDefault() {
+            const tableBody = document.getElementById('anomaly-material-tbody');
+            if (!tableBody) return;
+
+            const rows = Array.from(tableBody.rows);
+
+            const isProblematic = (row) => {
+                const isDeliveryMissed = row.classList.contains('delivery-missed');
+                const deliveryDateCell = row.cells[7];
+                const cellText = deliveryDateCell ? deliveryDateCell.textContent.trim() : '';
+                const isNoDeliveryDate = cellText === '' || cellText === '-';
+                return isDeliveryMissed || isNoDeliveryDate;
+            };
+
+            rows.sort((a, b) => {
+                const aProblem = isProblematic(a);
+                const bProblem = isProblematic(b);
+                if (aProblem && !bProblem) return -1;
+                if (!aProblem && bProblem) return 1;
+                return 0;
+            });
+
+            rows.forEach(row => tableBody.appendChild(row));
+        }
+
+        function initializeAnomalyFilters() {
+            const resetBtn = document.getElementById('anomaly-reset-btn');
+            const searchInput = document.getElementById('anomaly-material-search');
+            const tableBody = document.getElementById('anomaly-material-tbody');
+            if (!tableBody || !resetBtn || !searchInput) return;
+
+            const allRows = Array.from(tableBody.rows);
+
+            resetBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                document.querySelectorAll('#product-line-filters .filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.replace('bg-cyan-600', 'bg-transparent');
+                    btn.classList.replace('text-white', 'text-cyan-400');
+                });
+                allRows.forEach(row => row.style.display = '');
+                sortAnomalyTableByDefault();
+            });
+        }
+
+        function generateProductLineFilters() {
+            const tableBody = document.getElementById('anomaly-material-tbody');
+            const filterContainer = document.getElementById('product-line-filters');
+            if (!tableBody || !filterContainer) return;
+
+            const productLines = new Set();
+            const allRows = Array.from(tableBody.rows);
+            allRows.forEach(row => {
+                const productLine = row.dataset.productLine;
+                if (productLine) {
+                    productLines.add(productLine);
+                }
+            });
+
+            productLines.forEach(line => {
+                const button = document.createElement('button');
+                button.className = 'filter-btn bg-transparent border border-cyan-500 text-cyan-400 hover:bg-cyan-600 hover:text-white';
+                button.textContent = line;
+                button.addEventListener('click', () => {
+                    const isActive = button.classList.contains('active');
+                    // Reset all buttons
+                    filterContainer.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.classList.replace('bg-cyan-600', 'bg-transparent');
+                        btn.classList.replace('text-white', 'text-cyan-400');
+                    });
+                    // Filter logic
+                    allRows.forEach(row => {
+                        const rowProductLine = row.dataset.productLine;
+                        if (isActive) { // If it was active, show all
+                            row.style.display = '';
+                        } else { // If it was not active, filter
+                            row.style.display = rowProductLine === line ? '' : 'none';
+                        }
+                    });
+                    // Set active state on the clicked button if it wasn't active before
+                    if (!isActive) {
+                        button.classList.add('active');
+                        button.classList.replace('bg-transparent', 'bg-cyan-600');
+                        button.classList.replace('text-cyan-400', 'text-white');
+                    }
+                });
+                filterContainer.appendChild(button);
+            });
+        }
+
+        // ---- 辅助函数 ----
+
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n').filter(line => line.length > 0);
+            const headers = lines[0].split(',').map(h => h.trim());
+            const projects = {};
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const rowData = headers.reduce((obj, header, index) => {
+                    obj[header] = values[index] ? values[index].trim() : '';
+                    return obj;
+                }, {});
+
+                const id = rowData['项目编号'];
+                if (!id) continue;
+
+                if (!projects[id]) {
+                    projects[id] = {
+                        overview: { ...rowData },
+                        nodes: detailedNodeKeys.reduce((acc, key) => ({ ...acc, [key]: {} }), {})
+                    };
+                }
+
+                const nodeType = rowData['节点']; // '人员', '计划', '实际'
+                if(nodeType) {
+                    detailedNodeKeys.forEach(key => {
+                        if (rowData[key]) {
+                            if(!projects[id].nodes[key]) projects[id].nodes[key] = {};
+                            projects[id].nodes[key][nodeType] = rowData[key];
+                        }
+                    });
+                }
+
+                if (nodeType === '人员') {
+                    projects[id].overview['项目经理'] = rowData['项目启动'];
+                }
+                if (nodeType === '计划') {
+                    projects[id].overview['下单时间'] = rowData['开始'];
+                    projects[id].overview['结束时间'] = rowData['结束'];
+                }
+                if (rowData['状态']) {
+                    projects[id].overview['状态'] = rowData['状态'];
+                }
+                if (rowData['备注']) {
+                    projects[id].overview['备注'] = rowData['备注'];
+                }
+            }
+            return Object.values(projects);
+        }
+        
+        function calculateDaysBetween(start, end) {
+            if (!start || !end || start === '-' || end === '-') return '-';
+            const diffTime = Math.abs(new Date(end) - new Date(start));
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function sortTableByColumn(table, column, asc = true) {
+            const dir = asc ? 1 : -1;
+            const tBody = table.tBodies[0];
+            const rows = Array.from(tBody.rows);
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.cells[column].textContent.trim();
+                const bText = b.cells[column].textContent.trim();
+                return aText.localeCompare(bText, undefined, { numeric: true }) * dir;
+            });
+            tBody.append(...sortedRows);
+        }
+        
+        function formatCurrency(num, withSymbol = false) {
+            if (typeof num !== 'number') return 'N/A';
+            const symbol = withSymbol ? '¥ ' : '';
+            return symbol + num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Inline card logic
+        (function() {
+            function closeCard() {
+                const existing = document.querySelector('.inline-card');
+                if (existing) existing.remove();
+            }
+
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('.unarrived-count');
+                if (target) {
+                    e.preventDefault();
+                    const unarrivedCount = parseInt(target.textContent, 10);
+                    // 如果未到数为0，则不执行任何操作
+                    if (unarrivedCount === 0) return;
+
+                    const opened = document.querySelector('.inline-card');
+                    if (opened) {
+                        if (opened._source === target) { closeCard(); return; }
+                        closeCard();
+                    }
+
+                    const rect = target.getBoundingClientRect();
+                    const card = document.createElement('div');
+                    card.className = 'inline-card';
+                    card.innerHTML = `
+                        <div class="close-btn" title="关闭">×</div>
+                        <h4>未到数详情</h4>
+                        <table class="w-full text-left text-xs mt-2">
+                            <thead class="text-slate-400">
+                                <tr>
+                                    <th class="p-1 border-b border-slate-600 font-semibold">物料编码</th>
+                                    <th class="p-1 border-b border-slate-600 font-semibold">预计到货时间</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-slate-200">
+                                <tr><td class="p-1 border-b border-slate-700">2030100097-001</td><td class="p-1 border-b border-slate-700">2025-09-26</td></tr>
+                                <tr><td class="p-1 border-b border-slate-700">2030100097-002</td><td class="p-1 border-b border-slate-700">2025-09-27</td></tr>
+                                <tr><td class="p-1 border-b border-slate-700">2030100097-003</td><td class="p-1 border-b border-slate-700">2025-09-28</td></tr>
+                                <tr><td class="p-1 border-b border-slate-700">2030100097-004</td><td class="p-1 border-b border-slate-700">2025-09-29</td></tr>
+                                <tr><td class="p-1">2030100097-005</td><td class="p-1">2025-09-30</td></tr>
+                            </tbody>
+                        </table>
+                    `;
+                    card._source = target;
+
+                    document.body.appendChild(card);
+
+                    // 计算位置：优先显示在触发元素上方，若空间不足则显示下方
+                    const cardRect = card.getBoundingClientRect();
+                    let top = window.scrollY + rect.top - cardRect.height - 8;
+                    let left = window.scrollX + rect.left;
+
+                    // 保持卡片不超出右边界
+                    if (left + cardRect.width > window.innerWidth - 12) {
+                        left = window.innerWidth - cardRect.width - 12;
+                    }
+                    if (left < 8) left = 8;
+
+                    // 如果上方空间不足，则显示在下方
+                    if (top < window.scrollY + 12) {
+                        top = window.scrollY + rect.bottom + 8;
+                    }
+
+                    card.style.left = left + 'px';
+                    card.style.top = top + 'px';
+
+                    // 关闭按钮
+                    card.querySelector('.close-btn').addEventListener('click', closeCard);
+
+                } else {
+                    // 点击页面其它位置时，若不是点击卡片则关闭
+                    if (!e.target.closest('.inline-card')) closeCard();
+                }
+            });
+
+            // ESC 关闭
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeCard();
+            });
+        })();
+    </script>
+
+</body></html>

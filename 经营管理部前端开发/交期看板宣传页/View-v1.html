@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <!-- 适配手机端：默认缩放2.0 -->
+    <meta name="viewport" content="width=device-width, initial-scale=2.0">
+    <title>新功能上线海报</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            /* PC端适配缩放 */
+            @media (min-width: 768px) {
+                zoom: 1.5;
+            }
+        }
+        .pop-shadow {
+            box-shadow: 8px 8px 0px rgba(0,0,0,1);
+        }
+        .browser-window {
+            border: 2px solid #000;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: white;
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.1);
+        }
+        .browser-header {
+            background: #f3f4f6;
+            border-bottom: 2px solid #000;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.25rem;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            border: 1px solid #000;
+        }
+        .dashed-line {
+            position: absolute;
+            left: 15px;
+            top: 2rem;
+            width: 2px;
+            /* 高度覆盖到下一个节点 */
+            height: calc(100% + 32px); 
+            background-image: linear-gradient(to bottom, #000 50%, transparent 50%);
+            background-size: 2px 10px;
+            opacity: 0.3;
+            z-index: 0;
+            pointer-events: none;
+        }
+        /* 引用块样式 */
+        .quote-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 0.75rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.75rem;
+            color: #b45309;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body class="bg-yellow-50 min-h-screen flex items-center justify-center p-4">
+
+    <!-- 海报容器 -->
+    <div class="w-full max-w-md bg-white border-4 border-black pop-shadow relative overflow-hidden flex flex-col">
+        
+        <!-- 装饰背景 -->
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-300 rounded-full border-4 border-black z-0"></div>
+        <div class="absolute top-20 -left-4 w-16 h-16 bg-blue-400 rounded-full border-4 border-black z-0"></div>
+        
+        <!-- 顶部 Header -->
+        <div class="relative z-10 p-6 pb-2 text-center">
+            <div class="inline-block bg-black text-white px-3 py-1 text-sm font-bold rounded-full mb-2 transform -rotate-2">
+                ✨ 全新板块 · 正式发布
+            </div>
+            <h1 class="text-4xl font-black text-gray-900 leading-tight mb-2">
+                项目作战地图<br>
+                <span class="text-blue-600">上线啦！</span> 🚀
+            </h1>
+            
+            <!-- 插入文案：铁三角作战导航 -->
+            <div class="quote-box text-left mx-2 shadow-sm border border-gray-200">
+                "助力铁三角作战导航，精准指引每一步行动，确保团队协作无间。"
+            </div>
+
+        </div>
+
+        <!-- 核心流程区 -->
+        <div class="relative z-10 flex-1 px-6 pb-6 space-y-8">
+            
+            <!-- Step 1 -->
+            <div class="relative">
+                <div class="dashed-line"></div>
+                <div class="flex items-center mb-2 relative z-10">
+                    <div class="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-2 border-2 border-white shadow-md shrink-0">1</div>
+                    <h3 class="font-bold text-lg">锁定大本营</h3>
+                </div>
+                <div class="browser-window transform rotate-1 hover:rotate-0 transition-transform duration-300 ml-10">
+                    <div class="browser-header">
+                        <div class="dot bg-red-400"></div><div class="dot bg-yellow-400"></div><div class="dot bg-green-400"></div>
+                    </div>
+                    <!-- 自适应高度容器 (Removed aspect-[16/9], added h-auto block to img) -->
+                    <div class="relative bg-gray-100 border-b border-black">
+                        <img src="material/Image 4.png" alt="Step 1" class="w-full h-auto block" onerror="this.src='https://placehold.co/600x350?text=Image+4'">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 pl-10">👉 在工作台找到 <span class="font-bold text-black">“统一门户”</span> 图标</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="relative">
+                <!-- 连接线 2-3 (新增：确保 2 和 3 之间也有虚线) -->
+                <div class="dashed-line"></div>
+
+                <div class="flex items-center mb-2 relative z-10">
+                    <div class="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-2 border-2 border-white shadow-md shrink-0">2</div>
+                    <h3 class="font-bold text-lg">开启项目作战视图</h3>
+                </div>
+
+                <div class="browser-window transform -rotate-1 hover:rotate-0 transition-transform duration-300 ml-10">
+                    <div class="browser-header">
+                        <div class="dot bg-red-400"></div>
+                        <div class="dot bg-yellow-400"></div>
+                        <div class="dot bg-green-400"></div>
+                    </div>
+                    <div class="relative aspect-[16/9] bg-gray-100 group overflow-hidden border-b border-black">
+                         <!-- 图片2 -->
+                        <img 
+                            src="material/Image 1-2.png" 
+                            alt="项目作战地图入口截图" 
+                            class="w-full h-full object-cover object-right-bottom"
+                            onerror="this.src='https://placehold.co/600x350/e2e8f0/475569?text=Image+2+Missing'"
+                        >
+                        <div class="absolute bottom-8 right-8 text-4xl animate-bounce">👇</div>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 pl-10">👉 在快捷入口中选择 <span class="font-bold text-black">“项目作战地图”</span></p>
+            </div>
+
+            <!-- Step 3 (新增) -->
+            <div class="relative">
+                <div class="dashed-line"></div>
+                <div class="flex items-center mb-2 relative z-10">
+                    <div class="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-2 border-2 border-white shadow-md shrink-0">3</div>
+                    <h3 class="font-bold text-lg">轻松搞定订单交期查询</h3>
+                </div>
+                <div class="browser-window transform rotate-1 hover:rotate-0 transition-transform duration-300 ml-10">
+                    <div class="browser-header">
+                        <div class="dot bg-red-400"></div><div class="dot bg-yellow-400"></div><div class="dot bg-green-400"></div>
+                    </div>
+                    <!-- 自适应高度容器 -->
+                    <div class="relative bg-gray-100 border-b border-black">
+                        <img src="material/Image 2-4.png" alt="Step 3" class="w-full h-auto block" onerror="this.src='https://placehold.co/600x350?text=Image+2-2'">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 pl-10">👉 随时随地掌握订单进度，不再为等待而焦虑</p>
+            </div>
+
+            <!-- Step 4 (新增) -->
+            <div class="relative">
+                <div class="dashed-line"></div>
+                <div class="flex items-center mb-2 relative z-10">
+                    <div class="bg-black text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-2 border-2 border-white shadow-md shrink-0">4</div>
+                    <h3 class="font-bold text-lg">现场申请物料交期查询</h3>
+                </div>
+                <div class="browser-window transform -rotate-1 hover:rotate-0 transition-transform duration-300 ml-10">
+                    <div class="browser-header">
+                        <div class="dot bg-red-400"></div><div class="dot bg-yellow-400"></div><div class="dot bg-green-400"></div>
+                    </div>
+                    <!-- 自适应高度容器 -->
+                    <div class="relative bg-gray-100 border-b border-black">
+                        <img src="material/Image 2.png" alt="Step 4" class="w-full h-auto block" onerror="this.src='https://placehold.co/600x350?text=Image+2'">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 pl-10">👉 快速响应现场需求，保障供应顺畅运转</p>
+            </div>
+
+            <!-- Step 5 (原Step 3) -->
+            <div class="relative">
+                <div class="flex items-center mb-2 relative z-10">
+                    <div class="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-2 border-2 border-white shadow-md shrink-0">5</div>
+                    <h3 class="font-bold text-lg text-blue-800">有建议？找这里！</h3>
+                </div>
+                <div class="browser-window transform rotate-1 hover:rotate-0 transition-transform duration-300 ml-10 border-blue-600">
+                    <!-- 修改：将 header 设置为 relative，以便放置绝对定位的箭头 -->
+                    <div class="browser-header bg-blue-50 border-blue-600 relative">
+                        <div class="dot bg-red-400"></div><div class="dot bg-yellow-400"></div><div class="dot bg-green-400"></div>
+                        <!-- 新增：红色的粗箭头从 Header 空白处往下指 -->
+                        <div class="absolute top-0 right-2 text-4xl text-red-600 animate-bounce drop-shadow-md z-20 pointer-events-none">
+                            <i class="ph-fill ph-arrow-fat-down"></i>
+                        </div>
+                    </div>
+                    <!-- 自适应高度容器 (保持原样) -->
+                    <div class="relative bg-gray-100 border-b border-blue-600">
+                        <img src="material/Image 5.png" alt="Step 5" class="w-full h-auto block" onerror="this.src='https://placehold.co/600x200?text=Image+5'">
+                        <!-- 已移除旧的图片内箭头 -->
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 pl-10">💡 点击右上角 <span class="font-bold text-blue-600">“意见收集”</span> 图标</p>
+            </div>
+
+        </div>
+
+        <!-- 底部 Footer -->
+        <div class="bg-yellow-400 border-t-4 border-black p-6 text-center relative z-20">
+            <i class="ph-fill ph-star-four absolute top-3 left-6 text-2xl animate-spin-slow"></i>
+            <i class="ph-fill ph-star-four absolute bottom-3 right-6 text-xl animate-pulse"></i>
+
+            <div class="bg-white/80 p-3 rounded-lg mb-4 text-xs text-gray-800 leading-relaxed font-bold border-2 border-black/10 mx-2">
+                🤖 “我还是你们贴心的<span class="text-blue-600">产品线经营小助手</span>，监控项目运营大局，全面把握总体情况，让决策更明智、更高效。”
+            </div>
+            <p class="text-sm font-black mb-3">让我们一起开启这段智能高效的办公体验吧~</p>
+
+            <button class="bg-black text-white px-8 py-3 rounded-xl font-bold text-base hover:bg-gray-800 transition-colors border-2 border-transparent hover:border-white shadow-lg">
+                Go! 去看看
+            </button>
+            
+            <div class="mt-5 block">
+                <div class="inline-block bg-blue-600 text-yellow-400 px-4 py-1.5 text-sm font-extrabold rounded-md border-2 border-black transform rotate-1 hover:rotate-0 transition-transform">
+                    © 2025 数字化运营项目组 宣
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

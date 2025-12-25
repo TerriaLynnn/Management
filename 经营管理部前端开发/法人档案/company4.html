@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>横版交互式产品工作流</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 使用更适合中文的字体 */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* 状态样式 */
+        /* 已完成 */
+        .status-completed .node-circle { background-color: #22c55e; } /* green-500 */
+        .status-completed .node-line { background-color: #22c55e; } /* green-500 */
+        .status-completed .node-card { border-color: #22c55e; }
+        .status-completed .node-icon { color: #22c55e; }
+
+        /* 进行中 */
+        .status-current .node-circle { 
+            background-color: #3b82f6; /* blue-500 */
+            transform: scale(1.25);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3);
+            animation: pulse 2s infinite;
+        }
+        .status-current .node-line { background-color: #d1d5db; } /* gray-300 */
+        .status-current .node-card { 
+            border-color: #3b82f6; 
+            transform: translateY(-8px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .status-current .node-icon { color: #3b82f6; }
+
+        /* 未开始 */
+        .status-pending .node-circle { background-color: #d1d5db; } /* gray-300 */
+        .status-pending .node-line { background-color: #d1d5db; } /* gray-300 */
+        .status-pending .node-card { border-color: #e5e7eb; opacity: 0.7; }
+        .status-pending .node-icon { color: #9ca3af; } /* gray-400 */
+
+        /* 通用过渡效果 */
+        .node-circle, .node-line, .node-card, .node-icon {
+            transition: all 0.4s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50">
+
+    <!-- 头部导航栏 -->
+    <header class="bg-gradient-to-r from-slate-800 to-slate-700 text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <svg class="h-9 w-9 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                    </svg>
+                    <span class="font-bold text-2xl tracking-wider">项目仪表盘</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="container mx-auto px-4 py-12 md:py-20 w-full">
+        
+        <!-- 标题 -->
+        <div class="text-center mb-16 md:mb-24">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-800">产品开发流程</h1>
+            <p class="text-slate-500 mt-3 text-lg">点击下方节点可更新当前项目进度</p>
+        </div>
+
+        <!-- 横向工作流容器 -->
+        <div id="workflow-container" class="w-full flex items-start justify-between">
+            <!-- JS将在此处动态生成节点 -->
+        </div>
+    </main>
+
+    <script>
+        // 定义工作流数据
+        const workflowData = [
+            { 
+                title: '需求与构思', 
+                description: '进行市场调研、用户访谈和竞品分析，明确产品方向和核心价值。',
+                icon: `<svg class="h-8 w-8 node-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.311a7.5 7.5 0 01-7.5 0c-1.421 0-2.8- .51-3.962-1.358a-7.5 7.5 0 0115.062 0c-1.162.848-2.54 1.358-3.962 1.358zM12 6.75h.008v.008H12V6.75z" /></svg>`
+            },
+            { 
+                title: '原型与设计', 
+                description: '创建低保真和高保真原型，设计用户界面(UI)和用户体验(UX)。',
+                icon: `<svg class="h-8 w-8 node-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>`
+            },
+            { 
+                title: '开发与实现', 
+                description: '前端与后端工程师协作，将设计稿转化为可用的软件产品。',
+                icon: `<svg class="h-8 w-8 node-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" /></svg>`
+            },
+            { 
+                title: '测试与质保', 
+                description: '进行单元测试、集成测试和用户验收测试，确保产品稳定无误。',
+                icon: `<svg class="h-8 w-8 node-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
+            },
+            { 
+                title: '发布与上线', 
+                description: '将产品部署到生产环境，正式向用户发布。',
+                icon: `<svg class="h-8 w-8 node-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5l3 3m0 0l3-3m-3 3v-6m1.06-4.19l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" /></svg>`
+            },
+            { 
+                title: '运营与迭代', 
+                description: '收集用户反馈和数据，持续进行产品优化和功能迭代。',
+                icon: `<svg class="h-8 w-8 node-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.667 0l3.181-3.183m-4.991 0l-3.182-3.182a8.25 8.25 0 00-11.667 0l3.182 3.182z" /></svg>`
+            }
+        ];
+
+        const container = document.getElementById('workflow-container');
+
+        // 根据数据生成HTML节点
+        workflowData.forEach((item, index) => {
+            // 创建节点容器
+            // **修改点2**: 增加了 px-2 来提供节点间的水平间距
+            const nodeWrapper = document.createElement('div');
+            nodeWrapper.className = 'workflow-node flex-1 flex flex-col items-center cursor-pointer group px-2';
+            nodeWrapper.dataset.index = index;
+
+            // 创建节点上半部分 (图标和卡片)
+            const upperPart = document.createElement('div');
+            upperPart.className = 'flex flex-col items-center';
+            
+            // 创建卡片
+            // **修改点1**: 增加了 h-52 和 flex flex-col justify-center 来固定高度并垂直居中内容
+            const card = document.createElement('div');
+            card.className = 'node-card bg-white rounded-lg shadow-md p-4 w-48 text-center border-2 border-transparent mb-4 h-52 flex flex-col justify-center items-center';
+            card.innerHTML = `
+                <div class="flex justify-center items-center mb-2">${item.icon}</div>
+                <h3 class="font-bold text-slate-800 text-base">${item.title}</h3>
+                <p class="text-xs text-slate-500 mt-1">${item.description}</p>
+            `;
+
+            // 创建节点和连接线的容器
+            const connectionPart = document.createElement('div');
+            connectionPart.className = 'flex items-center w-full';
+
+            // 创建连接线 (左)
+            const lineLeft = document.createElement('div');
+            lineLeft.className = 'node-line h-1 w-full';
+            // 第一个节点没有左侧连接线
+            if (index === 0) lineLeft.style.visibility = 'hidden';
+
+            // 创建中心圆点
+            const circle = document.createElement('div');
+            circle.className = 'node-circle w-6 h-6 rounded-full flex-shrink-0 z-10';
+
+            // 创建连接线 (右)
+            const lineRight = document.createElement('div');
+            lineRight.className = 'node-line h-1 w-full';
+            // 最后一个节点没有右侧连接线
+            if (index === workflowData.length - 1) lineRight.style.visibility = 'hidden';
+
+            // 组装
+            upperPart.appendChild(card);
+            connectionPart.appendChild(lineLeft);
+            connectionPart.appendChild(circle);
+            connectionPart.appendChild(lineRight);
+
+            nodeWrapper.appendChild(upperPart);
+            nodeWrapper.appendChild(connectionPart);
+            
+            container.appendChild(nodeWrapper);
+        });
+        
+        const nodes = document.querySelectorAll('.workflow-node');
+
+        // 更新状态的函数
+        function updateStatus(selectedIndex) {
+            nodes.forEach((node, index) => {
+                node.classList.remove('status-completed', 'status-current', 'status-pending');
+
+                if (index < selectedIndex) {
+                    node.classList.add('status-completed');
+                } else if (index === selectedIndex) {
+                    node.classList.add('status-current');
+                } else {
+                    node.classList.add('status-pending');
+                }
+            });
+        }
+
+        // 为每个节点添加点击事件
+        nodes.forEach(node => {
+            node.addEventListener('click', () => {
+                const selectedIndex = parseInt(node.dataset.index);
+                updateStatus(selectedIndex);
+            });
+        });
+
+        // 初始化状态，默认第一个为当前步骤
+        updateStatus(0);
+
+    </script>
+</body>
+</html>

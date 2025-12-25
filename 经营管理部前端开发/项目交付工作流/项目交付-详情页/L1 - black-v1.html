@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目交期查询</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 使用更适合中文的字体 */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a192f; /* 深蓝色背景 */
+            color: #e6f1ff;
+        }
+        .dashboard-header {
+            background: rgba(10, 25, 47, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 194, 255, 0.2);
+        }
+        .project-card {
+            background: rgba(17, 34, 64, 0.75);
+            border: 2px solid rgba(0, 194, 255, 0.3); /* 边框已加粗 */
+            box-shadow: 0 0 15px rgba(0, 194, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .project-card:hover {
+            border-color: rgba(0, 194, 255, 0.7);
+            box-shadow: 0 0 25px rgba(0, 194, 255, 0.2);
+        }
+        .project-card.is-urgent {
+            border-color: #ef4444; /* red-500 */
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+        }
+        .progress-bar-track {
+            background-color: rgba(0, 194, 255, 0.1);
+        }
+        .progress-bar-fill {
+            background-color: #00c2ff; /* 青色 */
+            box-shadow: 0 0 8px #00c2ff;
+            transition: width 0.5s ease-in-out;
+        }
+        .stage-label.active {
+            color: #00c2ff;
+            font-weight: 700;
+        }
+        .stage-label.completed {
+            color: #a8b2d1;
+        }
+        .stage-label.pending {
+            color: #8892b0;
+        }
+        
+        /* Status Indicator Light */
+        .status-light {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse-animation 2s infinite;
+        }
+        .status-light.normal {
+            background-color: #22c55e; /* green-500 */
+            --pulse-color: rgba(34, 197, 94, 0.5);
+        }
+        .status-light.warning {
+            background-color: #f97316; /* orange-500 */
+            --pulse-color: rgba(249, 115, 22, 0.5);
+        }
+
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 var(--pulse-color); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
+        }
+
+        .remark-note {
+            padding: 8px 12px;
+            background-color: #fef9c3; /* yellow-100 */
+            border: 1px solid #fde68a; /* yellow-200 */
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            align-self: flex-start;
+            white-space: nowrap;
+        }
+        .remark-note p {
+            font-size: 14px;
+            color: #713f12; /* yellow-900 */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 头部导航栏 -->
+    <header class="dashboard-header sticky top-0 z-50">
+        <div class="w-full px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <svg class="h-8 w-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
+                </svg>
+                <span class="font-bold text-xl tracking-wider text-slate-200">项目交期查询</span>
+            </div>
+            <div id="current-time" class="text-sm text-slate-400"></div>
+        </div>
+    </header>
+
+    <!-- 主内容区域 -->
+    <main class="container mx-auto px-4 md:px-12 lg:px-24 xl:px-32 py-12 md:py-16 w-full">
+        
+        <!-- 搜索框 -->
+        <div class="text-center mb-12">
+            <div class="relative w-full max-w-lg mx-auto">
+                <input type="text" id="search-box" placeholder="搜索项目编号或项目名称..." class="w-full p-3 pl-10 text-sm border rounded-full bg-slate-800 border-slate-700 text-slate-300 focus:ring-cyan-500 focus:border-cyan-500">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                    <svg class="w-5 h-5 text-slate-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- 所有工作流的容器 -->
+        <div id="all-workflows-container" class="space-y-6">
+            <!-- JS将在此处动态生成项目卡片 -->
+        </div>
+    </main>
+
+    <script>
+        const csvData = `
+序号,项目编号,项目名称,需求出货时间,节点,项目启动,研发BOM发布,生产程序释放,核心部件出货,设备MOVE IN,安装验收,调试验收,急单标识,开始,结束,总周期(天),状态,备注
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,人员,佘黎,佘黎,,张琰,邓炜,韦柏杨,韦柏杨,是,,,,风险预警,经与销售协调一致，可从8/22调整至9/8号出货
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,计划,2025-08-11,2025-08-12,,,2025-09-02,2025-09-15,2025-09-22,是,2025-08-11,2025-09-02,22,风险预警,
+2,2507DDEHD3562,合肥-PU-1 出货计划,2025-09-05,实际,2025-08-14,,,,,,,是,,2025-09-17,,风险预警,
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,人员,佘黎,佘黎,,杨蓉,,,,否,,,,正常进行,与2506DDEHZ2889 一同出货
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,计划,2025-08-12,2025-08-13,,,,,,否,2025-08-12,2025-08-25,13,正常进行,
+7,2508DDEHZ3929,武汉-转板-18 出货计划,2025-08-25,实际,2025-08-12,2025-08-13,,,,,,否,,,,正常进行,
+8,2508DDEXN3832,成都-手动治具-20 出货计划,2025-08-14,人员,佘黎,佘黎,,张琰,邓炜,邓炜,李浩明,是,,,,正常进行,销售前方抢单，出jyt：8-13jyt：8-14
+8,2508DDEXN3832,成都-手动治具-20 出货计划,2025-08-14,计划,2025-08-12,2025-08-13,,,2025-08-13,2025-08-14,2025-08-15,是,2025-08-12,2025-08-15,3,正常进行,
+8,2508DDEXN3832,成都-手动治具-20 出货计划,2025-08-14,实际,2025-08-12,2025-08-13,,,2025-08-13,2025-08-14,2025-08-15,是,,,,正常进行,
+        `;
+
+        const detailedNodeKeys = ['项目启动', '研发BOM发布', '生产程序释放', '核心部件出货', '设备MOVE IN', '安装验收', '调试验收'];
+        const simplifiedStages = ['项目启动', '备货生产', '设备Move in', '安装调试'];
+        const statusTexts = [
+            '我们已收到您的订单，正在等待项目启动。',
+            '您的项目已启动，正在备货生产中。',
+            '备货生产已完成，等待设备Move in。',
+            '设备已Move in，正在进行安装调试。',
+            '您的项目已完成安装调试！'
+        ];
+        
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            const headers = lines[0].split(',');
+            const projects = {};
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const rowData = headers.reduce((obj, header, index) => {
+                    obj[header] = values[index];
+                    return obj;
+                }, {});
+
+                const id = rowData['序号'];
+                if (!projects[id]) {
+                    projects[id] = {
+                        id: id,
+                        overview: {
+                            '项目编号': rowData['项目编号'],
+                            '项目名称': rowData['项目名称'],
+                            '需求出货时间': rowData['需求出货时间'],
+                            '下单时间': '',
+                            '结束时间': '',
+                            '项目经理': '',
+                            '状态': '',
+                            '备注': ''
+                        },
+                        nodes: detailedNodeKeys.reduce((acc, key) => ({ ...acc, [key]: { '实际': '' } }), {})
+                    };
+                }
+
+                if (rowData['节点'] === '计划') {
+                    projects[id].overview['下单时间'] = rowData['开始'] || '-';
+                    projects[id].overview['结束时间'] = rowData['结束'] || '-';
+                }
+                if (rowData['节点'] === '人员') {
+                    projects[id].overview['项目经理'] = rowData['项目启动'] || '-';
+                }
+                
+                if (rowData['备注'] && rowData['备注'].trim() !== '') {
+                    projects[id].overview['备注'] = rowData['备注'];
+                }
+                 if (rowData['状态'] && rowData['状态'].trim() !== '') {
+                    projects[id].overview['状态'] = rowData['状态'];
+                }
+
+                if (rowData['节点'] === '实际') {
+                    detailedNodeKeys.forEach(key => {
+                        if (rowData[key]) {
+                            projects[id].nodes[key]['实际'] = rowData[key];
+                        }
+                    });
+                }
+            }
+            return Object.values(projects);
+        }
+
+        const allProjectsData = parseCSV(csvData);
+
+        const allWorkflowsContainer = document.getElementById('all-workflows-container');
+        const searchBox = document.getElementById('search-box');
+
+        function getCurrentStageIndex(nodes) {
+            if (nodes['调试验收']['实际']) return 4;
+            if (nodes['设备MOVE IN']['实际']) return 3;
+            if (nodes['核心部件出货']['实际'] || nodes['研发BOM发布']['实际'] || nodes['生产程序释放']['实际']) return 2;
+            if (nodes['项目启动']['实际']) return 1;
+            return 0;
+        }
+
+        function calculateDaysBetween(startDateStr, endDateStr) {
+            if (!startDateStr || !endDateStr || startDateStr === '-' || endDateStr === '-') return '-';
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+            if (isNaN(startDate) || isNaN(endDate)) return '-';
+            const diffTime = Math.abs(endDate - startDate);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function generateBatchProgressBars() {
+            const numBatches = Math.floor(Math.random() * 3) + 1; // 1 to 3 batches
+            let batchesHtml = '<div class="space-y-4">'; // Increased space for more complex display
+            const batchLabels = ['首批', '第二批', '第三批'];
+            const batchStages = ['项目启动', '备货生产', '设备Move in', '安装调试'];
+
+            for (let i = 0; i < numBatches; i++) {
+                const currentBatchStage = Math.floor(Math.random() * (batchStages.length + 1)); // Random stage from 0 to 4
+
+                let progressPercentage;
+                if (currentBatchStage === 0) {
+                    progressPercentage = 0;
+                } else if (currentBatchStage >= batchStages.length) {
+                    progressPercentage = 100;
+                } else {
+                    progressPercentage = ((currentBatchStage - 0.5) / batchStages.length) * 100;
+                }
+
+                const stageLabelsHtml = batchStages.map((stage, index) => {
+                    let status = 'pending';
+                    if (index < currentBatchStage - 1) { status = 'completed'; } 
+                    else if (index === currentBatchStage - 1) { status = 'active'; }
+                    if (currentBatchStage >= batchStages.length) { status = 'completed'; }
+                    return `<div class="stage-label flex-1 text-center text-xs ${status}">${stage}</div>`; // smaller text
+                }).join('');
+
+                batchesHtml += `
+                    <div>
+                        <span class="text-sm font-semibold text-slate-300">${batchLabels[i]}</span>
+                        <div class="w-full progress-bar-track h-1.5 rounded-full overflow-hidden mt-1">
+                            <div class="progress-bar-fill h-full" style="width: ${progressPercentage}%"></div>
+                        </div>
+                        <div class="flex mt-1">
+                            ${stageLabelsHtml}
+                        </div>
+                    </div>
+                `;
+            }
+            batchesHtml += '</div>';
+            return batchesHtml;
+        }
+
+        function renderProjectCard(projectData) {
+            // **新增代码：创建一个链接元素**
+            const link = document.createElement('a');
+            // **设置链接地址，将项目编号作为'id'参数传递**
+            link.href = `details-v1.html?id=${projectData.overview['项目编号']}`;
+            // **移除链接的默认样式**
+            link.className = "block transition-transform transform hover:-translate-y-1";
+
+            const card = document.createElement('div');
+            const currentStage = getCurrentStageIndex(projectData.nodes);
+            
+            const now = new Date('2025-08-25'); // Set current time to Aug 25, 2025
+            const deliveryDate = new Date(projectData.overview['需求出货时间']);
+            let isUrgent = false;
+            if (!isNaN(deliveryDate)) {
+                const diffTime = deliveryDate - now;
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+                if (diffDays >= 0 && diffDays < 7) {
+                    isUrgent = true;
+                }
+            }
+            
+            card.className = `project-card rounded-lg p-4 ${isUrgent ? 'is-urgent' : ''}`;
+            
+            let progressPercentage;
+            if (currentStage === 0) {
+                progressPercentage = 0;
+            } else if (currentStage >= simplifiedStages.length) {
+                progressPercentage = 100;
+            } else {
+                progressPercentage = ((currentStage - 0.5) / simplifiedStages.length) * 100;
+            }
+
+            const stageLabelsHtml = simplifiedStages.map((stage, index) => {
+                let status = 'pending';
+                if (index < currentStage - 1) { status = 'completed'; } 
+                else if (index === currentStage - 1) { status = 'active'; }
+                if (currentStage >= simplifiedStages.length) { status = 'completed'; }
+                return `<div class="stage-label flex-1 text-center text-sm ${status}">${stage}</div>`;
+            }).join('');
+
+            const projectStatus = projectData.overview['状态'];
+            const statusLightClass = projectStatus === '风险预警' ? 'warning' : 'normal';
+            const statusLightHtml = projectStatus ? `<div class="status-light ${statusLightClass}" title="${projectStatus}"></div>` : '';
+
+            const remark = projectData.overview['备注'];
+            const remarkHtml = remark && remark.trim() !== '' ? `<div class="remark-note"><p>${remark}</p></div>` : '';
+
+            const totalCycleDays = calculateDaysBetween(projectData.overview['下单时间'], projectData.overview['需求出货时间']);
+
+            card.innerHTML = `
+                <div class="grid grid-cols-12 gap-4 items-center">
+                    <div class="col-span-12 md:col-span-7">
+                        <div class="flex items-start gap-4">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                     ${statusLightHtml}
+                                    <h3 class="font-bold text-lg text-slate-100" title="${projectData.overview['项目名称']}">${projectData.overview['项目名称']}</h3>
+                                </div>
+                                <p class="text-sm text-slate-400">${projectData.overview['项目编号']}</p>
+                            </div>
+                            ${remarkHtml}
+                        </div>
+                         <div class="mt-2 grid grid-cols-2 gap-x-4 text-sm">
+                            <div class="space-y-1">
+                                <p class="text-slate-400">下单时间:</p>
+                                <p class="font-semibold text-slate-100">${projectData.overview['下单时间']}</p>
+                                <p class="text-slate-400 mt-1 text-lg font-bold">预计交付:</p>
+                                <p class="font-bold text-lg text-slate-100">${projectData.overview['需求出货时间']}</p>
+                            </div>
+                             <div class="space-y-1">
+                                <p class="text-slate-400">项目经理:</p>
+                                <p class="font-semibold text-slate-100">${projectData.overview['项目经理']}</p>
+                                <p class="text-slate-400 mt-1">总周期(天):</p>
+                                <p class="font-semibold text-slate-100">${totalCycleDays}</p>
+                                <p class="text-slate-400 mt-1">结束时间:</p>
+                                <p class="font-semibold text-slate-100">${projectData.overview['结束时间']}</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="col-span-12 md:col-span-5 flex flex-col justify-center h-full pt-5">
+                        <div class="text-sm">
+                            <p class="mb-2 font-semibold text-slate-300">批次发货进度:</p>
+                            ${generateBatchProgressBars()}
+                        </div>
+                    </div>
+                </div>
+            `;
+            // **新增代码：将卡片放入链接中，再将链接放入容器**
+            link.appendChild(card);
+            allWorkflowsContainer.appendChild(link);
+        }
+
+        function renderAllWorkflows(projects) {
+            allWorkflowsContainer.innerHTML = '';
+            if (projects.length === 0) {
+                allWorkflowsContainer.innerHTML = `<p class="text-slate-400 text-center">未找到匹配的项目。</p>`;
+            } else {
+                projects.forEach(project => renderProjectCard(project));
+            }
+        }
+        
+        searchBox.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredProjects = allProjectsData.filter(p => 
+                p.overview['项目编号'].toLowerCase().includes(searchTerm) ||
+                p.overview['项目名称'].toLowerCase().includes(searchTerm)
+            );
+            renderAllWorkflows(filteredProjects);
+        });
+        
+        // Time display
+        const timeEl = document.getElementById('current-time');
+        function updateTime() {
+            const now = new Date();
+            timeEl.textContent = now.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+
+        // Initial render
+        renderAllWorkflows(allProjectsData);
+
+    </script>
+</body>
+</html>
+

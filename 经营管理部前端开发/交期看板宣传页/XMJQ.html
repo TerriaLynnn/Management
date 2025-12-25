@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目交期查询 使用手册</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- 基础样式 --- */
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #0B1A2F; /* 提取的深色背景 */
+            color: #E0E7FF; /* 柔和的白色文字 */
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden; /* 防止横向滚动条 */
+        }
+
+        /* --- 容器与布局 --- */
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        /* --- 头部标题 --- */
+        .header {
+            text-align: center;
+            padding: 40px 20px 30px 20px;
+            border-bottom: 2px solid #5691F5; /* 亮蓝色强调线 */
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 2.8rem;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        /* --- 章节样式 --- */
+        .section {
+            background-color: #172A46; /* 提取的卡片背景色 */
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border: 1px solid #3A5A91;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 500;
+            color: #5691F5; /* 亮蓝色 */
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #3A5A91;
+            padding-bottom: 10px;
+        }
+
+        .section p {
+            font-size: 1.1rem;
+            color: #B0C4DE;
+            margin-bottom: 15px;
+        }
+
+        /* --- 图片样式 --- */
+        .instruction-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #3A5A91;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: block; /* 确保图片独占一行 */
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- 步骤列表 --- */
+        ol {
+            list-style: none; /* 移除默认序号 */
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        ol li {
+            background-color: #0F1F38; /* 稍浅的背景色 */
+            margin-bottom: 15px;
+            padding: 20px;
+            border-left: 5px solid #5691F5; /* 左侧强调条 */
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        ol li:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+            background-color: #5691F5;
+            color: #FFFFFF;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-radius: 50%;
+            margin-right: 15px;
+            flex-shrink: 0; /* 防止数字被压缩 */
+        }
+
+        .step-content {
+            flex-grow: 1;
+        }
+
+        .step-content h3 {
+            font-size: 1.4rem;
+            color: #FFFFFF;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .step-content p {
+            font-size: 1rem;
+            color: #B0C4DE;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        /* --- 页脚 --- */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            margin-top: 50px;
+            border-top: 1px solid #3A5A91;
+            color: #8892B0; /* 较暗的文字 */
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <header class="header">
+            <h1>“项目交期查询” 使用手册</h1>
+        </header>
+        
+        <main>
+            <section class="section">
+                <h2>1. 访问入口</h2>
+                <p>登录门户系统，在系统主界面右下角“快捷入口”处，点击“项目作战地图”进入。在左侧导航栏中，点击“项目交期查询”，即可进入项目交期查询页面。</p>
+                <img src="details/Image 1-3.png" alt="项目作战地图入口" class="instruction-image">
+                <img src="details/Image 1-2.png" alt="项目作战地图入口" class="instruction-image">
+                <img src="details/Image 1.png" alt="系统主界面与项目交期查询入口" class="instruction-image">
+            </section>
+            
+            <section class="section">
+                <h2>2. 首页展示</h2>
+                <p>进入看板后，所有进行中项目都以卡片形式展示了关键信息和当前进度。</p>
+                <img src="details/Image 2.png" alt="项目交期查询页面概览" class="instruction-image">
+            </section>
+
+            <section class="section">
+                <h2>3. 功能详解</h2>
+                <p>“项目交期查询”看板页面中各个功能区域。</p>
+                <img src="details/Image 3.png" alt="带标注的项目交期查询页面" class="instruction-image">
+                <ol>
+                    <li>
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <h3>搜索框</h3>
+                            <p>在页面顶部的搜索框中，输入项目编号、项目名称等关键字，即可快速筛选想查询的项目。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <h3>项目备注</h3>
+                            <p>展示项目的最新动态或重要备注信息。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <h3>项目基本信息</h3>
+                            <p>展示每个项目的核心信息。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">4</span>
+                        <div class="step-content">
+                            <h3>返回按钮</h3>
+                            <p>点击页面左上角的“返回”按钮，可快速到达第一页。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">5</span>
+                        <div class="step-content">
+                            <h3>项目进度</h3>
+                            <p>展示项目当前所处的阶段。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">6</span>
+                        <div class="step-content">
+                            <h3>翻页</h3>
+                            <p>可自行跳转“上一页”、“下一页”或跳转到指定页面。可选择每页呈现条数。</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section class="section">
+                <h2>4. 查看项目详情</h2>
+                <p>首页点击对应项目卡片，可进入该项目的“项目详情”页面。</p>
+                <img src="details/Image 4.png" alt="项目详情页面" class="instruction-image">
+                <img src="details/Image 4-2.png" alt="项目详情页面补充" class="instruction-image">
+                <ol>
+                    <li>
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <h3>项目概览</h3>
+                            <p>集中展示了项目的核心信息。若存在风险预警会展示最近三条，指示灯颜色由无风险时的绿色变为橙红色提醒。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <h3>分批项目进展</h3>
+                            <p>时间轴展示了项目各个阶段进程情况，若有多批次物料则有多个时间轴。</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section class="section">
+                <h2>5. 查看项目齐套率及物料详情</h2>
+                <p>在项目详情页或相关导航入口，可以进入“项目齐套率”查询页面，用于追踪物料的准备情况。</p>
+                <img src="details/Image 5.png" alt="项目齐套率查询页面" class="instruction-image">
+                <ol>
+                    <li>
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <h3>齐套率</h3>
+                            <p>整体物料齐套率计算公式为：已到物料数/总物料数。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <h3>查询 & 导出</h3>
+                            <p>输入关键字（如物料编码、名称）进行搜索，点击“导出”按钮将全部数据导出为CSV文件。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <h3>快捷筛选</h3>
+                            <p>点击不同公司标签，可以快速筛选特定公司的物料。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">4</span>
+                        <div class="step-content">
+                            <h3>单项齐套率</h3>
+                            <p>展示单项物料的齐套率。</p>
+                        </div>
+                    </li>
+                </ol>
+                <img src="details/Image 6.png" alt="物料异常查询详情" class="instruction-image">
+                <ol>
+                    <li>
+                        <span class="step-number">5</span>
+                        <div class="step-content">
+                            <h3>未到物料详情</h3>
+                            <p>若存在未到齐物料（即“未到数”大于0），可点击“未到数”，将会详细列出未到物料信息。</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+            <section class="section">
+                <h2>6. 成本管理与分析</h2>
+                <p>成本管理模块，用于跟踪和分析项目成本，确保项目预算在可控范围内。</p>
+                <img src="details/Image 7.png" alt="成本管理与分析" class="instruction-image">
+                <ol>
+                    <li>
+                        <span class="step-number">1</span>
+                        <div class="step-content">
+                            <h3>成本总览</h3>
+                            <p>可查看项目的总体预算、实际花费等核心指标。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">2</span>
+                        <div class="step-content">
+                            <h3>成本构成</h3>
+                            <p>成本的分类明细，若预算使用在90%以内，数字为蓝色，90%以上数字为红色。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">3</span>
+                        <div class="step-content">
+                            <h3>成本详情</h3>
+                            <p>蓝色代表预算仍有盈余，进度条展示使用占比。红色代表已超支。</p>
+                        </div>
+                    </li>
+                    <li>
+                        <span class="step-number">4</span>
+                        <div class="step-content">
+                            <h3>产品线成本</h3>
+                            <p>项目中所有产品线的成本都会展示详情。</p>
+                        </div>
+                    </li>
+                </ol>
+            </section>
+
+        </main>
+        
+        <footer class="footer">
+            <p>JINGCE ELECTRONIC ｜ 内部操作指南</p>
+        </footer>
+
+    </div>
+    
+</body>
+</html>
