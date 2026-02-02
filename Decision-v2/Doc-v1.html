@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档管理 - 决策平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* 调色板 */
+            --bg-body: #F5F5F7;        /* Apple 浅灰背景 */
+            --bg-card: #FFFFFF;        /* 纯白卡片 */
+            
+            --text-primary: #1D1D1F;   /* 深黑主色 */
+            --text-secondary: #86868B; /* 次级灰色 */
+            --text-tertiary: #B2B2B2;  /* 辅助灰色 */
+            
+            --accent-blue: #0066CC;    /* 交互蓝 */
+            --accent-green: #28CD41;   /* 成功绿 */
+            --accent-red: #FF3B30;     /* 警示红 */
+            --accent-orange: #FF9500;  /* 提示橙 */
+            --accent-purple: #AF52DE;  /* 强调紫 */
+
+            --border-light: rgba(0, 0, 0, 0.06); 
+            
+            /* 投影体系 - 弥散光感 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.1);
+
+            /* 圆角 */
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* 字体栈 */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-stack); -webkit-font-smoothing: antialiased;  }
+        body { background-color: var(--bg-body); color: var(--text-primary); }
+        .container { display: flex; height: 100vh; }
+        /* --- 侧边栏 (Sidebar) - 保持一致性 --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 1px 0 0 var(--border-light); /* 极细分割线 */
+        }
+        .logo { padding: 0 16px 32px; margin-bottom: 10px; }
+        .logo h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--text-primary) 0%, #434344 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; margin-bottom: 4px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: var(--radius-md); transition: all 0.2s ease; }
+        .nav-item i { width: 24px; margin-right: 12px; font-size: 16px; text-align: center; }
+        .nav-item:hover { background-color: rgba(0, 0, 0, 0.03); color: var(--text-primary); }
+        .nav-item.active { background-color: rgba(0, 102, 204, 0.08); color: var(--accent-blue); }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .page-title { font-size: 2rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            --primary: var(--accent-blue); /* 局部变量 */
+            --danger: var(--accent-red);
+            --warning: var(--accent-orange);
+            --success: var(--accent-green);
+            --gray-text: var(--text-secondary);
+            --border: var(--border-light);
+        }
+        .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+        .card-description { color: var(--gray-text); margin-bottom: 1.5rem; }
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .feature-card {
+            background: var(--bg-body);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .feature-card .icon { font-size: 2rem; color: var(--accent-blue); margin-bottom: 1rem; }
+        .feature-card h4 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .feature-card p { font-size: 0.9rem; color: var(--gray-text); flex-grow: 1; }
+        .feature-card .btn { align-self: flex-start; margin-top: 1rem; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; }
+        .btn-primary { background-color: var(--accent-blue); color: white; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .role-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+        .tab-link {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--gray-text);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+        }
+        .tab-link.active, .tab-link:hover {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        .tab-content { display: none; }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+        .dashboard-item {
+            background: #f9f9f9;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+        }
+        .dashboard-item h5 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+        .chart-placeholder {
+            background: #efefef;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        /* 静态SVG图表样式 */
+        .chart-svg {
+            width: 100%;
+            height: 150px;
+            display: block;
+        }
+        /* 新增：图表加载动画 */
+        @keyframes chart-fade-in {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes bar-grow {
+            from { transform: scaleY(0); }
+            to { transform: scaleY(1); }
+        }
+        .chart-svg {
+            animation: chart-fade-in 0.6s ease-out;
+        }
+        .chart-svg .bar {
+            transform-origin: bottom;
+            animation: bar-grow 0.5s ease-out forwards;
+        }
+        /* 新增：图表图例样式 */
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--gray-text);
+        }
+        .legend-dot {
+            width: 8px; height: 8px; border-radius: 50%; margin-right: 6px;
+        }
+        /* 报表表格样式 */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid var(--border);
+            padding: 8px;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+        .report-table th {
+            background-color: #f2f2f2;
+        }
+        .text-danger {
+            color: var(--danger);
+        }
+
+        /* User Profile Style from Decision-v1.html */
+        .user-profile { display: flex; align-items: center; gap: 12px; background: var(--bg-card); padding: 6px 12px 6px 6px; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s; }
+        .user-profile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00C6FB, #005BEA); border-radius: 50%; color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>决策平台</h1>
+            </div>
+            <nav>
+                <a href="Decision-v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
+                <a href="process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+                <a href="Statistics-v1.html" class="nav-item"><i class="fas fa-chart-pie"></i> 决策统计</a>
+                <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+                <a href="Doc-v1.html" class="nav-item active"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="Schedule-v1.html" class="nav-item"><i class="fas fa-calendar-alt"></i> 评审计划</a>
+                <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="page-title" style="margin-bottom: 0;">文档管理</h2>
+                <div class="user-profile">
+                    <div class="avatar">E</div>
+                    <span class="user-name">评审团成员E</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">知识与文档中心</h3>
+                <p class="card-description">管理与决策相关的各类文件、音视频资料和版本记录，确保信息安全与共享效率。</p>
+                <div class="module-grid">
+                    <!-- 模块4: 会议文件存档 -->
+                    <div class="feature-card">
+                        <div class="icon"><i class="fas fa-video"></i></div>
+                        <h4>会议文件存档</h4>
+                        <p>会议录制音频、视频文件设置服务器存档，系统内显示链接，支持外部顾问老师访问。</p>
+                        <a href="#" class="btn btn-primary">访问存档</a>
+                    </div>
+
+                    <!-- 模块5: 共享与版本控制 -->
+                    <div class="feature-card">
+                        <div class="icon"><i class="fas fa-history"></i></div>
+                        <h4>共享与版本控制</h4>
+                        <p>支持版本记录和跟踪、数据和文档共享、权限管理、文档下载。</p>
+                        <a href="#" class="btn btn-primary">管理文档</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">仪表盘</h3>
+                <p class="card-description">按用户角色划分权限，直观展示关键指标，支持多维度数据分析，并自动生成个性化报表。</p>
+                
+                <div class="role-tabs">
+                    <button class="tab-link active" onclick="openRole(event, 'management-committee')">经营管理委员会</button>
+                    <button class="tab-link" onclick="openRole(event, 'project-committee')">项目决策委员会</button>
+                    <button class="tab-link" onclick="openRole(event, 'org-head')">三级组织负责人</button>
+                    <button class="tab-link" onclick="openRole(event, 'applicant')">申请人</button>
+                </div>
+
+                <div id="management-committee" class="tab-content" style="display: block;">
+                    <!-- 恢复为三列布局 -->
+                    <div class="dashboard-grid">
+                        <!-- 图表1: 关键决策指标 -->
+                        <div class="dashboard-item">
+                            <h5>关键决策指标</h5>
+                            <svg viewBox="0 0 100 100" class="chart-svg" style="height: 160px;">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--danger)" stroke-width="12"></circle>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--success)" stroke-width="12" stroke-dasharray="231.2 251.3" transform="rotate(-90 50 50)"></circle>
+                                <text x="50" y="52" text-anchor="middle" font-size="18" font-weight="bold" fill="var(--dark-text)">92%</text>
+                                <text x="50" y="68" text-anchor="middle" font-size="10" fill="var(--gray-text)">通过率</text>
+                            </svg>
+                            <div class="chart-legend">
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--success);"></span>通过 (92%)</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--danger);"></span><span class="text-danger">驳回 (8%)</span></div>
+                            </div>
+                        </div>
+                        <!-- 图表2: 项目平均周期 -->
+                        <div class="dashboard-item">
+                            <h5>项目平均周期</h5>
+                            <svg viewBox="0 0 120 100" class="chart-svg" style="height: 160px;">
+                                <line x1="10" y1="85" x2="110" y2="85" stroke="var(--border)" stroke-width="1"></line>
+                                <g class="bar" style="animation-delay: 0s;"><rect x="15" y="28" width="20" height="57" fill="var(--primary)" rx="2"></rect><text x="25" y="23" text-anchor="middle" font-size="9" fill="var(--dark-text)">7.2天</text></g>
+                                <g class="bar" style="animation-delay: 0.1s;"><rect x="50" y="49" width="20" height="36" fill="#5856d6" rx="2"></rect><text x="60" y="44" text-anchor="middle" font-size="9" fill="var(--dark-text)">5.1天</text></g>
+                                <g class="bar" style="animation-delay: 0.2s;"><rect x="85" y="70" width="20" height="15" fill="var(--warning)" rx="2"></rect><text x="95" y="65" text-anchor="middle" font-size="9" fill="var(--dark-text)">2.5天</text></g>
+                            </svg>
+                            <div class="chart-legend">
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--primary);"></span>经营</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: #5856d6;"></span>项目</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--warning);"></span>临时</div>
+                            </div>
+                        </div>
+                        <!-- 报表 -->
+                        <div class="dashboard-item">
+                            <h5>个性化报表</h5>
+                            <table class="report-table">
+                                <tr><th>指标</th><th>数值</th></tr>
+                                <tr><td>总决策数</td><td>128</td></tr>
+                                <tr><td>本月通过率</td><td>92.5%</td></tr>
+                                <tr><td>平均周期</td><td>5.8天</td></tr>
+                                <tr><td>待我审批</td><td>3</td></tr>
+                            </table>
+                             <a href="#" class="btn btn-primary" style="margin-top: 1rem;">下载完整报告</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="project-committee" class="tab-content">
+                     <div class="dashboard-grid">
+                         <div class="dashboard-item">
+                            <h5>项目审批状态</h5>
+                            <!-- 重构为环形图，并突出显示进行中项目 -->
+                            <svg viewBox="0 0 100 100" class="chart-svg" style="height: 160px;">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--danger)" stroke-width="12"></circle>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--success)" stroke-width="12" stroke-dasharray="188.5 251.3" transform="rotate(-90 50 50)"></circle>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--primary)" stroke-width="12" stroke-dasharray="37.7 251.3" stroke-dashoffset="-188.5" transform="rotate(-90 50 50)"></circle>
+                                <text x="50" y="52" text-anchor="middle" font-size="18" font-weight="bold" fill="var(--dark-text)">15</text>
+                                <text x="50" y="68" text-anchor="middle" font-size="10" fill="var(--gray-text)">进行中</text>
+                            </svg>
+                            <div class="chart-legend">
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--success);"></span>已完成 (75%)</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--primary);"></span>进行中 (15%)</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--danger);"></span><span class="text-danger">已驳回 (10%)</span></div>
+                            </div>
+                        </div>
+                         <div class="dashboard-item">
+                            <h5>部门项目分布</h5>
+                            <!-- 为条形图添加具体数值 -->
+                            <svg viewBox="0 0 120 100" class="chart-svg" style="height: 160px;">
+                                <line x1="10" y1="85" x2="110" y2="85" stroke="var(--border)" stroke-width="1"></line>
+                                <g class="bar" style="animation-delay: 0s;"><rect x="5" y="55" width="20" height="30" fill="var(--primary)" rx="2"></rect><text x="15" y="50" text-anchor="middle" font-size="9" fill="var(--dark-text)">25</text><text x="15" y="95" text-anchor="middle" font-size="8">研发</text></g>
+                                <g class="bar" style="animation-delay: 0.1s;"><rect x="35" y="68" width="20" height="17" fill="var(--primary)" rx="2"></rect><text x="45" y="63" text-anchor="middle" font-size="9" fill="var(--dark-text)">18</text><text x="45" y="95" text-anchor="middle" font-size="8">市场</text></g>
+                                <g class="bar" style="animation-delay: 0.2s;"><rect x="65" y="40" width="20" height="45" fill="var(--primary)" rx="2"></rect><text x="75" y="35" text-anchor="middle" font-size="9" fill="var(--dark-text)">32</text><text x="75" y="95" text-anchor="middle" font-size="8">销售</text></g>
+                                <g class="bar" style="animation-delay: 0.3s;"><rect x="95" y="80" width="20" height="5" fill="var(--primary)" rx="2"></rect><text x="105" y="75" text-anchor="middle" font-size="9" fill="var(--dark-text)">8</text><text x="105" y="95" text-anchor="middle" font-size="8">财务</text></g>
+                            </svg>
+                        </div>
+                         <div class="dashboard-item">
+                            <h5>个性化报表</h5>
+                            <table class="report-table">
+                                <tr><th>指标</th><th>数值</th></tr>
+                                <tr><td>待我审批</td><td>5</td></tr>
+                                <tr><td>本月已审</td><td>25</td></tr>
+                                <tr><td class="text-danger">驳回项目</td><td class="text-danger">2</td></tr>
+                                <tr><td>超时项目</td><td>1</td></tr>
+                            </table>
+                            <a href="#" class="btn btn-primary" style="margin-top: 1rem;">下载完整报告</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="org-head" class="tab-content">
+                    <div class="dashboard-grid">
+                         <div class="dashboard-item">
+                            <h5>本部项目进展</h5>
+                            <svg viewBox="0 0 100 100" class="chart-svg" style="height: 160px;">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--warning)" stroke-width="12"></circle>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--success)" stroke-width="12" stroke-dasharray="150.8 251.3" transform="rotate(-90 50 50)"></circle>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--primary)" stroke-width="12" stroke-dasharray="62.8 251.3" stroke-dashoffset="-150.8" transform="rotate(-90 50 50)"></circle>
+                                <text x="50" y="52" text-anchor="middle" font-size="18" font-weight="bold" fill="var(--dark-text)">20</text>
+                                <text x="50" y="68" text-anchor="middle" font-size="10" fill="var(--gray-text)">总项目</text>
+                            </svg>
+                            <div class="chart-legend">
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--success);"></span>已完成 (60%)</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--primary);"></span>进行中 (25%)</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--warning);"></span>待审批 (15%)</div>
+                            </div>
+                        </div>
+                         <div class="dashboard-item">
+                            <h5>审批阶段平均耗时</h5>
+                            <svg viewBox="0 0 120 100" class="chart-svg" style="height: 160px;">
+                                <line x1="10" y1="85" x2="110" y2="85" stroke="var(--border)" stroke-width="1"></line>
+                                <!-- 竖向条形图 -->
+                                <g class="bar" style="animation-delay: 0s;"><rect x="15" y="65" width="20" height="20" fill="var(--primary)" rx="2"></rect><text x="25" y="60" text-anchor="middle" font-size="9" fill="var(--dark-text)">1.5天</text><text x="25" y="95" text-anchor="middle" font-size="8">初审</text></g>
+                                <g class="bar" style="animation-delay: 0.1s;"><rect x="50" y="35" width="20" height="50" fill="var(--warning)" rx="2"></rect><text x="60" y="30" text-anchor="middle" font-size="9" fill="var(--dark-text)">3.2天</text><text x="60" y="95" text-anchor="middle" font-size="8">技术评审</text></g>
+                                <g class="bar" style="animation-delay: 0.2s;"><rect x="85" y="55" width="20" height="30" fill="var(--primary)" rx="2"></rect><text x="95" y="50" text-anchor="middle" font-size="9" fill="var(--dark-text)">2.1天</text><text x="95" y="95" text-anchor="middle" font-size="8">财务审核</text></g>
+                            </svg>
+                        </div>
+                         <div class="dashboard-item">
+                            <h5>个性化报表</h5>
+                            <table class="report-table">
+                                <tr><th>项目名称</th><th>状态</th></tr>
+                                <tr><td>项目A</td><td>进行中</td></tr>
+                                <tr><td>项目B</td><td>已完成</td></tr>
+                                <tr><td>项目C</td><td style="color: var(--warning);">待审批</td></tr>
+                                <tr><td>项目D</td><td class="text-danger">已驳回</td></tr>
+                            </table>
+                            <a href="#" class="btn btn-primary" style="margin-top: 1rem;">下载完整报告</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="applicant" class="tab-content">
+                    <div class="dashboard-grid">
+                         <div class="dashboard-item">
+                            <h5>我申请的流程</h5>
+                            <!-- 重构为环形图 -->
+                            <svg viewBox="0 0 100 100" class="chart-svg" style="height: 160px;">
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--danger)" stroke-width="12"></circle>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--success)" stroke-width="12" stroke-dasharray="188.5 251.3" transform="rotate(-90 50 50)"></circle>
+                                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--primary)" stroke-width="12" stroke-dasharray="31.4 251.3" stroke-dashoffset="-188.5" transform="rotate(-90 50 50)"></circle>
+                                <text x="50" y="52" text-anchor="middle" font-size="18" font-weight="bold" fill="var(--dark-text)">1</text>
+                                <text x="50" y="68" text-anchor="middle" font-size="10" fill="var(--gray-text)">进行中</text>
+                            </svg>
+                            <div class="chart-legend">
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--success);"></span>已完成 (6)</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--primary);"></span>进行中 (1)</div>
+                                <div class="legend-item"><span class="legend-dot" style="background-color: var(--danger);"></span><span class="text-danger">已驳回 (1)</span></div>
+                            </div>
+                        </div>
+                         <div class="dashboard-item">
+                            <h5>审批历史</h5>
+                            <table class="report-table">
+                                <tr><th>申请ID</th><th>状态</th><th>完成日期</th></tr>
+                                <tr><td>#2025-001</td><td>已完成</td><td>2025-09-10</td></tr>
+                                <tr><td>#2025-003</td><td class="text-danger">已驳回</td><td>2025-09-12</td></tr>
+                                <tr><td>#2025-005</td><td>进行中</td><td>-</td></tr>
+                            </table>
+                            <a href="#" class="btn btn-primary" style="margin-top: 1rem;">查看全部历史</a>
+                         </div>
+                         <div class="dashboard-item">
+                            <h5>个性化报表</h5>
+                            <table class="report-table">
+                                <tr><th>指标</th><th>数值</th></tr>
+                                <tr><td>总申请数</td><td>8</td></tr>
+                                <tr><td>进行中</td><td>1</td></tr>
+                                <tr><td>已完成</td><td>6</td></tr>
+                                <tr><td class="text-danger">已驳回</td><td class="text-danger">1</td></tr>
+                            </table>
+                            <a href="#" class="btn btn-primary" style="margin-top: 1rem;">下载完整报告</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <script>
+        // 仅保留用于切换标签页的函数
+        function openRole(evt, roleName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(roleName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>统计 - 决策平台</title>
+    <!-- 引入 Font Awesome 图标库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 ECharts 图表库 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        :root {
+            /* 调色板 */
+            --bg-body: #F5F5F7;        /* Apple 浅灰背景 */
+            --bg-card: #FFFFFF;        /* 纯白卡片 */
+            
+            --text-primary: #1D1D1F;   /* 深黑主色 */
+            --text-secondary: #86868B; /* 次级灰色 */
+            --text-tertiary: #B2B2B2;  /* 辅助灰色 */
+            
+            --accent-blue: #0066CC;    /* 交互蓝 */
+            --accent-green: #28CD41;   /* 成功绿 */
+            --accent-red: #FF3B30;     /* 警示红 */
+            --accent-orange: #FF9500;  /* 提示橙 */
+            --accent-purple: #AF52DE;  /* 强调紫 */
+
+            --border-light: rgba(0, 0, 0, 0.06); 
+            
+            /* 投影体系 - 弥散光感 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.1);
+
+            /* 圆角 */
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* 字体栈 */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-stack);
+            -webkit-font-smoothing: antialiased; 
+        }
+        
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* --- 侧边栏 (Sidebar) - 保持一致性 --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 1px 0 0 var(--border-light); /* 极细分割线 */
+        }
+        
+        .logo {
+            padding: 0 16px 32px;
+            margin-bottom: 10px;
+        }
+        
+        .logo h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, #434344 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            transition: all 0.2s ease;
+        }
+
+        .nav-item:hover { background-color: rgba(0, 0, 0, 0.03); color: var(--text-primary); }
+        .nav-item.active { background-color: rgba(0, 102, 204, 0.08); color: var(--accent-blue); }
+        
+        .nav-item i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        /* --- 主内容区 --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 顶部导航栏 (模仿截图) */
+        .top-nav {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-shrink: 0;
+        }
+
+        .top-nav-item {
+            font-size: 14px;
+            color: var(--dark-text);
+            cursor: pointer;
+            padding: 14px 0;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .top-nav-item.active {
+            color: var(--primary);
+        }
+
+        .top-nav-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .top-nav-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        .top-nav-right span {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* 仪表盘网格布局 */
+        .dashboard-grid {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* 2列 */
+            grid-template-rows: 1fr 1fr;    /* 2行 */
+            gap: 20px;
+            min-height: 0; /* 允许子元素滚动 */
+        }
+
+        /* 卡片通用样式 */
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 350px; /* 最小高度 */
+            --primary: var(--accent-blue); /* 局部变量覆盖 */
+            --dark-text: var(--text-primary);
+            --gray-text: var(--text-secondary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .card-actions {
+            color: var(--gray-text);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chart-container {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 250px;
+        }
+
+        /* 概览报表样式 */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 20px;
+            padding-top: 10px;
+            height: 100%;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--gray-text);
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.2;
+            font-family: 'Oswald', sans-serif; /* 如果有数字字体更好 */
+        }
+
+        .metric-bar {
+            height: 4px;
+            width: 40px;
+            margin-top: 8px;
+            border-radius: 2px;
+        }
+
+        /* User Profile Style from Decision-v1.html */
+        .user-profile { display: flex; align-items: center; gap: 12px; background: var(--bg-card); padding: 6px 12px 6px 6px; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s; }
+        .user-profile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00C6FB, #005BEA); border-radius: 50%; color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>决策平台</h1>
+            </div>
+            <nav>
+                <a href="Decision-v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
+                <a href="process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+                <a href="Statistics-v1.html" class="nav-item active"><i class="fas fa-chart-pie"></i> 决策统计</a>
+                <a href="Analysis-v1.html" class="nav-item"><i class="fas fa-chart-line"></i> 数据分析</a>
+                <a href="Doc-v1.html" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="Schedule-v1.html" class="nav-item"><i class="fas fa-calendar-alt"></i> 评审计划</a>
+                <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            </nav>
+        </div>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 顶部二级导航 -->
+            <div class="top-nav">
+                <!-- 只保留统计 -->
+                <div class="top-nav-item active">统计</div>
+
+                <div class="top-nav-right">
+                    <span><i class="fas fa-file-export"></i> 批量导出</span>
+                    <div class="user-profile">
+                        <div class="avatar">E</div>
+                        <span class="user-name">评审团成员E</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 仪表盘网格 -->
+            <div class="dashboard-grid">
+                
+                <!-- 图表1: 月份统计 -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">战略关键任务专题会会议决议统计-月份</div>
+                        <div class="card-actions">
+                            <i class="fas fa-expand"></i>
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                    </div>
+                    <div id="chart-month" class="chart-container"></div>
+                </div>
+
+                <!-- 图表2: 执行者统计 -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">战略关键任务专题会会议决议统计</div>
+                        <div class="card-actions">
+                            <i class="fas fa-expand"></i>
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                    </div>
+                    <div id="chart-person" class="chart-container"></div>
+                </div>
+
+                <!-- 图表3: 分布饼图 -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">任务按执行者分布</div>
+                        <div class="card-actions">
+                            <i class="fas fa-expand"></i>
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                    </div>
+                    <div id="chart-pie" class="chart-container"></div>
+                </div>
+
+                <!-- 报表4: 概览报表 -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <div class="card-title">概览报表</div>
+                        <div class="card-actions">
+                            <i class="fas fa-expand"></i>
+                            <i class="fas fa-ellipsis-h"></i>
+                        </div>
+                    </div>
+                    <div class="metrics-grid">
+                        <!-- 第一行 -->
+                        <div class="metric-item">
+                            <div class="metric-label">总数</div>
+                            <div class="metric-value">58</div>
+                            <div class="metric-bar" style="background-color: #409eff;"></div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">已完成</div>
+                            <div class="metric-value">28</div>
+                            <div class="metric-bar" style="background-color: #67c23a;"></div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">未完成</div>
+                            <div class="metric-value">30</div>
+                            <div class="metric-bar" style="background-color: #f56c6c;"></div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">已逾期</div>
+                            <div class="metric-value" style="color: #e6a23c;">30</div>
+                            <div class="metric-bar" style="background-color: #e6a23c;"></div>
+                        </div>
+
+                        <!-- 第二行 -->
+                        <div class="metric-item">
+                            <div class="metric-label">待认领</div>
+                            <div class="metric-value">0</div>
+                            <div class="metric-bar" style="background-color: #e4e7ed;"></div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">时间待定</div>
+                            <div class="metric-value">0</div>
+                            <div class="metric-bar" style="background-color: #e4e7ed;"></div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">今日到期</div>
+                            <div class="metric-value">0</div>
+                            <div class="metric-bar" style="background-color: #e4e7ed;"></div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-label">逾期完成</div>
+                            <div class="metric-value" style="color: #f56c6c;">24</div>
+                            <div class="metric-bar" style="background-color: #f56c6c;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后初始化图表
+        document.addEventListener('DOMContentLoaded', function() {
+            initMonthChart();
+            initPersonChart();
+            initPieChart();
+            
+            // 监听窗口大小变化，自适应图表
+            window.addEventListener('resize', function() {
+                monthChart.resize();
+                personChart.resize();
+                pieChart.resize();
+            });
+        });
+
+        let monthChart, personChart, pieChart;
+
+        // 1. 月份统计图表
+        function initMonthChart() {
+            const chartDom = document.getElementById('chart-month');
+            monthChart = echarts.init(chartDom);
+            
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                legend: {
+                    bottom: '0%',
+                    data: ['已完成', '未完成'],
+                    icon: 'circle'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['2023-04', '2023-05', '2023-06', '2023-07', '2023-08', '2023-09', '2023-10', '2023-11', '2023-12', '2024-01'],
+                    axisLabel: {
+                        rotate: 45,
+                        color: '#999'
+                    },
+                    axisLine: { show: false },
+                    axisTick: { show: false }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '任务数 (计数)',
+                    splitLine: {
+                        lineStyle: {
+                            type: 'dashed',
+                            color: '#eee'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '已完成',
+                        type: 'bar',
+                        stack: 'total',
+                        barWidth: '50%',
+                        itemStyle: { color: '#60a5fa' }, // 浅蓝
+                        data: [0, 2, 4, 7, 1, 4, 3, 2, 5, 0]
+                    },
+                    {
+                        name: '未完成',
+                        type: 'bar',
+                        stack: 'total',
+                        barWidth: '50%',
+                        itemStyle: { color: '#86efac' }, // 浅绿
+                        data: [0, 0, 0, 0, 0, 1, 11, 4, 11, 2]
+                    }
+                ]
+            };
+            monthChart.setOption(option);
+        }
+
+        // 2. 人员统计图表
+        function initPersonChart() {
+            const chartDom = document.getElementById('chart-person');
+            personChart = echarts.init(chartDom);
+            
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' }
+                },
+                legend: {
+                    bottom: '0%',
+                    data: ['未完成', '已完成'], // 注意截图颜色顺序
+                    icon: 'circle'
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    top: '10%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['罗超', '雷新军', '付博', '高源', '胡皓', '袁立', '官雄风', '向坤山', '帅敏', '蔡宗久'],
+                    axisLabel: {
+                        rotate: 45,
+                        interval: 0,
+                        color: '#666'
+                    },
+                    axisLine: { show: false },
+                    axisTick: { show: false }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '任务数 (计数)',
+                    splitLine: {
+                        lineStyle: {
+                            type: 'dashed',
+                            color: '#eee'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '未完成',
+                        type: 'bar',
+                        stack: 'total',
+                        barWidth: '50%',
+                        itemStyle: { color: '#60a5fa' }, // 蓝色表示未完成(参照右图)
+                        data: [12, 8, 3, 2, 2, 0, 0, 2, 1, 1]
+                    },
+                    {
+                        name: '已完成',
+                        type: 'bar',
+                        stack: 'total',
+                        barWidth: '50%',
+                        itemStyle: { color: '#86efac' }, // 绿色表示已完成
+                        data: [6, 6, 4, 1, 0, 2, 2, 0, 0, 0]
+                    }
+                ]
+            };
+            personChart.setOption(option);
+        }
+
+        // 3. 饼图分布
+        function initPieChart() {
+            const chartDom = document.getElementById('chart-pie');
+            pieChart = echarts.init(chartDom);
+            
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{b}: {c} ({d}%)'
+                },
+                series: [
+                    {
+                        name: '任务分布',
+                        type: 'pie',
+                        radius: ['45%', '70%'], // 环形图
+                        center: ['50%', '50%'],
+                        avoidLabelOverlap: true,
+                        itemStyle: {
+                            borderRadius: 2,
+                            borderColor: '#fff',
+                            borderWidth: 1
+                        },
+                        label: {
+                            show: true,
+                            formatter: '{b} {d}%',
+                            color: '#007aff'
+                        },
+                        labelLine: {
+                            show: true,
+                            lineStyle: { color: '#007aff' }
+                        },
+                        data: [
+                            { value: 18, name: '罗超', itemStyle: { color: '#0091ff' } },
+                            { value: 14, name: '雷新军', itemStyle: { color: '#1890ff' } },
+                            { value: 7, name: '付博', itemStyle: { color: '#40a9ff' } },
+                            { value: 3, name: '胡皓', itemStyle: { color: '#69c0ff' } },
+                            { value: 3, name: '高源', itemStyle: { color: '#91d5ff' } },
+                            { value: 2, name: '官雄风', itemStyle: { color: '#bae7ff' } },
+                            { value: 2, name: '向坤山', itemStyle: { color: '#e6f7ff' } },
+                            { value: 2, name: '袁立', itemStyle: { color: '#85e5e3' } },
+                            { value: 1, name: '王玲', itemStyle: { color: '#5cdbd3' } },
+                            { value: 1, name: '于威江', itemStyle: { color: '#36cfc9' } },
+                            { value: 1, name: '王朝红', itemStyle: { color: '#13c2c2' } },
+                            { value: 1, name: '兰春春', itemStyle: { color: '#006d75' } }
+                        ]
+                    }
+                ]
+            };
+            pieChart.setOption(option);
+        }
+    </script>
+</body>
+</html>
