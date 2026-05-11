@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析 - 决策平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* 调色板 */
+            --bg-body: #F5F5F7;        /* Apple 浅灰背景 */
+            --bg-card: #FFFFFF;        /* 纯白卡片 */
+            
+            --text-primary: #1D1D1F;   /* 深黑主色 */
+            --text-secondary: #86868B; /* 次级灰色 */
+            --text-tertiary: #B2B2B2;  /* 辅助灰色 */
+            
+            --accent-blue: #0066CC;    /* 交互蓝 */
+            --accent-green: #28CD41;   /* 成功绿 */
+            --accent-red: #FF3B30;     /* 警示红 */
+            --accent-orange: #FF9500;  /* 提示橙 */
+            --accent-purple: #AF52DE;  /* 强调紫 */
+
+            --border-light: rgba(0, 0, 0, 0.06); 
+            
+            /* 投影体系 - 弥散光感 */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.1);
+
+            /* 圆角 */
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 24px;
+            --radius-full: 999px;
+            
+            /* 字体栈 */
+            --font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Roboto, "Segoe UI", Arial, sans-serif;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-stack); -webkit-font-smoothing: antialiased;  }
+        body { background-color: var(--bg-body); color: var(--text-primary); }
+        .container { display: flex; height: 100vh; }
+        /* --- 侧边栏 (Sidebar) - 保持一致性 --- */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            padding: 32px 16px;
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+            box-shadow: 1px 0 0 var(--border-light); /* 极细分割线 */
+        }
+        .logo { padding: 0 16px 32px; margin-bottom: 10px; }
+        .logo h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--text-primary) 0%, #434344 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; }
+        .nav-item { display: flex; align-items: center; padding: 12px 16px; margin-bottom: 4px; color: var(--text-secondary); text-decoration: none; font-size: 14px; font-weight: 500; border-radius: var(--radius-md); transition: all 0.2s ease; }
+        .nav-item i { width: 24px; margin-right: 12px; font-size: 16px; text-align: center; }
+        .nav-item:hover { background-color: rgba(0, 0, 0, 0.03); color: var(--text-primary); }
+        .nav-item.active { background-color: rgba(0, 102, 204, 0.08); color: var(--accent-blue); }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        .page-title { font-size: 2rem; font-weight: 700; margin-bottom: 1.5rem; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+        .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+        .card-description { color: var(--text-secondary); margin-bottom: 1.5rem; }
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .feature-card {
+            background: var(--bg-body);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .feature-card .icon { font-size: 2rem; color: var(--accent-blue); margin-bottom: 1rem; }
+        .feature-card h4 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .feature-card p { font-size: 0.9rem; color: var(--text-secondary); flex-grow: 1; }
+        .feature-card .btn { align-self: flex-start; margin-top: 1rem; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; }
+        .btn-primary { background-color: var(--accent-blue); color: white; }
+        .btn-primary:hover { background-color: #0056b3; }
+
+        /* User Profile Style from Decision-v1.html */
+        .user-profile { display: flex; align-items: center; gap: 12px; background: var(--bg-card); padding: 6px 12px 6px 6px; border-radius: var(--radius-full); box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s; }
+        .user-profile:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .avatar { width: 32px; height: 32px; background: linear-gradient(135deg, #00C6FB, #005BEA); border-radius: 50%; color: white; font-weight: 600; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .user-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="logo">
+                <h1>决策平台</h1>
+            </div>
+            <nav>
+                <a href="Decision-v1.html" class="nav-item"><i class="fas fa-home"></i> 主页</a>
+                <a href="process-all.html" class="nav-item"><i class="fas fa-project-diagram"></i> 决策流程</a>
+                <a href="Statistics-v1.html" class="nav-item"><i class="fas fa-chart-pie"></i> 决策统计</a>
+                <a href="Analysis-v1.html" class="nav-item active"><i class="fas fa-chart-line"></i> 数据分析</a>
+                <a href="Doc-v1.html" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="Schedule-v1.html" class="nav-item"><i class="fas fa-calendar-alt"></i> 评审计划</a>
+                <a href="#" class="nav-item"><i class="fas fa-file-alt"></i> 文档管理</a>
+                <a href="#" class="nav-item"><i class="fas fa-exclamation-triangle"></i> 风险预警</a>
+            </nav>
+        </div>
+        
+        <div class="main-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="page-title" style="margin-bottom: 0;">数据分析</h2>
+                <div class="user-profile">
+                    <div class="avatar">E</div>
+                    <span class="user-name">评审团成员E</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">决策智能分析中心</h3>
+                <p class="card-description">通过多维度数据分析，评估决策效果、优化流程，并沉淀为知识资产，驱动更高质量的未来决策。</p>
+                <div class="module-grid">
+                    <!-- 模块1: 决策效果评估 -->
+                    <div class="feature-card">
+                        <div class="icon"><i class="fas fa-chart-pie"></i></div>
+                        <h4>决策效果评估报告</h4>
+                        <p>通过数据分析，生成决策效果评估报告，为后续优化提供依据。</p>
+                        <a href="#" class="btn btn-primary">生成报告</a>
+                    </div>
+
+                    <!-- 模块2: 流程持续优化 -->
+                    <div class="feature-card">
+                        <div class="icon"><i class="fas fa-cogs"></i></div>
+                        <h4>决策流程优化</h4>
+                        <p>通过数据分析和反馈机制，持续优化决策流程，提升决策质量，确保项目高效推进。</p>
+                        <a href="#" class="btn btn-primary">分析反馈</a>
+                    </div>
+
+                    <!-- 模块3: 决策数据库 -->
+                    <div class="feature-card">
+                        <div class="icon"><i class="fas fa-database"></i></div>
+                        <h4>决策数据库</h4>
+                        <p>定期更新决策数据库，积累经验，提升整体决策水平。</p>
+                        <a href="#" class="btn btn-primary">进入数据库</a>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+</body>
+</html>
